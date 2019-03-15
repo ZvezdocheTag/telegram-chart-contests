@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h1 class="page-title">Followers</h1>
+    </header>
+    <main>
+        <div class="followers-chart">
+            <svg class="chart" id="graph">
+            </svg>
+            <div class="minimap">
+                <svg class="minimap-chart" id="graph-minimap">
+                </svg>
+                <div class="minimap-zoom-slider">
+
+                </div>
+            </div>
+            <div class="followers-chart__contols">
+                <button class="toggle-btn" data-toggle-btn="joined">Joined</button>
+                <button class="toggle-btn" data-toggle-btn="left">Left</button>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <button class="link-style">Switch to Night Mode</button>
+    </footer>
+    <script src="data.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>
