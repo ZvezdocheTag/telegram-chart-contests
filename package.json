@@ -1,0 +1,23 @@
+{
+  "name": "telegram-chart",
+  "version": "1.0.0",
+  "description": "run - `browser-sync start --server --files \"*\"`",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "browser-sync start --server --files `*`"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZvezdocheTag/telegram-chart-contests.git"
+  },
+  "author": "Vitaly Yastremsky",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ZvezdocheTag/telegram-chart-contests/issues"
+  },
+  "homepage": "https://github.com/ZvezdocheTag/telegram-chart-contests#readme",
+  "devDependencies": {
+    "standard": "^12.0.1"
+  }
+}
