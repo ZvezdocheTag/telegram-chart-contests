@@ -41,7 +41,7 @@ export const Chart = {
       } = line
 
       let xScale = this.scaleTime([0, w], [xMin, xMax])
-      let yScale = this.scaleLiniar([0, h], [yMin, yMax])
+      let yScale = this.scaleLiniar([h, 0], [yMin, yMax])
 
       return {
         ...line,
