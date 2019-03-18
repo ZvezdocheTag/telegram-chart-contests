@@ -1,27 +1,35 @@
-import { normilizeColumns } from './utils.js'
 
 export const Chart = {
-  data: window.jsonData.map(obj => Object.assign({}, obj, {
-    columns: normilizeColumns(obj.columns)
-  })),
-
   lines: null,
+  w: null,
+  h: null,
 
-  init () {
-    let chart = this.data[0]
+  init (chart, w, h) {
     this.lines = this.calculateChartRanges(chart)
+    this.w = w
+    this.h = h
 
     return this
-    // return this.calculateLayoutCoords(lines, w, h)
   },
 
-  calculateChartRanges ({ names, types, columns, colors }) {
+  points () {
+    const { xCoords, yCoords } = this.getCoords()[0]
+    console.log(this.generatePoints(xCoords, yCoords))
+    return this.generatePoints(xCoords, yCoords)
+  },
+
+  generatePoints (xCoords, yCoords) {
+    return xCoords
+      .map((x, idx) => `${Math.round(x)}, ${Math.round(xCoords[idx])}`)
+      .join(' ')
+  },
+
+  calculateChartRanges ({ names, types, columns }) {
     return Object.keys(names).map(key => {
       const $X = 'x'
 
       if (types[ key ] === 'line' && types[ $X ]) {
         return {
-          color: colors[ key ],
           x: columns[ $X ],
           y: columns[ key ],
           xRange: this.getRange(columns[ $X ]),
@@ -34,8 +42,10 @@ export const Chart = {
   },
 
   // calculateLayoutCoords (lines, w, h) {
-  getCoords (w, h) {
-    return this.lines.map(line => {
+  getCoords () {
+    const { w, h, lines } = this
+    console.log(w, h, lines)
+    return lines.map(line => {
       let {
         xRange: { max: xMax, min: xMin },
         yRange: { max: yMax, min: yMin }

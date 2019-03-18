@@ -3,47 +3,44 @@
 // 2. Get from "types" definition of axis like "line",
 // and to match "types" keys with "columns" keys
 // 3. Recieve max values from line "y" and "x" to build difinition on the axis
-import { setAttrNs, qs } from './utils.js'
+import { setAttrNs, qs, normilizeColumns } from './utils.js'
 import { Chart } from './graph.js'
 import { Magnifier } from './magnifier.js'
+const json = window.jsonData.map(obj => Object.assign({}, obj, {
+  columns: normilizeColumns(obj.columns)
+}))
 
 const chart = {
-  layout () {
+  layout (data) {
     const svg = qs('svg.chart')
     const width = window.innerWidth
     const height = 400
-    const coords = Chart.init().getCoords(width, height)
-    coords.forEach(coord => {
-      this.draw(svg, width, height, coord)
-    })
+    const coords = Chart.init(data, width, height).points()
+
+    this.draw(svg, width, height, coords)
   },
 
-  layoutMinimap () {
+  layoutMinimap (data) {
     const svg = qs('svg.minimap-chart')
     const width = window.innerWidth
     const height = 100
-    const coords = Chart.init().getCoords(width, height)
+    const coords = Chart.init(data, width, height).points()
 
-    coords.forEach(coord => {
-      this.draw(svg, width, height, coord)
-    })
+    this.draw(svg, width, height, coords)
   },
 
   init () {
+    const [ first ] = json
     const thumb = qs('[data-thumb-side="center"]')
-    const magnifier = new Magnifier(thumb)
-
-    this.layout()
-    this.layoutMinimap()
+    let magnifier = new Magnifier(thumb)
 
     magnifier.init()
+    this.layout(first)
   },
 
-  draw (el, w, h, coords) {
-    const { xCoords, yCoords, color } = coords
-    const generatePoints = xCoords.map((x, idx) => `${Math.round(x)}, ${Math.round(yCoords[idx])}`).join(' ')
-    this.layoutSetting(el, w, h)
-    this.drawPolyline(el, generatePoints, color)
+  draw (el, width, height, coords) {
+    this.layoutSetting(el, width, height)
+    this.drawPolyline(el, coords)
   },
 
   layoutSetting (layout, width, height) {
@@ -53,15 +50,15 @@ const chart = {
     layout.style.border = '1px solid red'
   },
 
-  drawPolyline (svg, path, stroke) {
+  drawPolyline (svg, path) {
+    // let test = '0,300 120,140 200,180 180, 50 300, 90'
     const xmlns = 'http://www.w3.org/2000/svg'
-
     const rectEl = document.createElementNS(xmlns, 'polyline')
     setAttrNs(rectEl, [
       { points: path },
       { fill: 'none' },
-      { 'stroke-width': 1 },
-      { stroke: stroke }
+      { 'stroke-width': 3 },
+      { stroke: 'black' }
     ])
     svg.appendChild(rectEl)
   }
