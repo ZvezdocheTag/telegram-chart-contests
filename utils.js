@@ -19,3 +19,16 @@ export function qs (element) {
 export const normilizeColumns = (columns) => columns.reduce((curr, [key, ...values]) => {
   return { ...curr, [key]: values }
 }, {})
+
+export function getCoords (elem) {
+  let box = elem.getBoundingClientRect()
+  let body = document.body
+  let docEl = document.documentElement
+  let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
+  let clientLeft = docEl.clientLeft || body.clientLeft || 0
+  let left = box.left + scrollLeft - clientLeft
+
+  return {
+    left: left
+  }
+}
