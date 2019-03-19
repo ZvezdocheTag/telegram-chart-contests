@@ -56,19 +56,16 @@ export const Chart = {
 
       if (ranges) {
         let [ rangeMin, rangeMax ] = this.findRange(line.x.map(xScale), ranges)
-        // let rangeTo = line.x.filter(date => date >= line.x[rangeMin] && date <= line.x[rangeMax])
-        // xAxisTikers = this.convertTimeToString(rangeTo)
-        // console.log(rangeToDate)
         let xScaleMinimap = this.scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax]])
         scaleLine = line.x.map(xScaleMinimap)
       }
+
       return {
         ...line,
-        // xCoords: line.x.map(xScale),
         xCoords: scaleLine,
         yCoords: scaleLineY,
-        xAxis: xAxisTikers
-        // xWithRanges: this.findRange(line.x.map(xScale), ranges)
+        xAxis: xAxisTikers,
+        yAxis: scaleLineY
       }
     })
   },

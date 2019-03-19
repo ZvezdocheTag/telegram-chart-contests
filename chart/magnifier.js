@@ -1,4 +1,4 @@
-import { qs, getCoords } from './utils.js'
+import { qs, getCoords } from '../utils.js'
 
 // TODO ADD COLLBACK AFTER EVENT WITH MAGNIFIER IS HAPPENS TO BUILD LAYOUT
 
