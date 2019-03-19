@@ -12,19 +12,6 @@ const json = window.jsonData.map(obj => Object.assign({}, obj, {
 }))
 
 const chart = {
-  // layout (rangeX = 350, rangeY = 600) {
-  //   const svg = qs('svg.chart')
-  //   const width = window.innerWidth
-  //   const height = 400
-  //   const coords = Chart.init(json).getCoords(width, height, [rangeX, rangeY])
-
-  //   console.log(coords)
-
-  //   coords.forEach(coord => {
-  //     this.draw(svg, width, height, coord)
-  //   })
-  // },
-
   layoutMinimap () {
     const svg = qs('svg.minimap-chart')
     const width = window.innerWidth
@@ -41,7 +28,7 @@ const chart = {
     const magnifier = new Magnifier(thumb, LayoutChart(svg, width, height))
 
     // this.layout()
-    this.layoutMinimap()(0, width)
+    this.layoutMinimap()(0, width, true)
     // console.log()
 
     magnifier.init()
@@ -49,18 +36,33 @@ const chart = {
 }
 
 function LayoutChart (svg, w, h) {
-  function layout (rangeX, rangeY) {
+  function layout (rangeX, rangeY, tickersFlag) {
     const coords = Chart.init(json).getCoords(w, h, [rangeX, rangeY])
-    console.log(rangeX, rangeY, coords)
+
+    let rangeDiff = rangeY - rangeX
+    console.log(rangeDiff)
+    if (!tickersFlag && !qs('.tick-wrapper')) {
+      let { xCoords, xAxis, key } = coords[0]
+      const generateAxises = xCoords.map((x, idx) => ({ x: Math.round(x), tick: xAxis[idx] }))
+      console.log(Math.round(rangeDiff / xCoords.length) * 3, 'F')
+      let pr = Math.round(rangeDiff / xCoords.length) * 3
+      let filterAxises = generateAxises.filter((o, idx) => idx % pr === 0)
+      drawXAxis(svg, filterAxises, key)
+    }
     coords.forEach(coord => {
-      draw(svg, w, h, coord)
+      draw(svg, w, h, coord, tickersFlag, rangeDiff)
     })
   }
 
-  function draw (el, w, h, coords) {
-    const { xCoords, yCoords, color, key } = coords
+  function draw (el, w, h, coords, tickersFlag, rangeDiff) {
+    const { xCoords, yCoords, color, key, xAxis } = coords
     const generatePoints = xCoords.map((x, idx) => `${Math.round(x)}, ${Math.round(yCoords[idx])}`).join(' ')
+    const generateAxises = xCoords.map((x, idx) => ({ x: Math.round(x), tick: xAxis[idx] }))
+    // console.log(generateAxises.length, rangeDiff)
+    let proporcion = Math.round(rangeDiff / xCoords.length) * 3
+    let filterAxises = generateAxises.filter((o, idx) => idx % proporcion === 0)
 
+    // console.log(generateAxises)
     // console.log(el.querySelector(`#${key}`))
     let group = el.querySelector(`#${key}`)
     if (group === null) {
@@ -68,6 +70,13 @@ function LayoutChart (svg, w, h) {
       drawPolyline(el, generatePoints, color, key)
     } else {
       setAttrNs(group.querySelector('polyline'), [{ points: generatePoints }])
+      // let tiks = [...document.querySelectorAll('.tick')]
+      filterAxises.forEach((tick, idx) => {
+        let curr = document.querySelectorAll('.tick')
+        setAttrNs(curr[idx], [
+          { transform: `translate(${tick.x}, 0)` }
+        ])
+      })
     }
 
     function layoutSetting (layout, width, height) {
@@ -95,6 +104,40 @@ function LayoutChart (svg, w, h) {
       svg.appendChild(gEl)
       gEl.appendChild(rectEl)
     }
+  }
+
+  function drawXAxis (svg, ticks, key) {
+    const xmlns = 'http://www.w3.org/2000/svg'
+
+    const g = document.createElementNS(xmlns, 'g')
+    svg.appendChild(g)
+    setAttrNs(g, [
+      { class: `tick-wrapper` }
+    ])
+
+    ticks.forEach(tick => {
+      drawTick(g, xmlns, tick)
+    })
+  }
+
+  function drawTick (svg, xmlns, { tick, x }) {
+    const text = document.createElementNS(xmlns, 'text')
+    const g = document.createElementNS(xmlns, 'g')
+
+    text.textContent = tick
+
+    setAttrNs(g, [
+      { class: `tick` },
+      { transform: `translate(${x}, 0)` }
+
+    ])
+    setAttrNs(text, [
+      { fill: `#000` },
+      { y: `0` },
+      { dy: `0.71em` }
+    ])
+    svg.appendChild(g)
+    g.appendChild(text)
   }
 
   return layout

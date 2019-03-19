@@ -28,6 +28,17 @@ export const Chart = {
     }).filter(line => line)
   },
 
+  convertTimeToString (arr) {
+    const monthes = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+    return arr.map(it => {
+      let current = new Date(it)
+      let day = current.getDate()
+      let month = current.getMonth()
+      return `${day} ${monthes[month]}`
+    })
+  },
+
   getCoords (w, h, ranges) {
     return this.lines.map(line => {
       let {
@@ -40,11 +51,14 @@ export const Chart = {
 
       let scaleLine = line.x.map(xScale)
       let scaleLineY = line.y.map(yScale)
+
+      let xAxisTikers = this.convertTimeToString(line.x)
+
       if (ranges) {
         let [ rangeMin, rangeMax ] = this.findRange(line.x.map(xScale), ranges)
-        let maxToDate = new Date(line.x[rangeMax])
-        let minToDate = new Date(line.x[rangeMin])
-        console.log(maxToDate, minToDate)
+        // let rangeTo = line.x.filter(date => date >= line.x[rangeMin] && date <= line.x[rangeMax])
+        // xAxisTikers = this.convertTimeToString(rangeTo)
+        // console.log(rangeToDate)
         let xScaleMinimap = this.scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax]])
         scaleLine = line.x.map(xScaleMinimap)
       }
@@ -52,7 +66,8 @@ export const Chart = {
         ...line,
         // xCoords: line.x.map(xScale),
         xCoords: scaleLine,
-        yCoords: scaleLineY
+        yCoords: scaleLineY,
+        xAxis: xAxisTikers
         // xWithRanges: this.findRange(line.x.map(xScale), ranges)
       }
     })
