@@ -64,8 +64,10 @@ export const Chart = {
         ...line,
         xCoords: scaleLine,
         yCoords: scaleLineY,
-        xAxis: xAxisTikers,
-        yAxis: scaleLineY
+        xAxisTikers: xAxisTikers,
+        yAxis: scaleLineY,
+        xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })),
+        points: scaleLine.map((x, idx) => `${Math.round(x)}, ${Math.round(scaleLineY[idx])}`).join(' ')
       }
     })
   },

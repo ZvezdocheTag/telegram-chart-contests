@@ -34,11 +34,9 @@ function LayoutChart (svg, w, h) {
 
     let rangeDiff = rangeY - rangeX
     if (!tickersFlag && !qs('.tick-wrapper')) {
-      let { xCoords, xAxis, key } = coords[0]
-      const generateAxises = xCoords.map((x, idx) => ({ x: Math.round(x), tick: xAxis[idx] }))
-      let pr = Math.round(rangeDiff / xCoords.length) * 3
-      let filterAxises = generateAxises.filter((o, idx) => idx % pr === 0)
-      drawXAxis(svg, filterAxises, key)
+      let { xAxis, key } = coords[0]
+
+      drawXAxis(svg, xAxis, key)
     }
 
     coords.forEach(coord => {
@@ -47,23 +45,16 @@ function LayoutChart (svg, w, h) {
   }
 
   function draw (el, w, h, coords, tickersFlag, rangeDiff) {
-    const { xCoords, yCoords, color, key, xAxis } = coords
-    const generatePoints = xCoords.map((x, idx) => `${Math.round(x)}, ${Math.round(yCoords[idx])}`).join(' ')
-    const generateAxises = xCoords.map((x, idx) => ({ x: Math.round(x), tick: xAxis[idx] }))
-    // console.log(generateAxises.length, rangeDiff)
-    let proporcion = Math.round(rangeDiff / xCoords.length) * 3
-    let filterAxises = generateAxises.filter((o, idx) => idx % proporcion === 0)
+    const { points, color, key, xAxis } = coords
 
     let group = el.querySelector(`#${key}`)
     if (group === null) {
       layoutSetting(el, w, h)
 
-      el.appendChild(Line.draw(el, key, generatePoints, color))
-
-      // el.appendChild(line)
+      el.appendChild(Line.draw(el, key, points, color))
     } else {
-      setAttrNs(group.querySelector('polyline'), [{ points: generatePoints }])
-      filterAxises.forEach((tick, idx) => {
+      setAttrNs(group.querySelector('polyline'), [{ points: points }])
+      xAxis.forEach((tick, idx) => {
         let curr = document.querySelectorAll('.tick')
         setAttrNs(curr[idx], [
           { transform: `translate(${tick.x}, 0)` }
