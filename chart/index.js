@@ -55,6 +55,7 @@ export const Chart = {
 
       let xAxisTikers = this.convertTimeToString(line.x)
       if (ranges) {
+        // console.log(line.x, xScale, ranges, w, 'INSIDE')
         let [ rangeMin, rangeMax ] = this.findRange(line.x.map(xScale), ranges)
         let xScaleMinimap = this.scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax]])
         scaleLine = line.x.map(xScaleMinimap)
@@ -78,18 +79,21 @@ export const Chart = {
       }
     })
   },
+  // x, ranges
+  generateWithRanges (x, xScale, ranges, w) {
+    // console.log(x, xScale, ranges, w, 'FF')
+    let [ rangeMin, rangeMax ] = this.findRange(x.map(xScale), ranges)
+    let xScaleMinimap = this.scaleTime([0, w], [x[rangeMin], x[rangeMax]])
+    return xScaleMinimap
+  },
 
   generateAxis (max, yScale) {
     const AMOUNT_COORDS_Y = 6
-    // let filterRange = coords.map(item => item.max.max)
-    // let getMax = Math.max.apply(null, filterRange)
-
     let generateTicks = Array.from({ length: AMOUNT_COORDS_Y }, (o, idx) => {
       let t = (Math.round(max / 100) * 100) / AMOUNT_COORDS_Y
       return t * idx
     })
     return generateTicks.map(value => ({ y: yScale(value), tick: value }))
-    // console.log(getMax, generateTicks, yAxis)
   },
 
   findRange (coords, [ min, max ]) {
@@ -108,8 +112,6 @@ export const Chart = {
       maxIndex = k
     }
 
-    // console.log(coords[minIndex], coords[maxIndex - 1])
-    // console.log(coords.filter(coord => coord > min && coord < max))
     return [ minIndex, maxIndex ]
   },
 
@@ -117,10 +119,8 @@ export const Chart = {
     return (val) => {
       let diffCanvas = max - min
       let diffAxis = axisMax - axisMin
-
-      // let tick = (diffCanvas / diffAxis) * 100
-      let r = (val - axisMin) / diffAxis
-      let res = r * diffCanvas
+      let diff = (val - axisMin) / diffAxis
+      let res = diff * diffCanvas
 
       return Math.abs(res)
     }

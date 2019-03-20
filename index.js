@@ -1,15 +1,14 @@
-import { qs, normilizeColumns } from './utils.js'
+import { qs, normilizeColumns, setAttrNs } from './utils.js'
 
 import { Canvas } from './chart/canvas.js'
 import { ChartTemplate } from './chart/template.js'
 import { Magnifier } from './chart/magnifier.js'
+import { Tooltip } from './chart/tooltip.js'
 
 const json = window.jsonData.map(obj => Object.assign({}, obj, {
   columns: normilizeColumns(obj.columns)
 }))
 
-// Вставляем HTML
-// создаем
 const chart = {
   drawChart (id, main, w, h, minimapHeight, data) {
     const idAttr = `followers-${id}`
@@ -17,9 +16,11 @@ const chart = {
     const svg = qs(`#${idAttr} .chart`)
     const svgMinimap = qs(`#${idAttr} .minimap-chart`)
     const thumb = qs(`#${idAttr} [data-thumb-side="center"]`)
+
     const magnifier = new Magnifier(thumb, Canvas(svg, w, h, data))
 
     Canvas(svgMinimap, w, minimapHeight, data).line(0, h).render()
+    Tooltip.draw(svg, h)
     magnifier.init()
   },
 

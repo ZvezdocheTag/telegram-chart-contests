@@ -1,3 +1,32 @@
-export const Tooltip = {
+import { setAttrNs } from '../utils.js'
 
+export const Tooltip = {
+  draw (svg, h) {
+    const xmlns = 'http://www.w3.org/2000/svg'
+    let line = document.createElementNS(xmlns, 'line')
+    setAttrNs(line, [
+      { class: 'svg-linear' },
+      { x1: 0 },
+      { y1: 0 },
+      { x2: 0 },
+      { y2: h },
+      { stroke: 'black' }
+    ])
+
+    svg.appendChild(line)
+  },
+
+  update (line, x) {
+    setAttrNs(line, [
+      { x1: x },
+      { x2: x }
+    ])
+  },
+
+  reset (line) {
+    setAttrNs(line, [
+      { x1: 0 },
+      { x2: 0 }
+    ])
+  }
 }

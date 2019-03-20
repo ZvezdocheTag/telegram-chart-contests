@@ -6,15 +6,16 @@ export const Axis = {
     const xmlns = 'http://www.w3.org/2000/svg'
 
     const wrapper = document.createElementNS(xmlns, 'g')
+    let text = document.createElementNS(xmlns, 'text')
 
     svg.appendChild(wrapper)
     setAttrNs(wrapper, [
       { class: `tick-wrapper-${axis}` }
     ])
 
-    let text = document.createElementNS(xmlns, 'text')
     let tickWrapper = document.createElementNS(xmlns, 'g')
     setAttrNs(tickWrapper, [{ class: `tick-${axis}` }])
+
     tickWrapper.appendChild(text)
 
     ticks.forEach(item => {
@@ -47,6 +48,3 @@ export const Axis = {
   }
 
 }
-
-// function drawXAxis (svg, ticks, key) {
-// }
