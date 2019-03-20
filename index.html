@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body class="default">
     <header>
         <h1 class="page-title">Followers</h1>
     </header>
@@ -20,11 +20,11 @@
             <div class="minimap">
                 <svg class="minimap-chart" id="graph-minimap">
                 </svg>
-                <div class="minimap-slider">
-                    <div class="minimap-slider_shadow left"></div>
-                    <div class="minimap-slider_shadow right"></div>
+                <div class="magnifier">
+                    <div class="magnifier_shadow left"></div>
+                    <div class="magnifier_shadow right"></div>
 
-                    <div class="minimap-slider__thumb minimap-thumb" data-thumb-side="center">
+                    <div class="magnifier__thumb minimap-thumb" data-thumb-side="center">
                         <div class="minimap-thumb__control right" data-thumb-side="right"></div>
                         <div class="minimap-thumb__control left" data-thumb-side="left"></div>
                     </div>
@@ -37,7 +37,7 @@
         </div>
     </main>
     <footer>
-        <button class="link-style">Switch to Night Mode</button>
+        <button class="toggle-mode-btn">Switch to Night Mode</button>
     </footer>
     <script src="data.js"></script>
 

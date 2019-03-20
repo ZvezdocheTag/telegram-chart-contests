@@ -10,8 +10,8 @@ export class Magnifier {
     this.controlLeft = el.querySelector('.left')
     this.controlRight = el.querySelector('.right')
 
-    this.shadowLeft = qs('.minimap-slider_shadow.left')
-    this.shadowRight = qs('.minimap-slider_shadow.right')
+    this.shadowLeft = qs('.magnifier_shadow.left')
+    this.shadowRight = qs('.magnifier_shadow.right')
 
     this.customCursor = null
     this.resizeStart = this.resizeStart.bind(this)
@@ -29,8 +29,9 @@ export class Magnifier {
     this.initDefault()
     this.initShadow()
     this.listeners()
-    // To есть для успешного рендера нужно
-    this.layout(150, 250)
+
+    this.layout.line(150, 250).render()
+    this.layout.axises(150, 250).render()
   }
   initDefault () {
     this.el.style.left = `${150}px`
@@ -71,16 +72,18 @@ export class Magnifier {
       if (side === 'right') {
         let elW = width + (resizePageX - pageX)
 
-        this.layout(getLeft, getLeft + elW)
+        this.layout.line(getLeft, getLeft + elW).update()
+        this.layout.axises(getLeft, getLeft + elW).update()
 
         this.el.style.width = `${elW}px`
         this.shadowRight.style.width = containerWidth - (getLeft + elW) + 'px'
       }
       if (side === 'left') {
-        this.el.style.width = width - (resizePageX - pageX) + 'px'
+        let calcWidth = width - (resizePageX - pageX)
+        this.el.style.width = calcWidth + 'px'
         this.el.style.left = `${resizePageX}px`
-        this.layout(resizePageX, width - (resizePageX - pageX) + resizePageX)
-
+        this.layout.line(resizePageX, calcWidth + resizePageX).update()
+        this.layout.axises(resizePageX, calcWidth + resizePageX).update()
         this.shadowLeft.style.width = resizePageX + 'px'
       }
       if (side === 'center') {
@@ -88,7 +91,8 @@ export class Magnifier {
         let r = containerWidth - (l + width)
         this.el.style.left = l + 'px'
 
-        this.layout(l, l + width)
+        this.layout.line(l, l + width).update()
+        this.layout.axises(l, l + width).update()
 
         this.shadowLeft.style.width = l + 'px'
         this.shadowRight.style.width = r + 'px'

@@ -1,8 +1,75 @@
+:root {
+}
+
+.default {
+  --text-color: #222222;
+  --page-bg: #fff;
+  --axis-tick-color: #96a2aa;
+  --axis-tick-line-bg: #f2f4f5;
+  --layout-measure-line: #dfe6eb;
+
+  --magnifier-border-color: #ddeaf3;
+  --link-color: #108be3;
+
+  --btn-border: #e6ecf0;
+
+  --transition-var: background-color 0.3s ease;
+}
+.default.dark {
+  --text-color: #ffffff;
+  --page-bg: #242f3e;
+  --axis-tick-color: #546778;
+  --axis-tick-line-bg: #3b4a5a;
+  --layout-measure-line: #dfe6eb;
+
+  --magnifier-border-color: #40566b;
+  --link-color: #36a8f1;
+
+  --btn-border: #344658;
+}
+body {
+  background-color: var(--page-bg);
+  transition: var(--transition-var);
+}
+button {
+  cursor: pointer;
+}
+.toggle-btn {
+  border: 3px solid var(--text-color, #000);
+  box-sizing: border-box;
+  border-radius: 50px;
+  color: var(--text-color);
+  padding-left: 60px;
+  padding-right: 20px;
+  height: 50px;
+  display: inline-block;
+  outline: none;
+  line-height: 30px;
+  box-shadow: none;
+  background: var(--page-bg);
+}
+footer {
+  text-align: center;
+}
+.toggle-mode-btn {
+  box-sizing: border-box;
+  display: inline-block;
+  outline: none;
+  line-height: 30px;
+  box-shadow: none;
+  border: none;
+  background: none;
+  color: var(--link-color, #000);
+}
+.page-title {
+  color: var(--text-color, #000);
+}
+
 .minimap {
   position: relative;
 }
 
-.minimap-slider {
+.magnifier {
   width: 100%;
   height: 100%;
   /* background: rgba(0, 0, 0, 0.1); */
@@ -11,7 +78,7 @@
   left: 0;
 }
 
-.minimap-slider__thumb {
+.magnifier__thumb {
   position: absolute;
   width: 10px;
   height: 100%;
@@ -29,18 +96,17 @@
   cursor: col-resize;
 }
 
-.minimap-slider_shadow {
+.magnifier_shadow {
   background: rgba(0, 0, 0, 0.1);
   position: absolute;
   height: 100%;
-
 }
 
-.minimap-slider_shadow.left {
+.magnifier_shadow.left {
   left: 0;
 }
 
-.minimap-slider_shadow.right {
+.magnifier_shadow.right {
   right: 0;
   /* cursor: none; */
 }
@@ -71,9 +137,4 @@
   height: 50px;
   transform: scale(1);
   transition: all 0.3s ease;
-}
-
-.page-title {
-  color: #383838;
-
 }

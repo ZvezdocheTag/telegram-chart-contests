@@ -53,23 +53,46 @@ export const Chart = {
       let scaleLineY = line.y.map(yScale)
 
       let xAxisTikers = this.convertTimeToString(line.x)
-
       if (ranges) {
         let [ rangeMin, rangeMax ] = this.findRange(line.x.map(xScale), ranges)
         let xScaleMinimap = this.scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax]])
         scaleLine = line.x.map(xScaleMinimap)
       }
+      // console.log(pr)
 
+      // let xAxisStatic = {
+      //   values: this.generateAxis(yMax).map(yScale),
+      //   label: this.generateAxis(yMax)
+      // }
       return {
         ...line,
         xCoords: scaleLine,
         yCoords: scaleLineY,
         xAxisTikers: xAxisTikers,
-        yAxis: scaleLineY,
+
+        xAxisStatic: this.generateAxis(yMax, yScale),
+        yAxisStatic: this.generateAxis(yMax, yScale),
+        // yAxis: scaleLineY,
+        // DEBUG: GENERATE ERROR IN SETATTRIBUE
+        // xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })).filter((o, idx) => idx % pr === 0),
         xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })),
+        yAxis: scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] })),
         points: scaleLine.map((x, idx) => `${Math.round(x)}, ${Math.round(scaleLineY[idx])}`).join(' ')
       }
     })
+  },
+
+  generateAxis (max, yScale) {
+    const AMOUNT_COORDS_Y = 6
+    // let filterRange = coords.map(item => item.max.max)
+    // let getMax = Math.max.apply(null, filterRange)
+
+    let generateTicks = Array.from({ length: AMOUNT_COORDS_Y }, (o, idx) => {
+      let t = (Math.round(max / 100) * 100) / AMOUNT_COORDS_Y
+      return t * idx
+    })
+    return generateTicks.map(value => ({ y: yScale(value), tick: value }))
+    // console.log(getMax, generateTicks, yAxis)
   },
 
   findRange (coords, [ min, max ]) {

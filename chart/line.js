@@ -1,7 +1,7 @@
 import { setAttrNs } from '../utils.js'
 
 export const Line = {
-  draw (el, key, path, color) {
+  draw (key, path, color) {
     const xmlns = 'http://www.w3.org/2000/svg'
     const g = document.createElementNS(xmlns, 'g')
     const polyline = document.createElementNS(xmlns, 'polyline')
