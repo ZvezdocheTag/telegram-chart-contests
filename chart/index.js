@@ -4,8 +4,8 @@ export const Chart = {
   lines: null,
 
   init (chart) {
-    this.lines = this.calculateChartRanges(chart[0])
-
+    this.lines = this.calculateChartRanges(chart)
+    // console.log(this.lines)
     return this
   },
 
@@ -20,7 +20,8 @@ export const Chart = {
           y: columns[ key ],
           key: key,
           xRange: this.getRange(columns[ $X ]),
-          yRange: this.getRange(columns[ key ])
+          yRange: this.getRange(columns[ key ]),
+          len: columns.length
         }
       }
 
@@ -58,12 +59,8 @@ export const Chart = {
         let xScaleMinimap = this.scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax]])
         scaleLine = line.x.map(xScaleMinimap)
       }
-      // console.log(pr)
 
-      // let xAxisStatic = {
-      //   values: this.generateAxis(yMax).map(yScale),
-      //   label: this.generateAxis(yMax)
-      // }
+      // console.log(scaleLine, scaleLineY)
       return {
         ...line,
         xCoords: scaleLine,
@@ -121,10 +118,11 @@ export const Chart = {
       let diffCanvas = max - min
       let diffAxis = axisMax - axisMin
 
-      let step = (val * 100) / diffAxis
-      let diff = diffCanvas * (step / 100)
+      // let tick = (diffCanvas / diffAxis) * 100
+      let r = (val - axisMin) / diffAxis
+      let res = r * diffCanvas
 
-      return min + diff
+      return Math.abs(res)
     }
   },
 

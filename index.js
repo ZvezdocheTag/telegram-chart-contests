@@ -1,30 +1,37 @@
 import { qs, normilizeColumns } from './utils.js'
 
 import { Canvas } from './chart/canvas.js'
+import { ChartTemplate } from './chart/template.js'
 import { Magnifier } from './chart/magnifier.js'
 
 const json = window.jsonData.map(obj => Object.assign({}, obj, {
   columns: normilizeColumns(obj.columns)
 }))
 
+// Вставляем HTML
+// создаем
 const chart = {
-  layoutMinimap () {
-    const svg = qs('svg.minimap-chart')
-    const width = window.innerWidth
-    const height = 100
+  drawChart (id, main, w, h, minimapHeight, data) {
+    const idAttr = `followers-${id}`
+    main.insertAdjacentHTML('beforeEnd', ChartTemplate(idAttr))
+    const svg = qs(`#${idAttr} .chart`)
+    const svgMinimap = qs(`#${idAttr} .minimap-chart`)
+    const thumb = qs(`#${idAttr} [data-thumb-side="center"]`)
+    const magnifier = new Magnifier(thumb, Canvas(svg, w, h, data))
 
-    return Canvas(svg, width, height, json)
+    Canvas(svgMinimap, w, minimapHeight, data).line(0, h).render()
+    magnifier.init()
   },
 
   init () {
-    const thumb = qs('[data-thumb-side="center"]')
-    const svg = qs('svg.chart')
+    const main = qs('main')
     const width = window.innerWidth
     const height = 400
-    const magnifier = new Magnifier(thumb, Canvas(svg, width, height, json))
+    const heightMinimap = 100
 
-    this.layoutMinimap().line(0, width).render()
-    magnifier.init()
+    json.forEach((data, idx) => {
+      this.drawChart(idx, main, width, height, heightMinimap, data)
+    })
 
     qs('.toggle-mode-btn').addEventListener('click', function () {
       document.body.classList.toggle('dark')
