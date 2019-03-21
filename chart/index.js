@@ -53,6 +53,8 @@ export const Chart = {
       let scaleLine = line.x.map(xScale)
       let scaleLineY = line.y.map(yScale)
 
+      // let stateScaleLine = line.x.map(xScale);
+
       let xAxisTikers = this.convertTimeToString(line.x)
       if (ranges) {
         // console.log(line.x, xScale, ranges, w, 'INSIDE')
@@ -60,16 +62,17 @@ export const Chart = {
         let xScaleMinimap = this.scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax]])
         scaleLine = line.x.map(xScaleMinimap)
       }
-
-      // console.log(scaleLine, scaleLineY)
+      const AMOUNT_COORDS_Y = 6
+      const AMOUNT_COORDS_X = 8
+      // console.log(scaleLine.filter(x => x > 0 && x < w))
       return {
         ...line,
         xCoords: scaleLine,
         yCoords: scaleLineY,
         xAxisTikers: xAxisTikers,
 
-        xAxisStatic: this.generateAxis(yMax, yScale),
-        yAxisStatic: this.generateAxis(yMax, yScale),
+        xAxisStatic: this.generateAxis(yMax, yScale, h, AMOUNT_COORDS_Y),
+        yAxisStatic: this.generateAxis(yMax, yScale, h, AMOUNT_COORDS_X),
         // yAxis: scaleLineY,
         // DEBUG: GENERATE ERROR IN SETATTRIBUE
         // xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })).filter((o, idx) => idx % pr === 0),
@@ -87,13 +90,15 @@ export const Chart = {
     return xScaleMinimap
   },
 
-  generateAxis (max, yScale) {
-    const AMOUNT_COORDS_Y = 6
+  generateAxis (max, yScale, layoutMax, AMOUNT_COORDS_Y) {
+    const tick = layoutMax / AMOUNT_COORDS_Y
+    // console.log(yScale(max))
     let generateTicks = Array.from({ length: AMOUNT_COORDS_Y }, (o, idx) => {
       let t = (Math.round(max / 100) * 100) / AMOUNT_COORDS_Y
       return t * idx
     })
-    return generateTicks.map(value => ({ y: yScale(value), tick: value }))
+    // console.log(max, generateTicks)
+    return generateTicks.map((value, idx) => ({ y: tick * idx, tick: Math.round(value) }))
   },
 
   findRange (coords, [ min, max ]) {
@@ -119,6 +124,7 @@ export const Chart = {
     return (val) => {
       let diffCanvas = max - min
       let diffAxis = axisMax - axisMin
+
       let diff = (val - axisMin) / diffAxis
       let res = diff * diffCanvas
 
@@ -137,6 +143,7 @@ export const Chart = {
     return (val) => {
       let current = new Date(val).getTime()
       let time = (current - minDate) / DAY
+
       let step = (time * 100) / totalPeriod
       let diff = diffCanvas * (step / 100)
 

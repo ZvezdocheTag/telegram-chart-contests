@@ -21,7 +21,7 @@ export function Canvas (svg, width, height, data) {
       let ol = coords[0].xAxis.map((d, i) => ({ [Math.round(d.x)]: { ...d, i } }))
       const { xRange: { max: xMax, min: xMin }, x } = coords[0]
       // console.log(xMax, xMin, 0, width)
-      console.log(coords[0])
+      // console.log(coords[0])
       const scaleLine = Chart.scaleTime([ 0, width ], [xMin, xMax])
       const scaleWithRanges = Chart.generateWithRanges(x, scaleLine, [min, max], width)
       return {
@@ -31,7 +31,7 @@ export function Canvas (svg, width, height, data) {
             let line = [...container.childNodes].find(item => item.nodeName === 'line')
             this.addEventListener('mousemove', function (e) {
               let ob = scaleWithRanges(e.pageX)
-              console.log(e.pageX)
+              // console.log(e.pageX)
               // console.log(ol[Math.round(ob)], ob, e.pageX, 'F')
               // if (ol[e.pageX]) {
               // }
@@ -59,14 +59,18 @@ export function Canvas (svg, width, height, data) {
       return {
         render: function () {
           let { xAxis, yAxisStatic, xAxisStatic } = coords[0]
-
-          // console.log(xAxisStatic)
+          // let wi = xAxis.filter(ax => ax.x % 3 === 0)
+          // let wi = xAxis.filter(ax => ax.x > -50 && ax.x < width + 50).filter(ax => ax.x % 3 === 0)
+          // console.log(xAxisStatic, wi)
           Axis.render(svg, xAxis, 'x')
           Axis.render(svg, yAxisStatic, 'y')
         },
         update: function () {
           let { xAxis, yAxis } = coords[0]
-
+          // let wi = xAxis.filter(ax => ax.x % 3 === 0)
+          // let wi = xAxis.filter(ax => ax.x > -50 && ax.x < width + 50).filter(ax => ax.x % 3 === 0)
+          // let wi = xAxis.filter(ax => ax.x > 0 && ax.x < width)
+          // console.log(wi)
           Axis.update(svg, xAxis, 'x')
           // Axis.update(svg, yAxis, 'y')
         }

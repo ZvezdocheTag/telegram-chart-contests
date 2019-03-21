@@ -8,14 +8,16 @@ export const Axis = {
     const wrapper = document.createElementNS(xmlns, 'g')
     let text = document.createElementNS(xmlns, 'text')
 
-    svg.appendChild(wrapper)
     setAttrNs(wrapper, [
       { class: `tick-wrapper-${axis}` }
+
     ])
-
+    console.log(ticks)
     let tickWrapper = document.createElementNS(xmlns, 'g')
-    setAttrNs(tickWrapper, [{ class: `tick-${axis}` }])
+    let transform = axis === 'x' ? `translate(${0}, 0)` : `translate(0, ${0})`
+    setAttrNs(tickWrapper, [{ class: `tick-${axis}` }, { transform: transform }])
 
+    svg.appendChild(wrapper)
     tickWrapper.appendChild(text)
 
     ticks.forEach(item => {
@@ -44,6 +46,7 @@ export const Axis = {
       setAttrNs(curr[idx], [
         { transform: transform }
       ])
+      curr[idx].children[0].textContent = tick.tick
     })
   }
 

@@ -30,7 +30,7 @@ const chart = {
     const height = 400
     const heightMinimap = 100
 
-    json.forEach((data, idx) => {
+    json.filter((i, d) => d === 1).forEach((data, idx) => {
       this.drawChart(idx, main, width, height, heightMinimap, data)
     })
 
@@ -41,16 +41,3 @@ const chart = {
 }
 
 chart.init()
-
-// Y COORDS
-
-// if (!tickersFlag && !qs('.tick-wrapper-y')) {
-//   let { yCoords, key } = coords[0]
-//   let filterAxises = yCoords.slice(0, 6)
-//   let next = filterAxises.map((y, idx) => {
-//     let yd = Math.round(h / filterAxises.length) * idx
-
-//     return ({ y: yd, tick: y.toString() })
-//   })
-//   drawYAxis(svg, next, key)
-// }
