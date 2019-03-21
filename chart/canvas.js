@@ -10,7 +10,7 @@ export function Canvas (svg, width, height, data) {
   svg.setAttribute('width', width)
   svg.setAttribute('height', height)
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
-  svg.style.border = '1px solid red'
+  // svg.style.border = '1px solid red'
 
   return {
     init: function () {
@@ -43,15 +43,23 @@ export function Canvas (svg, width, height, data) {
       // const scaleWithRanges = Chart.generateWithRanges(x, scaleLine, [min, max], width)
       return {
         render: function () {
-          svg.addEventListener('mouseenter', function () {
+          svg.addEventListener('mouseenter', function (e) {
             let container = this.closest('svg')
+            let tooltip = document.querySelector('.chart-tooltip')
+
+            tooltip.classList.add('active')
+            tooltip.style.top = e.pageY + 'px'
+            tooltip.style.left = e.pageX + 'px'
+
             let line = [...container.childNodes].find(item => item.nodeName === 'line')
             this.addEventListener('mousemove', function (e) {
               // let ob = scaleWithRanges(e.pageX)
-              // console.log(e.pageX, e.pageY)
-              Tooltip.update(line, e.offsetX, getByCoords())
+              tooltip.style.top = (e.pageY - 50) + 'px'
+              tooltip.style.left = (e.pageX + 50) + 'px'
+              Tooltip.update(line, e.pageX, e.pageY, getByCoords())
             })
             this.addEventListener('mouseleave', function () {
+              tooltip.classList.remove('active')
               Tooltip.reset(line)
             })
           })

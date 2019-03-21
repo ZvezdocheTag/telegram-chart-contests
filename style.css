@@ -1,13 +1,20 @@
-:root {}
+:root {
+}
 
 .chart-tooltip {
   position: absolute;
+  opacity: 0;
   top: 100px;
   left: 100px;
   background: #fff;
   border-radius: 10px;
   padding: 10px 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: opacity 0.3s ease;
+}
+
+.chart-tooltip.active {
+  opacity: 1;
 }
 
 .chart-tooltip ul {
@@ -25,11 +32,11 @@
 
 .chart-tooltip li {
   flex: 1;
-  margin-right: 15px
+  margin-right: 15px;
 }
 
 .chart-tooltip li:last-child {
-  margin-right: 0px
+  margin-right: 0px;
 }
 
 .tooltip-item-name {
