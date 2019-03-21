@@ -1,4 +1,44 @@
-:root {
+:root {}
+
+.chart-tooltip {
+  position: absolute;
+  top: 100px;
+  left: 100px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.chart-tooltip ul {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chart-tooltip h5 {
+  margin: 0;
+  font-size: 1.1em;
+  margin-bottom: 0.2em;
+}
+
+.chart-tooltip li {
+  flex: 1;
+  margin-right: 15px
+}
+
+.chart-tooltip li:last-child {
+  margin-right: 0px
+}
+
+.tooltip-item-name {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+
+.tooltip-item-value {
+  font-size: 0.9em;
 }
 
 .default {
@@ -15,6 +55,7 @@
 
   --transition-var: background-color 0.3s ease;
 }
+
 .default.dark {
   --text-color: #ffffff;
   --page-bg: #242f3e;
@@ -27,13 +68,16 @@
 
   --btn-border: #344658;
 }
+
 body {
   background-color: var(--page-bg);
   transition: var(--transition-var);
 }
+
 button {
   cursor: pointer;
 }
+
 .toggle-btn {
   border: 3px solid var(--text-color, #000);
   box-sizing: border-box;
@@ -48,9 +92,11 @@ button {
   box-shadow: none;
   background: var(--page-bg);
 }
+
 footer {
   text-align: center;
 }
+
 .toggle-mode-btn {
   box-sizing: border-box;
   display: inline-block;
@@ -61,6 +107,7 @@ footer {
   background: none;
   color: var(--link-color, #000);
 }
+
 .page-title {
   color: var(--text-color, #000);
 }

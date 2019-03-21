@@ -12,7 +12,7 @@ export const Axis = {
       { class: `tick-wrapper-${axis}` }
 
     ])
-    console.log(ticks)
+
     let tickWrapper = document.createElementNS(xmlns, 'g')
     let transform = axis === 'x' ? `translate(${0}, 0)` : `translate(0, ${0})`
     setAttrNs(tickWrapper, [{ class: `tick-${axis}` }, { transform: transform }])
@@ -38,7 +38,7 @@ export const Axis = {
       wrapper.appendChild(tickEl)
     })
   },
-
+  // REVIEW AND REFACTORING
   update (svg, ticks, axis) {
     let curr = svg.querySelectorAll(`.tick-${axis}`)
     ticks.forEach((tick, idx) => {

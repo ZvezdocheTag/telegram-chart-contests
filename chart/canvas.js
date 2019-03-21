@@ -4,6 +4,7 @@ import { Chart } from './index.js'
 import { Line } from './line.js'
 import { Axis } from './axis.js'
 import { Tooltip } from './tooltip.js'
+import { TooltipTemplate } from './template.js'
 
 export function Canvas (svg, width, height, data) {
   svg.setAttribute('width', width)
@@ -17,25 +18,38 @@ export function Canvas (svg, width, height, data) {
     },
     line: function (min, max) {
       const coords = Chart.init(data).getCoords(width, height, [min, max])
+      console.log(coords)
 
-      let ol = coords[0].xAxis.map((d, i) => ({ [Math.round(d.x)]: { ...d, i } }))
-      const { xRange: { max: xMax, min: xMin }, x } = coords[0]
+      const getByCoords = (key = new Date()) => {
+        let date = key
+
+        return {
+          time: date,
+          lines: coords.map(coord => ({
+            name: coord.name,
+            color: coord.color,
+            value: coord.y[0] // should be key
+          }))
+        }
+      }
+      // console.log(TooltipTemplate(getByCoords()))
+      document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords()))
+
+      // let ol = coords[0].xAxis.map((d, i) => ({ [Math.round(d.x)]: { ...d, i } }))
+      // const { xRange: { max: xMax, min: xMin }, x } = coords[0]
       // console.log(xMax, xMin, 0, width)
       // console.log(coords[0])
-      const scaleLine = Chart.scaleTime([ 0, width ], [xMin, xMax])
-      const scaleWithRanges = Chart.generateWithRanges(x, scaleLine, [min, max], width)
+      // const scaleLine = Chart.scaleTime([ 0, width ], [xMin, xMax])
+      // const scaleWithRanges = Chart.generateWithRanges(x, scaleLine, [min, max], width)
       return {
         render: function () {
           svg.addEventListener('mouseenter', function () {
             let container = this.closest('svg')
             let line = [...container.childNodes].find(item => item.nodeName === 'line')
             this.addEventListener('mousemove', function (e) {
-              let ob = scaleWithRanges(e.pageX)
-              // console.log(e.pageX)
-              // console.log(ol[Math.round(ob)], ob, e.pageX, 'F')
-              // if (ol[e.pageX]) {
-              // }
-              Tooltip.update(line, e.pageX)
+              // let ob = scaleWithRanges(e.pageX)
+              // console.log(e.pageX, e.pageY)
+              Tooltip.update(line, e.offsetX, getByCoords())
             })
             this.addEventListener('mouseleave', function () {
               Tooltip.reset(line)
@@ -58,19 +72,12 @@ export function Canvas (svg, width, height, data) {
       const coords = Chart.init(data).getCoords(width, height, [min, max])
       return {
         render: function () {
-          let { xAxis, yAxisStatic, xAxisStatic } = coords[0]
-          // let wi = xAxis.filter(ax => ax.x % 3 === 0)
-          // let wi = xAxis.filter(ax => ax.x > -50 && ax.x < width + 50).filter(ax => ax.x % 3 === 0)
-          // console.log(xAxisStatic, wi)
+          let { xAxis, yAxisStatic } = coords[0]
           Axis.render(svg, xAxis, 'x')
           Axis.render(svg, yAxisStatic, 'y')
         },
         update: function () {
-          let { xAxis, yAxis } = coords[0]
-          // let wi = xAxis.filter(ax => ax.x % 3 === 0)
-          // let wi = xAxis.filter(ax => ax.x > -50 && ax.x < width + 50).filter(ax => ax.x % 3 === 0)
-          // let wi = xAxis.filter(ax => ax.x > 0 && ax.x < width)
-          // console.log(wi)
+          let { xAxis } = coords[0]
           Axis.update(svg, xAxis, 'x')
           // Axis.update(svg, yAxis, 'y')
         }

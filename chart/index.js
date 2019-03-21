@@ -5,7 +5,7 @@ export const Chart = {
 
   init (chart) {
     this.lines = this.calculateChartRanges(chart)
-    // console.log(this.lines)
+    console.log(chart, 'MS')
     return this
   },
 
@@ -19,6 +19,7 @@ export const Chart = {
           x: columns[ $X ],
           y: columns[ key ],
           key: key,
+          name: names[ key ],
           xRange: this.getRange(columns[ $X ]),
           yRange: this.getRange(columns[ key ]),
           len: columns.length
