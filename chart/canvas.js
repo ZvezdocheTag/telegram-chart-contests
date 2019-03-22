@@ -42,38 +42,30 @@ export function Canvas (svg, width, height, data) {
           }))
         }
       }
-      // console.log(TooltipTemplate(getByCoords()))
       document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords()))
 
-      // let ol = coords[0].xAxis.map((d, i) => ({ [Math.round(d.x)]: { ...d, i } }))
-      // const { xRange: { max: xMax, min: xMin }, x } = coords[0]
-      // console.log(xMax, xMin, 0, width)
-      // console.log(coords[0])
-      // const scaleLine = Chart.scaleTime([ 0, width ], [xMin, xMax])
-      // const scaleWithRanges = Chart.generateWithRanges(x, scaleLine, [min, max], width)
       return {
         render: function () {
-          svg.addEventListener('mouseenter', function (e) {
-            let container = this.closest('svg')
-            let tooltip = document.querySelector('.chart-tooltip')
+          // svg.addEventListener('mouseenter', function (e) {
+          //   let container = this.closest('svg')
+          //   let tooltip = document.querySelector('.chart-tooltip')
 
-            tooltip.classList.add('active')
-            tooltip.style.top = e.pageY + 'px'
-            tooltip.style.left = e.pageX + 'px'
+          //   tooltip.classList.add('active')
+          //   tooltip.style.top = e.pageY + 'px'
+          //   tooltip.style.left = e.pageX + 'px'
 
-            let line = [...container.childNodes].find(item => item.nodeName === 'line')
-            this.addEventListener('mousemove', function (e) {
-              // let ob = scaleWithRanges(e.pageX)
-              tooltip.style.top = (e.pageY - 50) + 'px'
-              tooltip.style.left = (e.pageX + 50) + 'px'
-              Tooltip.update(line, e.pageX, e.pageY, getByCoords())
-            })
-            this.addEventListener('mouseleave', function () {
-              tooltip.classList.remove('active')
-              Tooltip.reset(line)
-            })
-          })
-
+          //   let line = [...container.childNodes].find(item => item.nodeName === 'line')
+          //   this.addEventListener('mousemove', function (e) {
+          //     tooltip.style.top = (e.pageY - 50) + 'px'
+          //     tooltip.style.left = (e.pageX + 50) + 'px'
+          //     Tooltip.update(line, e.pageX, e.pageY, getByCoords())
+          //   })
+          //   this.addEventListener('mouseleave', function () {
+          //     tooltip.classList.remove('active')
+          //     Tooltip.reset(line)
+          //   })
+          // })
+          console.log(coords, svg, 'M')
           coords.forEach(({ key, points, color }) => {
             svg.appendChild(Line.draw(key, points, color))
           })
@@ -91,16 +83,52 @@ export function Canvas (svg, width, height, data) {
       return {
         render: function () {
           let { xAxis, yAxisStatic } = coords[0]
-          Axis.render(svg, xAxis, 'x')
+          // let updated = xAxis.filter((item, idx) => item.x >= min && item.x <= max)
+          // console.log(updated.length)
+          console.log(this.generateAxis(xAxis), 'RENDER`')
+          let ax = this.generateAxis(xAxis)
+          let MAX_IN_ARRAY = 6
+          let res = this.generateAxisRange(width, ax, MAX_IN_ARRAY)
+          console.log(res)
+
+          Axis.render(svg, res, 'x', MAX_IN_ARRAY)
           Axis.render(svg, yAxisStatic, 'y', width)
         },
         update: function () {
           let { xAxis } = coords[0]
-          Axis.update(svg, xAxis, 'x')
+          let ax = this.generateAxis(xAxis)
+          let MAX_IN_ARRAY = 6
+          let res = this.generateAxisRange(width, ax, MAX_IN_ARRAY)
+          Axis.update(svg, res, 'x')
           // Axis.update(svg, yAxis, 'y')
+        },
+
+        generateAxis (axis) {
+          let updated = axis.filter((item, idx) => item.x >= min && item.x <= max)
+          let MAX_IN_ARRAY = 6
+          let filtered = updated.length / MAX_IN_ARRAY
+          if (updated.length > MAX_IN_ARRAY) {
+            updated = updated.filter((idm, id) => id % Math.round(filtered) === 0).slice(0, 6)
+          }
+          console.log(updated)
+          // console.log
+          return updated
+        },
+
+        generateAxisRange (max, arr, NUM) {
+          const tick = max / NUM
+
+          return arr.map((value, idx) => ({ x: tick * idx, tick: value.tick }))
         }
       }
     }
 
   }
 }
+
+// let ol = coords[0].xAxis.map((d, i) => ({ [Math.round(d.x)]: { ...d, i } }))
+// const { xRange: { max: xMax, min: xMin }, x } = coords[0]
+// console.log(xMax, xMin, 0, width)
+// console.log(coords[0])
+// const scaleLine = Chart.scaleTime([ 0, width ], [xMin, xMax])
+// const scaleWithRanges = Chart.generateWithRanges(x, scaleLine, [min, max], width)

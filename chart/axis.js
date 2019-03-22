@@ -21,7 +21,12 @@ export const Axis = {
 
     const wrapper = document.createElementNS(xmlns, 'g')
     let text = document.createElementNS(xmlns, 'text')
-    let transformAx = axis === 'x' ? `translate(${50}, 0)` : `translate(0, ${50})`
+    let transformAx = axis === 'x' ? `translate(${0}, 0)` : `translate(0, ${0})`
+    setAttrNs(text, [
+      { fill: `#000` },
+      { y: `0` },
+      { dy: `0.71em` }
+    ])
     setAttrNs(wrapper, [
       { class: `tick-wrapper-${axis}` },
       { transform: transformAx }
@@ -34,6 +39,7 @@ export const Axis = {
 
     svg.appendChild(wrapper)
     tickWrapper.appendChild(text)
+
     if (axis === 'y') {
       tickWrapper.appendChild(createLineTick(svg, width))
     }
@@ -43,7 +49,8 @@ export const Axis = {
       tickEl.children[0].textContent = tick
 
       let transform = axis === 'x' ? `translate(${item[axis]}, 0)` : `translate(0, ${item[axis]})`
-      setAttrNs(tickWrapper, [
+      console.log(item, transform)
+      setAttrNs(tickEl, [
         { transform: transform }
       ])
       setAttrNs(text, [

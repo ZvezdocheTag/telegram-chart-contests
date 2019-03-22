@@ -8,7 +8,8 @@ export const Line = {
 
     // console.log(g)
     setAttrNs(g, [
-      { id: key }
+      { id: key },
+      { class: 'chart-line' }
     ])
     setAttrNs(polyline, [
       { points: path },

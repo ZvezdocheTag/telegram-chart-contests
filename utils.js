@@ -5,6 +5,7 @@ export function tag (tag, text) {
   return el
 }
 
+export let rand = Math.random().toString(36).substring(0, 2) + Math.random().toString(36).substring(2, 5)
 export function setAttrNs (el, values) {
   let entries = values.map(item => Object.entries(item))
   for (let [ i ] of entries) {

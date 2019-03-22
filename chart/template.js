@@ -22,9 +22,9 @@ export const TooltipTemplate = ({ time, lines }) => {
   `
 }
 
-const Button = (name, color) => {
+const Button = (axis, name, color) => {
   return `
-  <button class="toggle-btn pulse" style="color: ${color};" data-toggle-btn="${name}">
+  <button class="toggle-btn pulse" style="color: ${color};" data-toggle-btn="${axis}">
     <div class="target icon off">
     <div class="dot"></div>
   </div>
@@ -35,7 +35,7 @@ const Button = (name, color) => {
 
 export const ChartTemplate = (name, chart) => {
   const temp = `
-    <div id="${name}" class=" chart-wrapper">
+    <div id="${name}" class="chart-wrapper">
     <svg class="chart" id="graph"></svg>
     <div class="minimap">
         <svg class="minimap-chart" id="graph-minimap">
@@ -52,7 +52,7 @@ export const ChartTemplate = (name, chart) => {
     </div>
     <div class="chart-contols">
       ${Object.entries(chart.names)
-    .map(([key, value]) => Button(value, chart.colors[key]))}
+    .map(([key, value]) => Button(key, value, chart.colors[key]))}
     </div>
   </div>
   `

@@ -203,6 +203,18 @@ footer {
 
 }
 
+.chart-line {
+  transform: scaleY(1) translate(0, 0px);
+  opacity: 1;
+  transition: transform .3s ease, opacity .2s ease;
+}
+
+.chart-line.remove {
+  transform: scaleY(1.5) translate(0, -300.6px);
+  opacity: 0;
+  transition: transform .4s ease, opacity .3s ease .2s;
+}
+
 .icon {
   width: 20px;
   height: 20px;
@@ -229,6 +241,18 @@ footer {
   -webkit-transform: rotate(-45deg) scale(1);
   transform: rotate(-45deg) scale(1);
   transition: all .3s ease .2s;
+}
+
+.chart-wrapper {
+  margin-bottom: 80px;
+}
+
+.chart {
+  margin-bottom: 20px;
+}
+
+.minimap {
+  margin-bottom: 40px;
 }
 
 .tick-y text,

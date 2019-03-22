@@ -46,7 +46,7 @@ export const Chart = {
       let xAxisTikers = line.x.map(convertMonthToString)
       if (ranges) {
         let [ rangeMin, rangeMax ] = this.findRange(line.x.map(xScale), ranges)
-        let xScaleMinimap = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax]])
+        let xScaleMinimap = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
         scaleLine = line.x.map(xScaleMinimap)
       }
       const AMOUNT_COORDS_Y = 6
@@ -74,6 +74,7 @@ export const Chart = {
   },
 
   generateAxis (max, yScale, layoutMax, AMOUNT_COORDS_Y) {
+    // console.log(max, layoutMax, layoutMax, AMOUNT_COORDS_Y)
     const tick = layoutMax / AMOUNT_COORDS_Y
     let generateTicks = Array.from({ length: AMOUNT_COORDS_Y }, (o, idx) => {
       let t = (Math.round(max / 100) * 100) / AMOUNT_COORDS_Y
