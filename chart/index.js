@@ -1,11 +1,11 @@
-
+import { scaleLiniar, scaleTime } from './scale.js'
+import { convertMonthToString } from './utils.js'
 export const Chart = {
 
   lines: null,
 
   init (chart) {
     this.lines = this.calculateChartRanges(chart)
-    console.log(chart, 'MS')
     return this
   },
 
@@ -30,17 +30,6 @@ export const Chart = {
     }).filter(line => line)
   },
 
-  convertTimeToString (arr) {
-    const monthes = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-    return arr.map(it => {
-      let current = new Date(it)
-      let day = current.getDate()
-      let month = current.getMonth()
-      return `${day} ${monthes[month]}`
-    })
-  },
-
   getCoords (w, h, ranges) {
     return this.lines.map(line => {
       let {
@@ -48,19 +37,16 @@ export const Chart = {
         yRange: { max: yMax, min: yMin }
       } = line
 
-      let xScale = this.scaleTime([0, w], [xMin, xMax])
-      let yScale = this.scaleLiniar([h, 0], [yMin, yMax])
+      let xScale = scaleTime([0, w], [xMin, xMax])
+      let yScale = scaleLiniar([h, 0], [yMin, yMax])
 
       let scaleLine = line.x.map(xScale)
       let scaleLineY = line.y.map(yScale)
 
-      // let stateScaleLine = line.x.map(xScale);
-
-      let xAxisTikers = this.convertTimeToString(line.x)
+      let xAxisTikers = line.x.map(convertMonthToString)
       if (ranges) {
-        // console.log(line.x, xScale, ranges, w, 'INSIDE')
         let [ rangeMin, rangeMax ] = this.findRange(line.x.map(xScale), ranges)
-        let xScaleMinimap = this.scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax]])
+        let xScaleMinimap = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax]])
         scaleLine = line.x.map(xScaleMinimap)
       }
       const AMOUNT_COORDS_Y = 6
@@ -74,31 +60,25 @@ export const Chart = {
 
         xAxisStatic: this.generateAxis(yMax, yScale, h, AMOUNT_COORDS_Y),
         yAxisStatic: this.generateAxis(yMax, yScale, h, AMOUNT_COORDS_X),
-        // yAxis: scaleLineY,
-        // DEBUG: GENERATE ERROR IN SETATTRIBUE
-        // xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })).filter((o, idx) => idx % pr === 0),
         xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })),
         yAxis: scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] })),
         points: scaleLine.map((x, idx) => `${Math.round(x)}, ${Math.round(scaleLineY[idx])}`).join(' ')
       }
     })
   },
-  // x, ranges
+
   generateWithRanges (x, xScale, ranges, w) {
-    // console.log(x, xScale, ranges, w, 'FF')
     let [ rangeMin, rangeMax ] = this.findRange(x.map(xScale), ranges)
-    let xScaleMinimap = this.scaleTime([0, w], [x[rangeMin], x[rangeMax]])
+    let xScaleMinimap = scaleTime([0, w], [x[rangeMin], x[rangeMax]])
     return xScaleMinimap
   },
 
   generateAxis (max, yScale, layoutMax, AMOUNT_COORDS_Y) {
     const tick = layoutMax / AMOUNT_COORDS_Y
-    // console.log(yScale(max))
     let generateTicks = Array.from({ length: AMOUNT_COORDS_Y }, (o, idx) => {
       let t = (Math.round(max / 100) * 100) / AMOUNT_COORDS_Y
       return t * idx
     })
-    // console.log(max, generateTicks)
     return generateTicks.map((value, idx) => ({ y: tick * idx, tick: Math.round(value) }))
   },
 
@@ -121,37 +101,6 @@ export const Chart = {
     return [ minIndex, maxIndex ]
   },
 
-  scaleLiniar ([ min, max ], [ axisMin, axisMax ]) {
-    return (val) => {
-      let diffCanvas = max - min
-      let diffAxis = axisMax - axisMin
-
-      let diff = (val - axisMin) / diffAxis
-      let res = diff * diffCanvas
-
-      return Math.abs(res)
-    }
-  },
-
-  scaleTime ([ min, max ], [dateMin, dateMax]) {
-    const DAY = 1000 * 60 * 60 * 24
-    let maxDate = new Date(dateMax).getTime()
-    let minDate = new Date(dateMin).getTime()
-    let totalPeriod = (maxDate - minDate) / DAY
-
-    let diffCanvas = max - min
-
-    return (val) => {
-      let current = new Date(val).getTime()
-      let time = (current - minDate) / DAY
-
-      let step = (time * 100) / totalPeriod
-      let diff = diffCanvas * (step / 100)
-
-      return min + diff
-    }
-  },
-
   getRange (arr) {
     return {
       max: Math.max.apply(null, arr),
@@ -159,17 +108,3 @@ export const Chart = {
     }
   }
 }
-
-// // axis x width or axis y width
-// checkDataConsistentes (columns) {
-//   let same = null
-//   for (let i = 0; i < arr.length; i += 1) {
-//     if (!same) {
-//       throw Error(`data inconsistent ${arr[i - 1]}`)
-//     }
-//     if (i === 0) continue
-//     same = arr[i - 1].length === arr[i].length
-//   }
-
-//   return same
-// },

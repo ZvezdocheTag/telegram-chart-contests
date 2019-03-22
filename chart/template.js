@@ -22,7 +22,18 @@ export const TooltipTemplate = ({ time, lines }) => {
   `
 }
 
-export const ChartTemplate = (name) => {
+const Button = (name, color) => {
+  return `
+  <button class="toggle-btn pulse" style="color: ${color};" data-toggle-btn="${name}">
+    <div class="target icon off">
+    <div class="dot"></div>
+  </div>
+  ${name}
+  </button>
+  `
+}
+
+export const ChartTemplate = (name, chart) => {
   const temp = `
     <div id="${name}" class=" chart-wrapper">
     <svg class="chart" id="graph"></svg>
@@ -39,9 +50,9 @@ export const ChartTemplate = (name) => {
             </div>
         </div>
     </div>
-    <div class="${name}-chart__contols">
-        <button class="toggle-btn" data-toggle-btn="joined">Joined</button>
-        <button class="toggle-btn" data-toggle-btn="left">Left</button>
+    <div class="chart-contols">
+      ${Object.entries(chart.names)
+    .map(([key, value]) => Button(value, chart.colors[key]))}
     </div>
   </div>
   `

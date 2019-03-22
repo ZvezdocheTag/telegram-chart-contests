@@ -13,11 +13,12 @@ export const Tooltip = {
       { stroke: 'black' }
     ])
 
-    svg.appendChild(line)
+    // svg.appendChild(line)
+    svg.insertAdjacentElement('beforeend', line)
   },
 
   update (line, x, data) {
-    console.log(data, 'UPD')
+    // console.log(data, 'UPD')
     setAttrNs(line, [
       { x1: x },
       { x2: x }

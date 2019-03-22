@@ -1,15 +1,30 @@
 
 import { setAttrNs } from '../utils.js'
 
+const createLineTick = (svg, w, h) => {
+  const xmlns = 'http://www.w3.org/2000/svg'
+  let line = document.createElementNS(xmlns, 'line')
+  setAttrNs(line, [
+    { class: 'y-line-tick' },
+    { x1: 0 },
+    { y1: 24 },
+    { x2: w },
+    { y2: 24 },
+    { stroke: 'black' }
+  ])
+  return line
+}
+
 export const Axis = {
-  render (svg, ticks, axis) {
+  render (svg, ticks, axis, width) {
     const xmlns = 'http://www.w3.org/2000/svg'
 
     const wrapper = document.createElementNS(xmlns, 'g')
     let text = document.createElementNS(xmlns, 'text')
-
+    let transformAx = axis === 'x' ? `translate(${50}, 0)` : `translate(0, ${50})`
     setAttrNs(wrapper, [
-      { class: `tick-wrapper-${axis}` }
+      { class: `tick-wrapper-${axis}` },
+      { transform: transformAx }
 
     ])
 
@@ -19,7 +34,9 @@ export const Axis = {
 
     svg.appendChild(wrapper)
     tickWrapper.appendChild(text)
-
+    if (axis === 'y') {
+      tickWrapper.appendChild(createLineTick(svg, width))
+    }
     ticks.forEach(item => {
       let tick = item.tick
       let tickEl = tickWrapper.cloneNode(true)

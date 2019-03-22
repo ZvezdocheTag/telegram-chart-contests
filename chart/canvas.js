@@ -18,7 +18,7 @@ export function Canvas (svg, width, height, data) {
     },
     line: function (min, max) {
       const coords = Chart.init(data).getCoords(width, height, [min, max])
-      console.log(coords)
+      // console.log(coords)
 
       const getByCoords = (key = new Date()) => {
         let date = key
@@ -82,7 +82,7 @@ export function Canvas (svg, width, height, data) {
         render: function () {
           let { xAxis, yAxisStatic } = coords[0]
           Axis.render(svg, xAxis, 'x')
-          Axis.render(svg, yAxisStatic, 'y')
+          Axis.render(svg, yAxisStatic, 'y', width)
         },
         update: function () {
           let { xAxis } = coords[0]
