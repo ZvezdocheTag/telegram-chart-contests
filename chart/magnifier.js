@@ -3,15 +3,15 @@ import { qs, getCoords } from '../utils.js'
 // TODO ADD COLLBACK AFTER EVENT WITH MAGNIFIER IS HAPPENS TO BUILD LAYOUT
 
 export class Magnifier {
-  constructor (el, cb) {
-    this.el = el
-    this.layout = cb
-    this.container = el.parentElement
-    this.controlLeft = el.querySelector('.left')
-    this.controlRight = el.querySelector('.right')
+  constructor (idAttr, cb) {
+    this.el = qs(`#${idAttr} [data-thumb-side="center"]`)
+    this.actionResize = cb
+    this.container = this.el.parentElement
+    this.controlLeft = this.el.querySelector('.left')
+    this.controlRight = this.el.querySelector('.right')
 
-    this.shadowLeft = qs('.magnifier_shadow.left')
-    this.shadowRight = qs('.magnifier_shadow.right')
+    this.shadowLeft = this.container.querySelector('.magnifier_shadow.left')
+    this.shadowRight = this.container.querySelector('.magnifier_shadow.right')
 
     this.customCursor = null
     this.resizeStart = this.resizeStart.bind(this)
@@ -30,17 +30,47 @@ export class Magnifier {
     this.initShadow()
     this.listeners()
 
-    this.layout.line(150, 250).render()
-    this.layout.axises(150, 250).render()
+    this.actionResize(0, 100).render()
   }
   initDefault () {
-    this.el.style.left = `${150}px`
-    this.el.style.right = `${250}px`
+    this.el.style.left = `${0}px`
+    this.el.style.right = `${100}px`
     this.el.style.width = `${100}px`
   }
+
   initShadow () {
     this.shadowLeft.style.width = this.leftCursorPos + 'px'
     this.shadowRight.style.width = this.container.offsetWidth - this.rightCursorPos + 'px'
+  }
+
+  resizeLeft (init) {
+    this.el.style.right = init + 'px'
+
+    return (width, resize) => {
+      this.el.style.width = width + 'px'
+      this.el.style.left = `${resize}px`
+      this.shadowLeft.style.width = resize + 'px'
+
+      this.actionResize(resize, width + resize).update()
+    }
+  }
+
+  resizeRight (init) {
+    this.el.style.left = init + 'px'
+
+    return (width, left, container) => {
+      this.el.style.width = `${width}px`
+      this.shadowRight.style.width = container - (left + width) + 'px'
+
+      this.actionResize(left, left + width).update()
+    }
+  }
+
+  dragCenter (l, r, width) {
+    this.el.style.left = l + 'px'
+    this.shadowLeft.style.width = l + 'px'
+    this.shadowRight.style.width = r + 'px'
+    this.actionResize(l, l + width).update()
   }
 
   resizeStart (e) {
@@ -51,51 +81,42 @@ export class Magnifier {
 
     let pageX = e.pageX
 
+    let leftAction = null
+    let rightAction = null
+
     if (e.type === 'touchstart') {
       pageX = e.touches[0].pageX
     }
 
     if (side === 'right') {
-      this.el.style.left = pageX - width + 'px'
+      rightAction = this.resizeRight(pageX - width)
     }
 
     if (side === 'left') {
-      this.el.style.right = containerWidth - width - pageX + 'px'
+      leftAction = this.resizeLeft(containerWidth - width - pageX)
     }
 
     const resize = (ec) => {
       let resizePageX = ec.pageX
+
       if (ec.type === 'touchmove') {
         resizePageX = ec.touches[0].pageX
       }
 
+      let calcWidth = width - (resizePageX - pageX)
+      let elW = width + (resizePageX - pageX)
+      let l = getLeft + (resizePageX - pageX)
+      let r = containerWidth - (l + width)
+
       if (side === 'right') {
-        let elW = width + (resizePageX - pageX)
-
-        this.layout.line(getLeft, getLeft + elW).update()
-        this.layout.axises(getLeft, getLeft + elW).update()
-
-        this.el.style.width = `${elW}px`
-        this.shadowRight.style.width = containerWidth - (getLeft + elW) + 'px'
+        rightAction(elW, getLeft, containerWidth)
       }
       if (side === 'left') {
-        let calcWidth = width - (resizePageX - pageX)
-        this.el.style.width = calcWidth + 'px'
-        this.el.style.left = `${resizePageX}px`
-        this.layout.line(resizePageX, calcWidth + resizePageX).update()
-        this.layout.axises(resizePageX, calcWidth + resizePageX).update()
-        this.shadowLeft.style.width = resizePageX + 'px'
+        leftAction(calcWidth, resizePageX)
       }
+
       if (side === 'center') {
-        let l = getLeft + (resizePageX - pageX)
-        let r = containerWidth - (l + width)
-        this.el.style.left = l + 'px'
-
-        this.layout.line(l, l + width).update()
-        this.layout.axises(l, l + width).update()
-
-        this.shadowLeft.style.width = l + 'px'
-        this.shadowRight.style.width = r + 'px'
+        this.dragCenter(l, r, width)
       }
     }
 
@@ -107,7 +128,6 @@ export class Magnifier {
     }, false)
 
     document.addEventListener('touchend', (e) => {
-      // this.layout(getLeft, getLeft + width)
       document.removeEventListener('touchmove', resize)
     }, false)
   }

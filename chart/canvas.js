@@ -10,16 +10,26 @@ export function Canvas (svg, width, height, data) {
   svg.setAttribute('width', width)
   svg.setAttribute('height', height)
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
-  // svg.style.border = '1px solid red'
 
   return {
     init: function () {
 
     },
+
+    tooltip: function () {
+      return {
+        render () {
+          Tooltip.draw(svg, height)
+        },
+
+        update () {
+
+        }
+      }
+    },
+
     line: function (min, max) {
       const coords = Chart.init(data).getCoords(width, height, [min, max])
-      // console.log(coords)
-
       const getByCoords = (key = new Date()) => {
         let date = key
 
@@ -90,8 +100,7 @@ export function Canvas (svg, width, height, data) {
           // Axis.update(svg, yAxis, 'y')
         }
       }
-    },
-    tooltip: null
+    }
 
   }
 }
