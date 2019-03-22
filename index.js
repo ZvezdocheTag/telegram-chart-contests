@@ -18,7 +18,7 @@ const chart = {
       initial: {}
     }
 
-    json.filter((d, s) => s === 2).forEach((data, idx) => {
+    json.forEach((data, idx) => {
       state.initial[idx] = Chart.init(idx, main, data)
     })
 
