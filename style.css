@@ -76,6 +76,10 @@
   --btn-border: #344658;
 }
 
+.svg-line-points {
+  fill: var(--page-bg);
+}
+
 body {
   background-color: var(--page-bg);
   transition: var(--transition-var);

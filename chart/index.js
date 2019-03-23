@@ -1,5 +1,5 @@
 import { scaleLiniar, scaleTime } from './scale.js'
-import { convertMonthToString } from './utils.js'
+import { convertMonthToString } from '../utils.js'
 export const Chart = {
 
   lines: null,

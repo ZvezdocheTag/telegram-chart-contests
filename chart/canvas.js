@@ -1,5 +1,5 @@
 
-import { setAttrNs } from '../utils.js'
+import { setAttrNs, DAYS, MONTHES } from '../utils.js'
 import { Chart } from './index.js'
 import { Line } from './line.js'
 import { Axis } from './axis.js'
@@ -8,18 +8,13 @@ import { TooltipTemplate } from './template.js'
 
 const getByCoords = (coords, key = new Date()) => {
   let date = new Date(key)
+  // console.log(coords)
   let dater = date.getDate()
   let day = date.getDay()
   let month = date.getMonth()
-  // console.log(dater, day)
   return {
-    time: `${day}, ${month} ${dater}`,
+    time: `${DAYS[day].slice(0, 3)}, ${MONTHES[month]} ${dater}`,
     lines: coords
-    // lines: coords.map(coord => ({
-    //   name: coord.name,
-    //   color: coord.color,
-    //   value: coord.y[0] // should be key
-    // }))
   }
 }
 
@@ -45,22 +40,17 @@ export function Canvas (svg, width, height, data) {
       let amount = axis.map((o, idx) => ({ ...o, idx })).filter((item, idx) => {
         return item.x >= 0 && item.x <= width
       })
-      // let MAX_IN_ARRAY = 6
-      // let filtered = amount / MAX_IN_ARRAY
-      // let ar = axis.filter((idm, id) => id % Math.round(filtered) === 0)
-      // let updated = ar.filter((item, idx) => item.x >= 0).slice(0, 6)
+
       return amount
     },
     tooltip: function (min, max) {
       const coords = Chart.init(data).getCoords(width, height, [min, max])
       let { xAxis, x, yAxis } = coords[0]
       let upd = xAxis.map((item, idx) => ({ ...item, value: x[idx], idx }))
-      // console.log(yAxis, coords[0], console.log())
-      // console.log(this.generateAxisWithoutFilter(upd))
       let ax = this.generateAxisWithoutFilter(upd)
       return {
         render () {
-          Tooltip.draw(svg, height)
+          Tooltip.draw(svg, height, coords)
 
           // console.log(ax)
           svg.addEventListener('mouseenter', function (e) {
@@ -77,31 +67,24 @@ export function Canvas (svg, width, height, data) {
                 return item.x < e.offsetX
               }).slice(-1)[0]
 
-              // let y = yAxis.filter(item => item.y < height - e.offsetY).sort((a, b) => a.y - b.y).slice(-1)
-              // let y = yAxis.filter(item => item.y < height - (e.offsetY + 30)).sort((a, b) => a.y - b.y).slice(-1)[0]
-              // let data = {
-              //   time: or.value,
-              //   lines: []
-              // }
               let lines = []
               coords.forEach(({ yAxis, color, name, key }) => {
-                // console.log(yAxis[or.idx])
-                lines.push({ value: yAxis[or.idx].tick, color, name, key })
+                lines.push({ value: yAxis[or.idx].tick, color, name, key, position: { y: yAxis[or.idx].y, x: or.x } })
               })
-              // console.log(or)
+
               tooltip.style.top = (e.pageY - 50) + 'px'
               tooltip.style.left = (e.pageX + 50) + 'px'
-              Tooltip.update(line, e.pageX, e.pageY, getByCoords(lines, or.value))
+              Tooltip.update(line, e.pageX, e.pageY, getByCoords(lines, or.value), svg)
             })
             this.addEventListener('mouseleave', function () {
               tooltip.classList.remove('active')
-              Tooltip.reset(line)
+              Tooltip.reset(line, svg)
             })
           })
         },
 
         update () {
-          console.log('UPDA')
+          // console.log('UPDA')
         }
       }
     },

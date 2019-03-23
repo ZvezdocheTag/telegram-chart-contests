@@ -27,22 +27,3 @@ export const Line = {
 
   }
 }
-
-// function drawPolyline (svg, path, stroke, key) {
-//     const xmlns = 'http://www.w3.org/2000/svg'
-
-//     const rectEl = document.createElementNS(xmlns, 'polyline')
-//     const gEl = document.createElementNS(xmlns, 'g')
-//     setAttrNs(gEl, [
-//       { id: key }
-//     ])
-//     setAttrNs(rectEl, [
-
-//       { points: path },
-//       { fill: 'none' },
-//       { 'stroke-width': 1 },
-//       { stroke: stroke }
-//     ])
-//     svg.appendChild(gEl)
-//     gEl.appendChild(rectEl)
-//   }

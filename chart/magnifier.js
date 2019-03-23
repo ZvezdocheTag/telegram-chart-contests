@@ -146,16 +146,16 @@ export class Magnifier {
     this.controlLeft.addEventListener('touchstart', this.resizeStart, false)
     this.el.addEventListener('touchstart', this.resizeStart, false)
   }
-
-  createCursor (e) {
-    let customCursor = document.createElement('div')
-    this.customCursor = customCursor
-    customCursor.classList.add('resize-cursor')
-
-    this.container.insertAdjacentElement('beforeend', customCursor)
-
-    setTimeout(() => {
-      customCursor.classList.add('mount')
-    }, 100)
-  }
 }
+
+// createCursor (e) {
+//   let customCursor = document.createElement('div')
+//   this.customCursor = customCursor
+//   customCursor.classList.add('resize-cursor')
+
+//   this.container.insertAdjacentElement('beforeend', customCursor)
+
+//   setTimeout(() => {
+//     customCursor.classList.add('mount')
+//   }, 100)
+// }

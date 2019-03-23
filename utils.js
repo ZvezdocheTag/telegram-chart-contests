@@ -1,3 +1,14 @@
+export const MONTHES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+export const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+export function convertMonthToString (date) {
+  let current = new Date(date)
+  let day = current.getDate()
+  let month = current.getMonth()
+  return `${day} ${MONTHES[month]}`
+}
+
 export function tag (tag, text) {
   const el = document.createElement(tag)
   el.textContent = text
@@ -6,6 +17,7 @@ export function tag (tag, text) {
 }
 
 export let rand = Math.random().toString(36).substring(0, 2) + Math.random().toString(36).substring(2, 5)
+
 export function setAttrNs (el, values) {
   let entries = values.map(item => Object.entries(item))
   for (let [ i ] of entries) {
