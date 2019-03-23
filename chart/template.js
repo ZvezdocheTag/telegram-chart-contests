@@ -7,7 +7,7 @@ export const TooltipTemplate = ({ time, lines }) => {
   // let day = time.getDay()
   // let month = time.getMonth()
   // console.log(time, 'UPDA')
-  let linesTemplate = lines.map((line, idx) => `<li style="color: ${line.color};" data-key="${idx + line.name}">
+  let linesTemplate = lines.map((line, idx) => `<li style="color: ${line.color};" data-key="${line.key}">
     <div class="tooltip-item-name">${line.name}</div>
     <div class="tooltip-item-value">${line.value}</div>
   </li>`)

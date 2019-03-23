@@ -14,11 +14,12 @@ const getByCoords = (coords, key = new Date()) => {
   // console.log(dater, day)
   return {
     time: `${day}, ${month} ${dater}`,
-    lines: coords.map(coord => ({
-      name: coord.name,
-      color: coord.color,
-      value: coord.y[0] // should be key
-    }))
+    lines: coords
+    // lines: coords.map(coord => ({
+    //   name: coord.name,
+    //   color: coord.color,
+    //   value: coord.y[0] // should be key
+    // }))
   }
 }
 
@@ -55,7 +56,7 @@ export function Canvas (svg, width, height, data) {
       let { xAxis, x, yAxis } = coords[0]
       let upd = xAxis.map((item, idx) => ({ ...item, value: x[idx], idx }))
       // console.log(yAxis, coords[0], console.log())
-      console.log(this.generateAxisWithoutFilter(upd))
+      // console.log(this.generateAxisWithoutFilter(upd))
       let ax = this.generateAxisWithoutFilter(upd)
       return {
         render () {
@@ -72,18 +73,25 @@ export function Canvas (svg, width, height, data) {
 
             let line = [...container.childNodes].find(item => item.nodeName === 'line')
             this.addEventListener('mousemove', function (e) {
-              // console.log(e.target, e.pageX, coords, e.offsetX, e.offsetY)
-              let tooltipObj = {}
               let or = ax.filter(item => {
                 return item.x < e.offsetX
-                // console.log(item, e.offsetX)
               }).slice(-1)[0]
 
               // let y = yAxis.filter(item => item.y < height - e.offsetY).sort((a, b) => a.y - b.y).slice(-1)
-              let y = yAxis.filter(item => item.y < height - (e.offsetY + 30)).sort((a, b) => a.y - b.y).slice(-1)[0]
+              // let y = yAxis.filter(item => item.y < height - (e.offsetY + 30)).sort((a, b) => a.y - b.y).slice(-1)[0]
+              // let data = {
+              //   time: or.value,
+              //   lines: []
+              // }
+              let lines = []
+              coords.forEach(({ yAxis, color, name, key }) => {
+                // console.log(yAxis[or.idx])
+                lines.push({ value: yAxis[or.idx].tick, color, name, key })
+              })
+              // console.log(or)
               tooltip.style.top = (e.pageY - 50) + 'px'
               tooltip.style.left = (e.pageX + 50) + 'px'
-              Tooltip.update(line, e.pageX, e.pageY, getByCoords(coords, or.value))
+              Tooltip.update(line, e.pageX, e.pageY, getByCoords(lines, or.value))
             })
             this.addEventListener('mouseleave', function () {
               tooltip.classList.remove('active')
@@ -100,8 +108,14 @@ export function Canvas (svg, width, height, data) {
 
     line: function (min, max) {
       const coords = Chart.init(data).getCoords(width, height, [min, max])
-
-      document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords(coords)))
+      console.log(coords)
+      let dymmy = coords.map(coord => ({
+        name: coord.name,
+        key: coord.key,
+        color: coord.color,
+        value: coord.y[0] // should be key
+      }))
+      document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords(dymmy)))
 
       return {
         render: function () {
