@@ -34,20 +34,20 @@ export class Magnifier {
   }
   initDefault () {
     this.el.style.left = `${0}px`
-    this.el.style.right = `${100}px`
+    this.el.style.right = `${0}px`
     this.el.style.width = `${100}px`
   }
 
   initShadow () {
-    this.shadowLeft.style.width = this.leftCursorPos + 'px'
-    this.shadowRight.style.width = this.container.offsetWidth - this.rightCursorPos + 'px'
+    this.shadowLeft.style.width = 0 + 'px'
+    this.shadowRight.style.width = this.container.offsetWidth - 100 + 'px'
   }
 
-  resizeLeft (init) {
-    this.el.style.right = init + 'px'
-
+  resizeLeft (init, le) {
+    this.el.style.right = 0 + 'px'
+    // this.el.style.right = init + 'px'
     return (width, resize) => {
-      this.el.style.width = width + 'px'
+      this.el.style.width = (width) + 'px'
       this.el.style.left = `${resize}px`
       this.shadowLeft.style.width = resize + 'px'
 
@@ -56,11 +56,9 @@ export class Magnifier {
   }
 
   resizeRight (init) {
-    this.el.style.left = init + 'px'
-
-    return (width, left, container) => {
+    return (width, left, container, r) => {
       this.el.style.width = `${width}px`
-      this.shadowRight.style.width = container - (left + width) + 'px'
+      this.shadowRight.style.width = (container - r) + 'px'
 
       this.actionResize(left, left + width).update()
     }
@@ -76,6 +74,7 @@ export class Magnifier {
   resizeStart (e) {
     let side = e.target.dataset.thumbSide
     let width = this.el.offsetWidth
+    let offset = this.el.offsetLeft
     let containerWidth = this.container.offsetWidth
     let getLeft = getCoords(this.el).left
 
@@ -89,11 +88,11 @@ export class Magnifier {
     }
 
     if (side === 'right') {
-      rightAction = this.resizeRight(pageX - width)
+      rightAction = this.resizeRight(containerWidth - width + pageX)
     }
 
     if (side === 'left') {
-      leftAction = this.resizeLeft(containerWidth - width - pageX)
+      leftAction = this.resizeLeft(containerWidth - width - pageX, pageX - offset)
     }
 
     const resize = (ec) => {
@@ -103,20 +102,26 @@ export class Magnifier {
         resizePageX = ec.touches[0].pageX
       }
 
-      let calcWidth = width - (resizePageX - pageX)
+      let calcWidth = width - (resizePageX - offset)
       let elW = width + (resizePageX - pageX)
       let l = getLeft + (resizePageX - pageX)
       let r = containerWidth - (l + width)
 
       if (side === 'right') {
-        rightAction(elW, getLeft, containerWidth)
+        if (r + 8 >= 0) {
+          rightAction(elW, getLeft, containerWidth, (elW + offset))
+        }
       }
       if (side === 'left') {
-        leftAction(calcWidth, resizePageX)
+        if ((l + 8) >= 0) {
+          leftAction(calcWidth, resizePageX)
+        }
       }
 
       if (side === 'center') {
-        this.dragCenter(l, r, width)
+        if (l + 8 >= 0 && r + 8 >= 0) {
+          this.dragCenter(l, r, width)
+        }
       }
     }
 

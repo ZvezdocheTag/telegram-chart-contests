@@ -46,26 +46,25 @@ export function Canvas (svg, width, height, data) {
 
       return {
         render: function () {
-          // svg.addEventListener('mouseenter', function (e) {
-          //   let container = this.closest('svg')
-          //   let tooltip = document.querySelector('.chart-tooltip')
+          svg.addEventListener('mouseenter', function (e) {
+            let container = this.closest('svg')
+            let tooltip = document.querySelector('.chart-tooltip')
 
-          //   tooltip.classList.add('active')
-          //   tooltip.style.top = e.pageY + 'px'
-          //   tooltip.style.left = e.pageX + 'px'
+            tooltip.classList.add('active')
+            tooltip.style.top = e.pageY + 'px'
+            tooltip.style.left = e.pageX + 'px'
 
-          //   let line = [...container.childNodes].find(item => item.nodeName === 'line')
-          //   this.addEventListener('mousemove', function (e) {
-          //     tooltip.style.top = (e.pageY - 50) + 'px'
-          //     tooltip.style.left = (e.pageX + 50) + 'px'
-          //     Tooltip.update(line, e.pageX, e.pageY, getByCoords())
-          //   })
-          //   this.addEventListener('mouseleave', function () {
-          //     tooltip.classList.remove('active')
-          //     Tooltip.reset(line)
-          //   })
-          // })
-          console.log(coords, svg, 'M')
+            let line = [...container.childNodes].find(item => item.nodeName === 'line')
+            this.addEventListener('mousemove', function (e) {
+              tooltip.style.top = (e.pageY - 50) + 'px'
+              tooltip.style.left = (e.pageX + 50) + 'px'
+              Tooltip.update(line, e.pageX, e.pageY, getByCoords())
+            })
+            this.addEventListener('mouseleave', function () {
+              tooltip.classList.remove('active')
+              Tooltip.reset(line)
+            })
+          })
           coords.forEach(({ key, points, color }) => {
             svg.appendChild(Line.draw(key, points, color))
           })
@@ -83,14 +82,9 @@ export function Canvas (svg, width, height, data) {
       return {
         render: function () {
           let { xAxis, yAxisStatic } = coords[0]
-          // let updated = xAxis.filter((item, idx) => item.x >= min && item.x <= max)
-          // console.log(updated.length)
-          console.log(this.generateAxis(xAxis), 'RENDER`')
           let ax = this.generateAxis(xAxis)
           let MAX_IN_ARRAY = 6
           let res = this.generateAxisRange(width, ax, MAX_IN_ARRAY)
-          console.log(res)
-
           Axis.render(svg, res, 'x', MAX_IN_ARRAY)
           Axis.render(svg, yAxisStatic, 'y', width)
         },
@@ -99,18 +93,20 @@ export function Canvas (svg, width, height, data) {
           let ax = this.generateAxis(xAxis)
           let MAX_IN_ARRAY = 6
           let res = this.generateAxisRange(width, ax, MAX_IN_ARRAY)
+          // console.log(xAxis, ax, res, max, width)
           Axis.update(svg, res, 'x')
           // Axis.update(svg, yAxis, 'y')
         },
 
         generateAxis (axis) {
-          let updated = axis.filter((item, idx) => item.x >= min && item.x <= max)
+          // console.log(axis)
+          let updated = axis.filter((item, idx) => item.x >= 0 && item.x <= width)
           let MAX_IN_ARRAY = 6
           let filtered = updated.length / MAX_IN_ARRAY
+          // console.log(updated)
           if (updated.length > MAX_IN_ARRAY) {
             updated = updated.filter((idm, id) => id % Math.round(filtered) === 0).slice(0, 6)
           }
-          console.log(updated)
           // console.log
           return updated
         },

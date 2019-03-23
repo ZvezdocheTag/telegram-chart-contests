@@ -128,10 +128,10 @@ footer {
 
 .minimap-thumb__control {
   position: absolute;
-  width: 3px;
+  width: 7px;
   height: 100%;
   top: 0;
-
+  opacity: .7;
   background: teal;
   cursor: col-resize;
 }

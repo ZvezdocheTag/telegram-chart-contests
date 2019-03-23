@@ -6,9 +6,9 @@ export const Tooltip = {
     let line = document.createElementNS(xmlns, 'line')
     setAttrNs(line, [
       { class: 'svg-linear' },
-      { x1: 50 },
+      { x1: -10 },
       { y1: 0 },
-      { x2: 50 },
+      { x2: -10 },
       { y2: h },
       { stroke: 'black' }
     ])
@@ -27,8 +27,8 @@ export const Tooltip = {
 
   reset (line) {
     setAttrNs(line, [
-      { x1: 50 },
-      { x2: 50 }
+      { x1: -50 },
+      { x2: -50 }
     ])
   }
 }

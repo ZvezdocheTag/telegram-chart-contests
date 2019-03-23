@@ -18,7 +18,7 @@ const chart = {
       initial: {}
     }
 
-    json.forEach((data, idx) => {
+    json.filter((o, id) => id === 2).forEach((data, idx) => {
       state.initial[idx] = Chart.init(idx, main, data)
     })
 
@@ -30,7 +30,6 @@ const chart = {
 
         let btn = e.target.dataset.toggleBtn
         let wrap = e.target.closest('.chart-wrapper')
-        console.log(wrap.querySelector(`#${btn}`))
         wrap.querySelector(`#${btn}`).classList.toggle('remove')
       }
     })
@@ -50,24 +49,24 @@ const Chart = {
     main.insertAdjacentHTML('beforeEnd', ChartTemplate(idAttr, data))
     const svg = qs(`#${idAttr} .chart`)
     const svgMinimap = qs(`#${idAttr} .minimap-chart`)
-
-    // console.log(svgMinimap, w, minimapHeight, data)
-
+    const svgMinimapChart = qs(`#${idAttr} .magnifier`)
+    svgMinimapChart.style.width = w + 'px'
     Canvas(svgMinimap, w, minimapHeight, data).line(0, h).render()
 
     const magnifier = new Magnifier(idAttr, actionResize)
     magnifier.init()
 
     function actionResize (left, width) {
+      const layout = Canvas(svg, w, h, data)
       return {
         render () {
-          Canvas(svg, w, h, data).line(left, width).render()
-          Canvas(svg, w, h, data).axises(left, width).render()
-          Canvas(svg, w, h, data).tooltip().render()
+          layout.line(left, width).render()
+          layout.axises(left, width).render()
+          layout.tooltip().render()
         },
         update () {
-          Canvas(svg, w, h, data).line(left, width).update()
-          Canvas(svg, w, h, data).axises(left, width).update()
+          layout.line(left, width).update()
+          layout.axises(left, width).update()
         }
       }
     }
