@@ -1,9 +1,15 @@
 
 import { setAttrNs } from '../utils.js'
 
-const createLineTick = (svg, w, h) => {
+function createTick (wrapper, axis, w) {
   const xmlns = 'http://www.w3.org/2000/svg'
+  let text = document.createElementNS(xmlns, 'text')
   let line = document.createElementNS(xmlns, 'line')
+  setAttrNs(text, [
+    { fill: `#000` },
+    { y: `0` },
+    { dy: `0.71em` }
+  ])
   setAttrNs(line, [
     { class: 'y-line-tick' },
     { x1: 0 },
@@ -12,39 +18,34 @@ const createLineTick = (svg, w, h) => {
     { y2: 24 },
     { stroke: 'black' }
   ])
-  return line
-}
 
+  let tickWrapper = document.createElementNS(xmlns, 'g')
+  let transform = axis === 'x' ? `translate(${0}, 0)` : `translate(0, ${0})`
+  setAttrNs(tickWrapper, [{ class: `tick-${axis}` }, { transform: transform }])
+
+  tickWrapper.appendChild(text)
+
+  if (axis === 'y') {
+    tickWrapper.appendChild(line)
+  }
+
+  return tickWrapper
+}
 export const Axis = {
   render (svg, ticks, axis, width) {
     const xmlns = 'http://www.w3.org/2000/svg'
 
     const wrapper = document.createElementNS(xmlns, 'g')
-    let text = document.createElementNS(xmlns, 'text')
+
     let transformAx = axis === 'x' ? `translate(${0}, 385)` : `translate(0, ${0})`
-    setAttrNs(text, [
-      { fill: `#000` },
-      { y: `0` },
-      { dy: `0.71em` }
-    ])
     setAttrNs(wrapper, [
       { class: `tick-wrapper-${axis}` },
       { transform: transformAx }
-
     ])
-
-    let tickWrapper = document.createElementNS(xmlns, 'g')
-    let transform = axis === 'x' ? `translate(${0}, 0)` : `translate(0, ${0})`
-    setAttrNs(tickWrapper, [{ class: `tick-${axis}` }, { transform: transform }])
-
     svg.appendChild(wrapper)
-    tickWrapper.appendChild(text)
 
-    if (axis === 'y') {
-      tickWrapper.appendChild(createLineTick(svg, width))
-    }
-    let f = axis === 'x' ? ticks : ticks.reverse()
-    f.forEach(item => {
+    let tickWrapper = createTick(wrapper, axis, width)
+    ticks.forEach(item => {
       let tick = item.tick
       let tickEl = tickWrapper.cloneNode(true)
       tickEl.children[0].textContent = tick
@@ -53,16 +54,10 @@ export const Axis = {
       setAttrNs(tickEl, [
         { transform: transform }
       ])
-      setAttrNs(text, [
-        { fill: `#000` },
-        { y: `0` },
-        { dy: `0.71em` }
-      ])
-
       wrapper.appendChild(tickEl)
     })
   },
-  // REVIEW AND REFACTORING
+
   update (svg, ticks, axis) {
     let curr = svg.querySelectorAll(`.tick-${axis}`)
     ticks.forEach((tick, idx) => {

@@ -85,6 +85,7 @@ export function Canvas (svg, width, height, data) {
           let ax = this.generateAxis(xAxis)
           let MAX_IN_ARRAY = 6
           let res = this.generateAxisRange(width, ax, MAX_IN_ARRAY)
+          console.log(res, xAxis, ax, width, max)
           Axis.render(svg, res, 'x', MAX_IN_ARRAY)
           Axis.render(svg, yAxisStatic, 'y', width)
         },
@@ -99,14 +100,27 @@ export function Canvas (svg, width, height, data) {
         },
 
         generateAxis (axis) {
-          // console.log(axis)
-          let updated = axis.filter((item, idx) => item.x >= 0 && item.x <= width)
+          let amount = axis.filter((item, idx) => item.x >= 0 && item.x <= width).length
+          // console.log(updated, 'Ffff')
           let MAX_IN_ARRAY = 6
-          let filtered = updated.length / MAX_IN_ARRAY
+          let filtered = amount / MAX_IN_ARRAY
+          let ar = axis.filter((idm, id) => id % Math.round(filtered) === 0)
+          let updated = ar.filter((item, idx) => item.x >= 0).slice(0, 6)
+          // let next = updated.filter((idm, id) => id % Math.round(filtered) === 0)
+          // let next = updated.filter((idm, id) => id % Math.round(filtered) === 0)
+          // let diff = next.length - MAX_IN_ARRAY;
+          // if(diff !== 0) {
+          //   let ne = next.length;
+
+          // }
+          console.log(updated, 'F 1')
           // console.log(updated)
-          if (updated.length > MAX_IN_ARRAY) {
-            updated = updated.filter((idm, id) => id % Math.round(filtered) === 0).slice(0, 6)
-          }
+          // if (updated.length > MAX_IN_ARRAY) {
+          //   updated = updated.filter((idm, id) => id % Math.round(filtered) === 0)
+          // } else {
+          //   updated
+          // }
+          // console.log(updated, 'F 2')
           // console.log
           return updated
         },
