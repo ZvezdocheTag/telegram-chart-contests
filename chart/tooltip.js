@@ -17,8 +17,10 @@ export const Tooltip = {
     svg.insertAdjacentElement('beforeend', line)
   },
 
-  update (line, x, data) {
+  update (line, x, y, data) {
     // console.log(data, 'UPD')
+    let title = document.querySelector('.chart-tooltip h5')
+    title.textContent = data.time
     setAttrNs(line, [
       { x1: x },
       { x2: x }

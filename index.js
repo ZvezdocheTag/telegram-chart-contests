@@ -62,11 +62,12 @@ const Chart = {
         render () {
           layout.line(left, width).render()
           layout.axises(left, width).render()
-          layout.tooltip().render()
+          layout.tooltip(left, width).render()
         },
         update () {
           layout.line(left, width).update()
           layout.axises(left, width).update()
+          layout.tooltip(left, width).render()
         }
       }
     }

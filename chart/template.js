@@ -3,10 +3,10 @@
 // let rand = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 
 export const TooltipTemplate = ({ time, lines }) => {
-  let date = time.getDate()
-  let day = time.getDay()
-  let month = time.getMonth()
-
+  // let date = time.getDate()
+  // let day = time.getDay()
+  // let month = time.getMonth()
+  // console.log(time, 'UPDA')
   let linesTemplate = lines.map((line, idx) => `<li style="color: ${line.color};" data-key="${idx + line.name}">
     <div class="tooltip-item-name">${line.name}</div>
     <div class="tooltip-item-value">${line.value}</div>
@@ -14,7 +14,7 @@ export const TooltipTemplate = ({ time, lines }) => {
 
   return `
     <div class="chart-tooltip chart-id" >
-      <h5>${day}, ${month} ${date}</h5>
+      <h5>${time}</h5>
       <ul>
         ${linesTemplate.join(' ')}
       </ul>
@@ -52,7 +52,7 @@ export const ChartTemplate = (name, chart) => {
     </div>
     <div class="chart-contols">
       ${Object.entries(chart.names)
-    .map(([key, value]) => Button(key, value, chart.colors[key]))}
+    .map(([key, value]) => Button(key, value, chart.colors[key])).join(' ')}
     </div>
   </div>
   `

@@ -6,6 +6,22 @@ import { Axis } from './axis.js'
 import { Tooltip } from './tooltip.js'
 import { TooltipTemplate } from './template.js'
 
+const getByCoords = (coords, key = new Date()) => {
+  let date = new Date(key)
+  let dater = date.getDate()
+  let day = date.getDay()
+  let month = date.getMonth()
+  // console.log(dater, day)
+  return {
+    time: `${day}, ${month} ${dater}`,
+    lines: coords.map(coord => ({
+      name: coord.name,
+      color: coord.color,
+      value: coord.y[0] // should be key
+    }))
+  }
+}
+
 export function Canvas (svg, width, height, data) {
   svg.setAttribute('width', width)
   svg.setAttribute('height', height)
@@ -16,36 +32,36 @@ export function Canvas (svg, width, height, data) {
 
     },
 
-    tooltip: function () {
+    generateAxis (axis) {
+      let amount = axis.filter((item, idx) => item.x >= 0 && item.x <= width).length
+      let MAX_IN_ARRAY = 6
+      let filtered = amount / MAX_IN_ARRAY
+      let ar = axis.filter((idm, id) => id % Math.round(filtered) === 0)
+      let updated = ar.filter((item, idx) => item.x >= 0).slice(0, 6)
+      return updated
+    },
+    generateAxisWithoutFilter (axis) {
+      let amount = axis.map((o, idx) => ({ ...o, idx })).filter((item, idx) => {
+        return item.x >= 0 && item.x <= width
+      })
+      // let MAX_IN_ARRAY = 6
+      // let filtered = amount / MAX_IN_ARRAY
+      // let ar = axis.filter((idm, id) => id % Math.round(filtered) === 0)
+      // let updated = ar.filter((item, idx) => item.x >= 0).slice(0, 6)
+      return amount
+    },
+    tooltip: function (min, max) {
+      const coords = Chart.init(data).getCoords(width, height, [min, max])
+      let { xAxis, x, yAxis } = coords[0]
+      let upd = xAxis.map((item, idx) => ({ ...item, value: x[idx], idx }))
+      // console.log(yAxis, coords[0], console.log())
+      console.log(this.generateAxisWithoutFilter(upd))
+      let ax = this.generateAxisWithoutFilter(upd)
       return {
         render () {
           Tooltip.draw(svg, height)
-        },
 
-        update () {
-
-        }
-      }
-    },
-
-    line: function (min, max) {
-      const coords = Chart.init(data).getCoords(width, height, [min, max])
-      const getByCoords = (key = new Date()) => {
-        let date = key
-
-        return {
-          time: date,
-          lines: coords.map(coord => ({
-            name: coord.name,
-            color: coord.color,
-            value: coord.y[0] // should be key
-          }))
-        }
-      }
-      document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords()))
-
-      return {
-        render: function () {
+          // console.log(ax)
           svg.addEventListener('mouseenter', function (e) {
             let container = this.closest('svg')
             let tooltip = document.querySelector('.chart-tooltip')
@@ -56,15 +72,39 @@ export function Canvas (svg, width, height, data) {
 
             let line = [...container.childNodes].find(item => item.nodeName === 'line')
             this.addEventListener('mousemove', function (e) {
+              // console.log(e.target, e.pageX, coords, e.offsetX, e.offsetY)
+              let tooltipObj = {}
+              let or = ax.filter(item => {
+                return item.x < e.offsetX
+                // console.log(item, e.offsetX)
+              }).slice(-1)[0]
+
+              // let y = yAxis.filter(item => item.y < height - e.offsetY).sort((a, b) => a.y - b.y).slice(-1)
+              let y = yAxis.filter(item => item.y < height - (e.offsetY + 30)).sort((a, b) => a.y - b.y).slice(-1)[0]
               tooltip.style.top = (e.pageY - 50) + 'px'
               tooltip.style.left = (e.pageX + 50) + 'px'
-              Tooltip.update(line, e.pageX, e.pageY, getByCoords())
+              Tooltip.update(line, e.pageX, e.pageY, getByCoords(coords, or.value))
             })
             this.addEventListener('mouseleave', function () {
               tooltip.classList.remove('active')
               Tooltip.reset(line)
             })
           })
+        },
+
+        update () {
+          console.log('UPDA')
+        }
+      }
+    },
+
+    line: function (min, max) {
+      const coords = Chart.init(data).getCoords(width, height, [min, max])
+
+      document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords(coords)))
+
+      return {
+        render: function () {
           coords.forEach(({ key, points, color }) => {
             svg.appendChild(Line.draw(key, points, color))
           })
@@ -83,52 +123,25 @@ export function Canvas (svg, width, height, data) {
         render: function () {
           let { xAxis, yAxisStatic } = coords[0]
           let ax = this.generateAxis(xAxis)
-          let MAX_IN_ARRAY = 6
-          let res = this.generateAxisRange(width, ax, MAX_IN_ARRAY)
-          console.log(res, xAxis, ax, width, max)
-          Axis.render(svg, res, 'x', MAX_IN_ARRAY)
+
+          Axis.render(svg, ax, 'x', width)
           Axis.render(svg, yAxisStatic, 'y', width)
         },
         update: function () {
           let { xAxis } = coords[0]
           let ax = this.generateAxis(xAxis)
-          let MAX_IN_ARRAY = 6
-          let res = this.generateAxisRange(width, ax, MAX_IN_ARRAY)
-          // console.log(xAxis, ax, res, max, width)
-          Axis.update(svg, res, 'x')
+
+          Axis.update(svg, ax, 'x')
           // Axis.update(svg, yAxis, 'y')
         },
 
         generateAxis (axis) {
           let amount = axis.filter((item, idx) => item.x >= 0 && item.x <= width).length
-          // console.log(updated, 'Ffff')
           let MAX_IN_ARRAY = 6
           let filtered = amount / MAX_IN_ARRAY
           let ar = axis.filter((idm, id) => id % Math.round(filtered) === 0)
           let updated = ar.filter((item, idx) => item.x >= 0).slice(0, 6)
-          // let next = updated.filter((idm, id) => id % Math.round(filtered) === 0)
-          // let next = updated.filter((idm, id) => id % Math.round(filtered) === 0)
-          // let diff = next.length - MAX_IN_ARRAY;
-          // if(diff !== 0) {
-          //   let ne = next.length;
-
-          // }
-          console.log(updated, 'F 1')
-          // console.log(updated)
-          // if (updated.length > MAX_IN_ARRAY) {
-          //   updated = updated.filter((idm, id) => id % Math.round(filtered) === 0)
-          // } else {
-          //   updated
-          // }
-          // console.log(updated, 'F 2')
-          // console.log
           return updated
-        },
-
-        generateAxisRange (max, arr, NUM) {
-          const tick = max / NUM
-
-          return arr.map((value, idx) => ({ x: tick * idx, tick: value.tick }))
         }
       }
     }
