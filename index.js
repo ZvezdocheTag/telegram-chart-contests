@@ -18,7 +18,8 @@ const chart = {
       initial: {}
     }
 
-    json.filter((o, id) => id === 2).forEach((data, idx) => {
+    // json.filter((o, id) => id === 2).forEach((data, idx) => {
+    json.forEach((data, idx) => {
       state.initial[idx] = Chart.init(idx, main, data)
     })
 
@@ -67,7 +68,7 @@ const Chart = {
         update () {
           layout.line(left, width).update()
           layout.axises(left, width).update()
-          layout.tooltip(left, width).render()
+          layout.tooltip(left, width).update()
         }
       }
     }

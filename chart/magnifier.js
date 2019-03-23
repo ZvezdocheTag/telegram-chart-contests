@@ -1,28 +1,16 @@
 import { qs, getCoords } from '../utils.js'
 
-// TODO ADD COLLBACK AFTER EVENT WITH MAGNIFIER IS HAPPENS TO BUILD LAYOUT
-
 export class Magnifier {
   constructor (idAttr, cb) {
     this.el = qs(`#${idAttr} [data-thumb-side="center"]`)
-    this.actionResize = cb
     this.container = this.el.parentElement
     this.controlLeft = this.el.querySelector('.left')
     this.controlRight = this.el.querySelector('.right')
-
     this.shadowLeft = this.container.querySelector('.magnifier_shadow.left')
     this.shadowRight = this.container.querySelector('.magnifier_shadow.right')
 
-    this.customCursor = null
+    this.actionResize = cb
     this.resizeStart = this.resizeStart.bind(this)
-  }
-
-  get leftCursorPos () {
-    return getCoords(this.controlLeft).left
-  }
-
-  get rightCursorPos () {
-    return getCoords(this.controlRight).left
   }
 
   init () {
@@ -32,6 +20,7 @@ export class Magnifier {
 
     this.actionResize(0, 100).render()
   }
+
   initDefault () {
     this.el.style.left = `${0}px`
     this.el.style.right = `${0}px`
@@ -45,7 +34,6 @@ export class Magnifier {
 
   resizeLeft (init, le) {
     this.el.style.right = 0 + 'px'
-    // this.el.style.right = init + 'px'
     return (width, resize) => {
       this.el.style.width = (width) + 'px'
       this.el.style.left = `${resize}px`
@@ -138,12 +126,7 @@ export class Magnifier {
   }
 
   listeners () {
-    this.controlRight.addEventListener('mousedown', this.resizeStart, false)
-    this.controlLeft.addEventListener('mousedown', this.resizeStart, false)
     this.el.addEventListener('mousedown', this.resizeStart, false)
-
-    this.controlRight.addEventListener('touchstart', this.resizeStart, false)
-    this.controlLeft.addEventListener('touchstart', this.resizeStart, false)
     this.el.addEventListener('touchstart', this.resizeStart, false)
   }
 }

@@ -5,7 +5,6 @@ export const Tooltip = {
     const xmlns = 'http://www.w3.org/2000/svg'
     let line = document.createElementNS(xmlns, 'line')
 
-    { /* <circle r="5" fill="#fff" cx="300" cy="50" stroke="red" stroke-width="2"></circle> */ }
     coords.forEach(coordinate => {
       let dot = document.createElementNS(xmlns, 'circle')
 

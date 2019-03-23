@@ -49,15 +49,13 @@ export const Chart = {
         let xScaleMinimap = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
         scaleLine = line.x.map(xScaleMinimap)
       }
-      const AMOUNT_COORDS_X = 6
-      // console.log(scaleLine.filter(x => x > 0 && x < w))
+
       return {
         ...line,
         xCoords: scaleLine,
         yCoords: scaleLineY,
         xAxisTikers: xAxisTikers,
 
-        yAxisStatic: this.generateAxis(yMax, yMin, h, AMOUNT_COORDS_X),
         xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })),
         yAxis: scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] })),
         points: scaleLine.map((x, idx) => `${Math.round(x)}, ${Math.round(scaleLineY[idx])}`).join(' ')
@@ -69,26 +67,6 @@ export const Chart = {
     let [ rangeMin, rangeMax ] = this.findRange(x.map(xScale), ranges)
     let xScaleMinimap = scaleTime([0, w], [x[rangeMin], x[rangeMax]])
     return xScaleMinimap
-  },
-
-  generateAxis (max, min, layoutMax, AMOUNT_COORDS_Y) {
-    let diff = max - min
-    const tick = layoutMax / AMOUNT_COORDS_Y
-    // console.log(diff / AMOUNT_COORDS_Y)
-    let t = diff / (AMOUNT_COORDS_Y - 1)
-    let generateTicks = Array.from({ length: AMOUNT_COORDS_Y }, (o, idx) => {
-      // console.log(t * idx)
-      if (idx === 0) {
-        return min
-      }
-      if (idx === AMOUNT_COORDS_Y - 1) {
-        return max
-      }
-      return min + (t * idx)
-    })
-    // console.log(max, min)
-    // console.log(generateTicks)
-    return generateTicks.reverse().map((value, idx) => ({ y: tick * idx, tick: Math.round(value) }))
   },
 
   findRange (coords, [ min, max ]) {
