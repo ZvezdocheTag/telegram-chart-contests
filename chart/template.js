@@ -1,7 +1,3 @@
-
-// import { setAttrNs } from '../utils.js'
-// let rand = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-
 export const TooltipTemplate = ({ time, lines }) => {
   let linesTemplate = lines.map((line, idx) => `<li style="color: ${line.color};" data-key="${line.key}">
     <div class="tooltip-item-name">${line.name}</div>
