@@ -96,15 +96,11 @@ const ChartRoot = {
         let btn = target.dataset.toggleBtn
 
         if (id === parseInt(wrapId, 10)) {
-          console.log(active, 'PREV')
           active = {
             id: id,
             item: data
           }
-          console.log(active)
           let coor = processCoords(w, h, [this.upperMin, this.upperMax], active.item)
-
-          console.log(coor)
           layout.line(this.upperMin, this.upperMax, coor).update()
           layout.axises(this.upperMin, this.upperMax, coor).update()
         }
