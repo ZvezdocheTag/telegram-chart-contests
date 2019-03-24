@@ -121,12 +121,12 @@ export function Canvas (svg, width, height, data) {
       }
     },
 
-    line: function (min, max) {
+    line: function (min, max, chartKey) {
       const coords = Chart.init(data).getCoords(width, height, [min, max])
       return {
         render: function () {
           coords.forEach(({ key, points, color }) => {
-            svg.appendChild(Line.draw(key, points, color))
+            svg.appendChild(Line.draw(key, points, color, chartKey))
           })
         },
         update: function () {

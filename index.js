@@ -30,7 +30,9 @@ const chart = {
 
         let btn = e.target.dataset.toggleBtn
         let wrap = e.target.closest('.chart-wrapper')
-        wrap.querySelector(`#${btn}`).classList.toggle('remove')
+        wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
+          line.classList.toggle('remove')
+        })
       }
     })
 

@@ -1,7 +1,7 @@
 import { setAttrNs } from '../utils.js'
 
 export const Line = {
-  draw (key, path, color) {
+  draw (key, path, color, chartKey) {
     const xmlns = 'http://www.w3.org/2000/svg'
     const g = document.createElementNS(xmlns, 'g')
     const polyline = document.createElementNS(xmlns, 'polyline')
@@ -9,7 +9,7 @@ export const Line = {
     // console.log(g)
     setAttrNs(g, [
       { id: key },
-      { class: 'chart-line' }
+      { class: `chart-line chart-line-${key}` }
     ])
     setAttrNs(polyline, [
       { points: path },
