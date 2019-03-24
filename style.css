@@ -1,17 +1,7 @@
 :root {}
 
 
-.chart-tooltip {
-  position: absolute;
-  opacity: 0;
-  top: 100px;
-  left: 100px;
-  background: #fff;
-  border-radius: 10px;
-  padding: 10px 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  transition: opacity 0.3s ease;
-}
+
 
 .chart-tooltip.active {
   opacity: 1;
@@ -24,11 +14,7 @@
   margin: 0;
 }
 
-.chart-tooltip h5 {
-  margin: 0;
-  font-size: 1.1em;
-  margin-bottom: 0.2em;
-}
+
 
 .chart-tooltip li {
   flex: 1;
@@ -68,7 +54,7 @@
   --page-bg: #242f3e;
   --axis-tick-color: #546778;
   --axis-tick-line-bg: #3b4a5a;
-  --layout-measure-line: #dfe6eb;
+  --layout-measure-line: rgba(223, 230, 235, .4);
 
   --magnifier-border-color: #40566b;
   --link-color: #36a8f1;
@@ -76,8 +62,31 @@
   --btn-border: #344658;
 }
 
+.chart-tooltip {
+  position: absolute;
+  opacity: 0;
+  top: 100px;
+  left: 100px;
+  background: var(--page-bg);
+  border-radius: 10px;
+  padding: 10px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: opacity 0.3s ease;
+}
+
+.chart-tooltip h5 {
+  margin: 0;
+  font-size: 1.1em;
+  margin-bottom: 0.2em;
+  color: var(--text-color);
+}
+
 .svg-line-points {
   fill: var(--page-bg);
+}
+
+.svg-linear {
+  stroke: var(--layout-measure-line);
 }
 
 body {

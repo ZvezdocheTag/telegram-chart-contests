@@ -14,7 +14,7 @@ export const Line = {
     setAttrNs(polyline, [
       { points: path },
       { fill: 'none' },
-      { 'stroke-width': 1 },
+      { 'stroke-width': 2 },
       { stroke: color }
     ])
 

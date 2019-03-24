@@ -163,10 +163,8 @@ function generateAxisY (max, min, layoutMax) {
   const AMOUNT_COORDS_Y = 6
   let diff = max - min
   const tick = layoutMax / AMOUNT_COORDS_Y
-  // console.log(diff / AMOUNT_COORDS_Y)
   let t = diff / (AMOUNT_COORDS_Y - 1)
   let generateTicks = Array.from({ length: AMOUNT_COORDS_Y }, (o, idx) => {
-    // console.log(t * idx)
     if (idx === 0) {
       return min
     }
