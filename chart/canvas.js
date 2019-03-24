@@ -28,8 +28,8 @@ export function Canvas (svg, width, height) {
         value: coord.y[0]
       }))
 
-      svg.addEventListener('mouseenter', startEvent, false)
-      svg.addEventListener('touchstart', startEvent, false)
+      svg.addEventListener('mouseenter', startEvent, { passive: true })
+      svg.addEventListener('touchstart', startEvent, { passive: true })
 
       function startEvent (e) {
         if (!document.querySelector('.chart-tooltip')) {
@@ -85,8 +85,8 @@ export function Canvas (svg, width, height) {
           this.removeEventListener('mousemove', move)
         }
 
-        this.addEventListener('mousemove', move)
-        this.addEventListener('touchmove', move)
+        this.addEventListener('mousemove', move, { passive: true })
+        this.addEventListener('touchmove', move, { passive: true })
 
         this.addEventListener('mouseleave', leaveEvent)
         this.addEventListener('touchend', leaveEvent)

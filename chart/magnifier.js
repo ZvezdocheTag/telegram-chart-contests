@@ -99,8 +99,8 @@ export class Magnifier {
       }
     }
 
-    document.addEventListener('mousemove', resize, false)
-    document.addEventListener('touchmove', resize, false)
+    document.addEventListener('mousemove', resize, { passive: true })
+    document.addEventListener('touchmove', resize, { passive: true })
 
     document.addEventListener('mouseup', (e) => {
       this.touchInit = false
@@ -114,7 +114,7 @@ export class Magnifier {
   }
 
   listeners () {
-    this.el.addEventListener('mousedown', this.resizeStart, false)
-    this.el.addEventListener('touchstart', this.resizeStart, false)
+    this.el.addEventListener('mousedown', this.resizeStart, { passive: true })
+    this.el.addEventListener('touchstart', this.resizeStart, { passive: true })
   }
 }
