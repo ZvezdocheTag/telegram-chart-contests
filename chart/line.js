@@ -21,9 +21,5 @@ export const Line = {
     g.appendChild(polyline)
 
     return g
-  },
-
-  update () {
-
   }
 }

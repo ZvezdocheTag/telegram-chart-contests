@@ -6,32 +6,13 @@ import { Axis } from './axis.js'
 import { Tooltip } from './tooltip.js'
 import { TooltipTemplate } from './template.js'
 
-function generateAxisWithoutFilter (axis, width) {
-  let amount = axis.map((o, idx) => ({ ...o, idx })).filter((item, idx) => {
-    return item.x >= 0 && item.x <= width
-  })
-
-  return amount
-}
-const getByCoords = (coords, key = new Date()) => {
-  let date = new Date(key)
-  // console.log(coords)
-  let dater = date.getDate()
-  let day = date.getDay()
-  let month = date.getMonth()
-  return {
-    time: `${DAYS[day].slice(0, 3)}, ${MONTHES[month]} ${dater}`,
-    lines: coords
-  }
-}
-
 export function Canvas (svg, width, height, data) {
   svg.setAttribute('width', width)
   svg.setAttribute('height', height)
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
 
   return {
-    init: function () {
+    update (min, max) {
 
     },
 
@@ -41,25 +22,25 @@ export function Canvas (svg, width, height, data) {
       let upd = xAxis.map((item, idx) => ({ ...item, value: x[idx], idx }))
       let ax = generateAxisWithoutFilter(upd, width)
 
+      console.log(coords)
       let initial = coords.map(coord => ({
         name: coord.name,
         key: coord.key,
         color: coord.color,
         value: coord.y[0] // should be key
       }))
-      if (!document.querySelector('.chart-tooltip')) {
-        document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords(initial)))
-      }
 
       svg.addEventListener('mouseenter', startEvent, false)
       svg.addEventListener('touchstart', startEvent, false)
 
       function startEvent (e) {
+        if (!document.querySelector('.chart-tooltip')) {
+          document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords(initial)))
+        }
+
         let pageX = e.pageX
         let pageY = e.pageY
-        console.log(e, 'F')
         if (e.type === 'touchstart') {
-          console.log(e, 'F S')
           pageX = e.touches[0].pageX
           pageY = e.touches[0].pageY
         }
@@ -97,7 +78,10 @@ export function Canvas (svg, width, height, data) {
         }
 
         function leaveEvent () {
-          tooltip.classList.remove('active')
+          let tooltipEl = document.querySelector('.chart-tooltip')
+          if (tooltipEl) {
+            document.body.removeChild(tooltipEl)
+          }
           Tooltip.reset(line, svg)
 
           this.removeEventListener('mousemove', move)
@@ -113,10 +97,6 @@ export function Canvas (svg, width, height, data) {
       return {
         render () {
           Tooltip.draw(svg, height, coords)
-        },
-
-        update () {
-
         }
       }
     },
@@ -162,21 +142,12 @@ export function Canvas (svg, width, height, data) {
   }
 }
 
-// let ol = coords[0].xAxis.map((d, i) => ({ [Math.round(d.x)]: { ...d, i } }))
-// const { xRange: { max: xMax, min: xMin }, x } = coords[0]
-// console.log(xMax, xMin, 0, width)
-// console.log(coords[0])
-// const scaleLine = Chart.scaleTime([ 0, width ], [xMin, xMax])
-// const scaleWithRanges = Chart.generateWithRanges(x, scaleLine, [min, max], width)
-
 function generateAxis (axis, axisY, width) {
   let curr = axis.filter((item, idx) => item.x >= 0 && item.x <= width)
-  // console.log(curr, axisY)
   let minMaxY = {
     min: axisY[curr[0].idx].tick,
     max: axisY[curr.length - 1].tick
   }
-  // console.log(curr, minMaxY, 'CURR')
   let amount = curr.length
   let MAX_IN_ARRAY = 6
   let filtered = amount / MAX_IN_ARRAY
@@ -206,4 +177,24 @@ function generateAxisY (max, min, layoutMax) {
   })
 
   return generateTicks.reverse().map((value, idx) => ({ y: tick * idx, tick: Math.round(value) }))
+}
+
+function generateAxisWithoutFilter (axis, width) {
+  let amount = axis.map((o, idx) => ({ ...o, idx })).filter((item, idx) => {
+    return item.x >= 0 && item.x <= width
+  })
+
+  return amount
+}
+
+function getByCoords (coords, key = new Date()) {
+  let date = new Date(key)
+  // console.log(coords)
+  let dater = date.getDate()
+  let day = date.getDay()
+  let month = date.getMonth()
+  return {
+    time: `${DAYS[day].slice(0, 3)}, ${MONTHES[month]} ${dater}`,
+    lines: coords
+  }
 }

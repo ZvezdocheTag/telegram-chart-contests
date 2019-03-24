@@ -77,7 +77,7 @@ const Chart = {
         update () {
           layout.line(left, width).update()
           layout.axises(left, width).update()
-          layout.tooltip(left, width).update()
+          // layout.tooltip(left, width).update()
         }
       }
     }
