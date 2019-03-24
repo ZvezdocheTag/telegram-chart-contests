@@ -67,7 +67,6 @@ export class Magnifier {
     }
 
     const resize = (ec) => {
-      console.log(ec)
       let resizePageX = ec.pageX
 
       if (ec.type === 'touchmove') {
