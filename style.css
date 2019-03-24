@@ -93,15 +93,7 @@ main {
   margin: 0 auto;
 }
 
-html,
 body {
-  /* margin: 0; */
-  /* padding: 0; */
-}
-
-body {
-  /* font-family:  */
-
   background-color: var(--page-bg);
   transition: var(--transition-var);
 }
@@ -109,8 +101,6 @@ body {
 button {
   cursor: pointer;
 }
-
-
 
 footer {
   text-align: center;
@@ -280,6 +270,7 @@ footer {
 
 .chart-wrapper {
   margin-bottom: 80px;
+
 }
 
 .chart {
