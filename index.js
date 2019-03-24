@@ -72,6 +72,7 @@ const ChartRoot = {
         update () {
           layout.line(min, max, coords).update()
           layout.axises(min, max, coords).update()
+          layout.tooltip(min, max, coords).render()
         }
       }
     }
