@@ -4,11 +4,6 @@ import { Canvas } from './chart/canvas.js'
 import { ChartTemplate } from './chart/template.js'
 import { Magnifier } from './chart/magnifier.js'
 
-const normilizer = window.jsonData.map(obj => Object.assign({}, obj, {
-  columns: normilizeColumns(obj.columns)
-}))
-const json = normilizer.map(obj => ({ ...obj, id: rand }))
-
 const chart = {
   init () {
     const main = qs('main')
@@ -18,18 +13,31 @@ const chart = {
       initial: {}
     }
 
-    json.forEach((data, idx) => {
-      state.initial[idx] = Chart.init(idx, main, data)
-    })
+    fetch('chart_data.json')
+      .then(res => res.json())
+      .then((out) => {
+        // console.log('Checkout this JSON! ', out)
+        const normilizer = out.map(obj => Object.assign({}, obj, {
+          columns: normilizeColumns(obj.columns)
+        }))
+        const json = normilizer.map(obj => ({ ...obj, id: rand }))
+
+        json.forEach((data, idx) => {
+          state.initial[idx] = Chart.init(idx, main, data)
+        })
+      })
+      .catch(err => { throw err })
 
     qs('main').addEventListener('click', function (e) {
-      if (e.target.classList.value.includes('toggle-btn')) {
-        e.target.childNodes.item(1).classList.toggle('active')
-        e.target.childNodes.item(1).classList.toggle('on')
-        e.target.childNodes.item(1).classList.toggle('off')
+      let target = e.target
+      let childrens = target.childNodes
+      if (target.classList.value.includes('toggle-btn')) {
+        childrens.item(1).classList.toggle('active')
+        childrens.item(1).classList.toggle('on')
+        childrens.item(1).classList.toggle('off')
 
-        let btn = e.target.dataset.toggleBtn
-        let wrap = e.target.closest('.chart-wrapper')
+        let btn = target.dataset.toggleBtn
+        let wrap = target.closest('.chart-wrapper')
         wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
           line.classList.toggle('remove')
         })
@@ -77,5 +85,4 @@ const Chart = {
     return this
   }
 }
-
 chart.init()
