@@ -1,36 +1,6 @@
 
 import { setAttrNs } from '../utils.js'
 
-function createTick (wrapper, axis, w) {
-  const xmlns = 'http://www.w3.org/2000/svg'
-  let text = document.createElementNS(xmlns, 'text')
-  let line = document.createElementNS(xmlns, 'line')
-  setAttrNs(text, [
-    { fill: `#000` },
-    { y: `0` },
-    { dy: `0.71em` }
-  ])
-  setAttrNs(line, [
-    { class: 'y-line-tick' },
-    { x1: 0 },
-    { y1: 24 },
-    { x2: w },
-    { y2: 24 },
-    { stroke: 'black' }
-  ])
-
-  let tickWrapper = document.createElementNS(xmlns, 'g')
-  let transform = axis === 'x' ? `translate(${0}, 0)` : `translate(0, ${0})`
-  setAttrNs(tickWrapper, [{ class: `tick-${axis}` }, { transform: transform }])
-
-  tickWrapper.appendChild(text)
-
-  if (axis === 'y') {
-    tickWrapper.appendChild(line)
-  }
-
-  return tickWrapper
-}
 export const Axis = {
   render (svg, ticks, axis, width) {
     const xmlns = 'http://www.w3.org/2000/svg'
@@ -69,4 +39,35 @@ export const Axis = {
     })
   }
 
+}
+
+function createTick (wrapper, axis, w) {
+  const xmlns = 'http://www.w3.org/2000/svg'
+  let text = document.createElementNS(xmlns, 'text')
+  let line = document.createElementNS(xmlns, 'line')
+  setAttrNs(text, [
+    { fill: `#000` },
+    { y: `0` },
+    { dy: `0.71em` }
+  ])
+  setAttrNs(line, [
+    { class: 'y-line-tick' },
+    { x1: 0 },
+    { y1: 24 },
+    { x2: w },
+    { y2: 24 },
+    { stroke: 'black' }
+  ])
+
+  let tickWrapper = document.createElementNS(xmlns, 'g')
+  let transform = axis === 'x' ? `translate(${0}, 0)` : `translate(0, ${0})`
+  setAttrNs(tickWrapper, [{ class: `tick-${axis}` }, { transform: transform }])
+
+  tickWrapper.appendChild(text)
+
+  if (axis === 'y') {
+    tickWrapper.appendChild(line)
+  }
+
+  return tickWrapper
 }

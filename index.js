@@ -52,7 +52,8 @@ const Chart = {
     const svgMinimap = qs(`#${idAttr} .minimap-chart`)
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
     svgMinimapChart.style.width = w + 'px'
-    Canvas(svgMinimap, w, minimapHeight, data).line(0, h).render()
+
+    Canvas(svgMinimap, w, minimapHeight, data).line(0, w).render()
 
     const magnifier = new Magnifier(idAttr, actionResize)
     magnifier.init()

@@ -28,8 +28,3 @@ export function scaleTime ([ min, max ], [dateMin, dateMax]) {
     return min + diff
   }
 }
-// test
-// let x = scaleTime([0, 960], [new Date(2000, 0, 1), new Date()])
-
-// let c = x(new Date(2000, 0, 4, 5)) // 200
-// let r = x(new Date(2000, 0, 30, 16))

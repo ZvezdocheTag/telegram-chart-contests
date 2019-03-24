@@ -3,10 +3,6 @@
 // let rand = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 
 export const TooltipTemplate = ({ time, lines }) => {
-  // let date = time.getDate()
-  // let day = time.getDay()
-  // let month = time.getMonth()
-  // console.log(time, 'UPDA')
   let linesTemplate = lines.map((line, idx) => `<li style="color: ${line.color};" data-key="${line.key}">
     <div class="tooltip-item-name">${line.name}</div>
     <div class="tooltip-item-value">${line.value}</div>
