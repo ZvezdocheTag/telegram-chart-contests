@@ -51,20 +51,39 @@ export function Canvas (svg, width, height, data) {
         document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords(initial)))
       }
 
-      svg.addEventListener('mouseenter', function (e) {
+      svg.addEventListener('mouseenter', startEvent, false)
+      svg.addEventListener('touchstart', startEvent, false)
+
+      function startEvent (e) {
+        let pageX = e.pageX
+        let pageY = e.pageY
+        console.log(e, 'F')
+        if (e.type === 'touchstart') {
+          console.log(e, 'F S')
+          pageX = e.touches[0].pageX
+          pageY = e.touches[0].pageY
+        }
+
         let container = this.closest('svg')
         let tooltip = document.querySelector('.chart-tooltip')
 
         tooltip.classList.add('active')
-        tooltip.style.top = e.pageY + 'px'
-        tooltip.style.left = e.pageX + 'px'
+        tooltip.style.top = pageY + 'px'
+        tooltip.style.left = pageX + 'px'
 
         // const tHandler = throttled(200, move)
         let line = [...container.childNodes].find(item => item.nodeName === 'line')
 
-        function move (e) {
+        function move (ec) {
+          let resizePageX = ec.pageX
+          let resizePageY = ec.pageY
+          if (ec.type === 'touchmove') {
+            resizePageX = ec.touches[0].pageX
+            resizePageY = ec.touches[0].pageX
+          }
+
           let or = ax.filter(item => {
-            return item.x < e.offsetX
+            return item.x < resizePageX
           }).slice(-1)[0]
 
           let lines = []
@@ -72,20 +91,24 @@ export function Canvas (svg, width, height, data) {
             lines.push({ value: yAxis[or.idx].tick, color, name, key, position: { y: yAxis[or.idx].y, x: or.x } })
           })
 
-          tooltip.style.top = (e.pageY - 50) + 'px'
-          tooltip.style.left = (e.pageX + 50) + 'px'
-          Tooltip.update(line, e.pageX, e.pageY, getByCoords(lines, or.value), svg)
+          tooltip.style.top = (resizePageY - 50) + 'px'
+          tooltip.style.left = (resizePageX + 50) + 'px'
+          Tooltip.update(line, resizePageX, resizePageY, getByCoords(lines, or.value), svg)
         }
 
-        this.addEventListener('mousemove', move)
-
-        this.addEventListener('mouseleave', function () {
+        function leaveEvent () {
           tooltip.classList.remove('active')
           Tooltip.reset(line, svg)
 
           this.removeEventListener('mousemove', move)
-        })
-      })
+        }
+
+        this.addEventListener('mousemove', move)
+        this.addEventListener('touchmove', move)
+
+        this.addEventListener('mouseleave', leaveEvent)
+        this.addEventListener('touchend', leaveEvent)
+      }
 
       return {
         render () {

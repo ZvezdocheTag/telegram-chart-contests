@@ -18,7 +18,6 @@ const chart = {
       initial: {}
     }
 
-    // json.filter((o, id) => id === 2).forEach((data, idx) => {
     json.forEach((data, idx) => {
       state.initial[idx] = Chart.init(idx, main, data)
     })
@@ -54,7 +53,6 @@ const Chart = {
     svgMinimapChart.style.width = w + 'px'
 
     Canvas(svgMinimap, w, minimapHeight, data).line(0, w).render()
-
     const magnifier = new Magnifier(idAttr, actionResize)
     magnifier.init()
 

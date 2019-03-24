@@ -54,8 +54,8 @@ export const Tooltip = {
 
     title.textContent = data.time
     setAttrNs(line, [
-      { x1: x - 20 },
-      { x2: x - 20 }
+      { x1: data.lines[0].position.x },
+      { x2: data.lines[0].position.x }
     ])
   },
 
