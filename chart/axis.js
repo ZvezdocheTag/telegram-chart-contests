@@ -12,7 +12,6 @@ export const Axis = {
       { class: `tick-wrapper-${axis}` },
       { transform: transformAx }
     ])
-    // svg.appendChild(wrapper)
     svg.insertAdjacentElement('afterbegin', wrapper)
     let tickWrapper = createTick(wrapper, axis, width)
     ticks.forEach(item => {

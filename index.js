@@ -3,7 +3,7 @@ import { qs, normilizeColumns, rand } from './utils.js'
 import { Canvas } from './chart/canvas.js'
 import { ChartTemplate } from './chart/template.js'
 import { Magnifier } from './chart/magnifier.js'
-import { Chart } from './chart/index.js'
+import { processCoords } from './chart/index.js'
 
 const chart = {
   init () {
@@ -17,13 +17,12 @@ const chart = {
     fetch('chart_data.json')
       .then(res => res.json())
       .then((out) => {
-        // console.log('Checkout this JSON! ', out)
         const normilizer = out.map(obj => Object.assign({}, obj, {
           columns: normilizeColumns(obj.columns)
         }))
         const json = normilizer.map(obj => ({ ...obj, id: rand }))
 
-        json.filter((d, i) => i === 0).forEach((data, idx) => {
+        json.forEach((data, idx) => {
           state.initial[idx] = ChartRoot.init(idx, main, data)
         })
       })
@@ -56,12 +55,11 @@ const ChartRoot = {
     this.upperMax = 100
 
     function actionResize (min, max) {
-      // console.log(min, max, this)
       this.upperMin = min
       this.upperMax = max
       const layoutMinimap = Canvas(svgMinimap, w, minimapHeight, data)
-      const coords = Chart.init(data).getCoords(w, h, [min, max])
-      const coordInitialMinimap = Chart.init(data).getCoords(w, minimapHeight)
+      const coords = processCoords(w, h, [min, max], data)
+      const coordInitialMinimap = processCoords(w, minimapHeight, null, data)
 
       return {
         render () {
@@ -74,7 +72,6 @@ const ChartRoot = {
         update () {
           layout.line(min, max, coords).update()
           layout.axises(min, max, coords).update()
-          // layout.tooltip(left, width).update()
         }
       }
     }
@@ -83,6 +80,7 @@ const ChartRoot = {
       item: null,
       id: null
     }
+
     qs('main').addEventListener('click', (e) => {
       let target = e.target
       let childrens = target.childNodes
@@ -102,10 +100,8 @@ const ChartRoot = {
             item: data
           }
           let upd = calculateChartRanges(active.item, btn)
-          console.log(Chart.init(active.item), upd, id, btn)
-          let coor = Chart.getCoords(w, h, [this.upperMin, this.upperMax], upd)
+          let coor = processCoords(w, h, [this.upperMin, this.upperMax], upd)
 
-          // .line(this.upperMin, this.upperMax, coor).update()
           layout.line(this.upperMin, this.upperMax, coor).update()
           layout.axises(this.upperMin, this.upperMax, coor).update()
         }
@@ -147,6 +143,3 @@ function getRange (arr) {
   }
 }
 chart.init()
-// document.addEventListener('DOMContentLoaded', function (event) {
-//   console.log('DOM fully loaded and parsed')
-// })
