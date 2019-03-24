@@ -53,6 +53,10 @@ export class Magnifier {
   }
 
   resizeStart (e) {
+    if (e.which !== 1) {
+      return
+    }
+
     this.touchInit = true
     let side = e.target.dataset.thumbSide
     let width = this.el.offsetWidth

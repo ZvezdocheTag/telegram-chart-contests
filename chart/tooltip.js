@@ -35,7 +35,6 @@ export const Tooltip = {
   },
 
   update (line, x, y, data, svg) {
-    // console.log(data, 'UPD')
     let title = document.querySelector('.chart-tooltip h5')
     let list = document.querySelector('.chart-tooltip ul')
 

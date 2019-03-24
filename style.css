@@ -231,7 +231,8 @@ footer {
 }
 
 .toggle-btn {
-
+  margin-right: 4px;
+  margin-bottom: 4px;
   color: var(--text-color);
   background: var(--page-bg);
 

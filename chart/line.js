@@ -5,8 +5,6 @@ export const Line = {
     const xmlns = 'http://www.w3.org/2000/svg'
     const g = document.createElementNS(xmlns, 'g')
     const polyline = document.createElementNS(xmlns, 'polyline')
-
-    // console.log(g)
     setAttrNs(g, [
       { id: key },
       { class: `chart-line chart-line-${key}` }

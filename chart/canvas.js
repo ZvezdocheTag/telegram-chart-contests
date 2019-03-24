@@ -21,12 +21,11 @@ export function Canvas (svg, width, height) {
       let upd = xAxis.map((item, idx) => ({ ...item, value: x[idx], idx }))
       let ax = generateAxisWithoutFilter(upd, width)
 
-      // console.log(coords)
       let initial = coords.map(coord => ({
         name: coord.name,
         key: coord.key,
         color: coord.color,
-        value: coord.y[0] // should be key
+        value: coord.y[0]
       }))
 
       svg.addEventListener('mouseenter', startEvent, false)
@@ -184,7 +183,6 @@ function generateAxisWithoutFilter (axis, width) {
 
 function getByCoords (coords, key = new Date()) {
   let date = new Date(key)
-  // console.log(coords)
   let dater = date.getDate()
   let day = date.getDay()
   let month = date.getMonth()
