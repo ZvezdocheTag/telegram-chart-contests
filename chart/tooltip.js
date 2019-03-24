@@ -5,6 +5,17 @@ export const Tooltip = {
     const xmlns = 'http://www.w3.org/2000/svg'
     let line = document.createElementNS(xmlns, 'line')
 
+    setAttrNs(line, [
+      { class: 'svg-linear' },
+      { x1: -10 },
+      { y1: 0 },
+      { x2: -10 },
+      { y2: h },
+      { stroke: 'black' }
+    ])
+
+    svg.insertAdjacentElement('beforeend', line)
+
     coords.forEach(coordinate => {
       let dot = document.createElementNS(xmlns, 'circle')
 
@@ -21,22 +32,17 @@ export const Tooltip = {
 
       svg.insertAdjacentElement('beforeend', dot)
     })
-    setAttrNs(line, [
-      { class: 'svg-linear' },
-      { x1: -10 },
-      { y1: 0 },
-      { x2: -10 },
-      { y2: h },
-      { stroke: 'black' }
-    ])
-
-    svg.insertAdjacentElement('beforeend', line)
   },
 
   update (line, x, y, data, svg) {
     // console.log(data, 'UPD')
     let title = document.querySelector('.chart-tooltip h5')
     let list = document.querySelector('.chart-tooltip ul')
+
+    setAttrNs(line, [
+      { x1: data.lines[0].position.x },
+      { x2: data.lines[0].position.x }
+    ])
 
     data.lines.forEach(item => {
       let sel = list.querySelector(`[data-key=${item.key}]`)
@@ -53,10 +59,6 @@ export const Tooltip = {
     })
 
     title.textContent = data.time
-    setAttrNs(line, [
-      { x1: data.lines[0].position.x },
-      { x2: data.lines[0].position.x }
-    ])
   },
 
   reset (line, svg) {

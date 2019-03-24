@@ -52,7 +52,8 @@ const chart = {
 
 const Chart = {
   init (id, main, data) {
-    const w = window.innerWidth
+    console.log(window.innerWidth)
+    const w = window.innerWidth - 20
     const h = 400
     const minimapHeight = 100
     const idAttr = `followers-${id}`
@@ -86,3 +87,6 @@ const Chart = {
   }
 }
 chart.init()
+// document.addEventListener('DOMContentLoaded', function (event) {
+//   console.log('DOM fully loaded and parsed')
+// })
