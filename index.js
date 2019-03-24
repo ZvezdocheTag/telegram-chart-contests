@@ -23,7 +23,7 @@ const chart = {
         }))
         const json = normilizer.map(obj => ({ ...obj, id: rand }))
 
-        json.forEach((data, idx) => {
+        json.filter((d, i) => i === 0).forEach((data, idx) => {
           state.initial[idx] = ChartRoot.init(idx, main, data)
         })
       })
@@ -37,7 +37,6 @@ const chart = {
 
 const ChartRoot = {
   init (id, main, data) {
-    console.log(window.innerWidth)
     const w = window.innerWidth - 20
     const h = 400
     const minimapHeight = 100
@@ -48,24 +47,29 @@ const ChartRoot = {
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
     svgMinimapChart.style.width = w + 'px'
 
-    const coordInitialMinimap = Chart.init(data).getCoords(w, minimapHeight, [0, w])
-    Canvas(svgMinimap, w, minimapHeight, data).line(0, w, coordInitialMinimap).render()
+    const layout = Canvas(svg, w, h, data)
 
-    // const magnifier =
+    let binded = actionResize.bind(this)
+    binded(0, 100).render()
 
-    actionResize(0, 100).render()
-
-    // magnifier.init()
+    this.upperMin = 0
+    this.upperMax = 100
 
     function actionResize (min, max) {
-      const layout = Canvas(svg, w, h, data)
+      // console.log(min, max, this)
+      this.upperMin = min
+      this.upperMax = max
+      const layoutMinimap = Canvas(svgMinimap, w, minimapHeight, data)
       const coords = Chart.init(data).getCoords(w, h, [min, max])
+      const coordInitialMinimap = Chart.init(data).getCoords(w, minimapHeight)
+
       return {
         render () {
           layout.line(min, max, coords).render()
           layout.axises(min, max, coords).render()
           layout.tooltip(min, max, coords).render()
-          new Magnifier(idAttr, actionResize).init()
+          layoutMinimap.line(0, w, coordInitialMinimap).render()
+          new Magnifier(idAttr, binded).init()
         },
         update () {
           layout.line(min, max, coords).update()
@@ -75,17 +79,37 @@ const ChartRoot = {
       }
     }
 
-    qs('main').addEventListener('click', function (e) {
-      // console.log(this.upperMin, this.upperMax)
+    let active = {
+      item: null,
+      id: null
+    }
+    qs('main').addEventListener('click', (e) => {
       let target = e.target
       let childrens = target.childNodes
+      let wrap = target.closest('.chart-wrapper')
+      let wrapId = wrap.id.slice(-1)
+
       if (target.classList.value.includes('toggle-btn')) {
         childrens.item(1).classList.toggle('active')
         childrens.item(1).classList.toggle('on')
         childrens.item(1).classList.toggle('off')
 
         let btn = target.dataset.toggleBtn
-        let wrap = target.closest('.chart-wrapper')
+
+        if (id === parseInt(wrapId, 10)) {
+          active = {
+            id: id,
+            item: data
+          }
+          let upd = calculateChartRanges(active.item, btn)
+          console.log(Chart.init(active.item), upd, id, btn)
+          let coor = Chart.getCoords(w, h, [this.upperMin, this.upperMax], upd)
+
+          // .line(this.upperMin, this.upperMax, coor).update()
+          layout.line(this.upperMin, this.upperMax, coor).update()
+          layout.axises(this.upperMin, this.upperMax, coor).update()
+        }
+
         wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
           line.classList.toggle('remove')
         })
@@ -93,6 +117,33 @@ const ChartRoot = {
     })
 
     return this
+  }
+}
+
+function calculateChartRanges ({ names, types, columns, colors }, active) {
+  return Object.keys(names).map(key => {
+    const $X = 'x'
+
+    if (types[ key ] === 'line' && types[ $X ]) {
+      return {
+        color: colors[ key ],
+        x: columns[ $X ],
+        y: columns[ key ],
+        key: key,
+        name: names[ key ],
+        xRange: getRange(columns[ $X ]),
+        yRange: getRange(columns[ key ]),
+        len: columns.length
+      }
+    }
+
+    return null
+  }).filter(line => line.key !== active)
+}
+function getRange (arr) {
+  return {
+    max: Math.max.apply(null, arr),
+    min: Math.min.apply(null, arr)
   }
 }
 chart.init()

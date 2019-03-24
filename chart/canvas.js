@@ -6,7 +6,7 @@ import { Axis } from './axis.js'
 import { Tooltip } from './tooltip.js'
 import { TooltipTemplate } from './template.js'
 
-export function Canvas (svg, width, height, data) {
+export function Canvas (svg, width, height) {
   svg.setAttribute('width', width)
   svg.setAttribute('height', height)
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`)

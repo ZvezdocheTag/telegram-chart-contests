@@ -55,6 +55,26 @@ export const Chart = {
         updatedMax = []
         let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
         xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
+
+        let filter = line.y.slice(rangeMin, rangeMax - 1).sort().reverse()
+        // console.log(filter.length, line.y.slice(rangeMin, rangeMax - 1).length, line.y.length, rangeMin, rangeMax)
+
+        // console.log(a, c, b.length)
+        let maxY = filter[filter.length - 1]
+        let minY = filter[0]
+
+        updatedMax.push(maxY)
+        updatedMax.push(minY)
+
+        let ran = getRange(updatedMax)
+        yScale = scaleLiniar([h, 0], [ran.min, ran.max])
+
+        // let a = line.y.slice(0, rangeMin)
+        // let c = line.y.slice(rangeMax, line.y.length)
+        // let b = line.y.slice(rangeMin, rangeMax).map(yScale)
+        // scaleLineY = [...a, ...b, ...c]
+
+        // scaleLineY = line.y.map(yScale)
       }
 
       scaleLine = line.x.map(xScale)

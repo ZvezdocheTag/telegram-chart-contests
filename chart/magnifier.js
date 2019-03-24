@@ -15,11 +15,19 @@ export class Magnifier {
 
   init () {
     this.listeners()
+    this.initShadow()
+    this.initDefault()
   }
 
   initShadow () {
     this.shadowLeft.style.width = 0 + 'px'
     this.shadowRight.style.width = this.container.offsetWidth - 100 + 'px'
+  }
+
+  initDefault () {
+    this.el.style.left = `${0}px`
+    this.el.style.right = `${0}px`
+    this.el.style.width = `${100}px`
   }
 
   resizeLeft (init, le) {

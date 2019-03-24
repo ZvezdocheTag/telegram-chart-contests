@@ -10,6 +10,8 @@ export function scaleLiniar ([ min, max ], [ axisMin, axisMax ]) {
   }
 }
 
+let test = scaleLiniar([0, 400], [4500, 9000])
+console.log(test(8500))
 export function scaleTime ([ min, max ], [dateMin, dateMax]) {
   const DAY = 1000 * 60 * 60 * 24
   let maxDate = new Date(dateMax).getTime()
