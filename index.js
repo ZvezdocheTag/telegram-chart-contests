@@ -3,11 +3,12 @@ import { qs, normilizeColumns, rand } from './utils.js'
 import { Canvas } from './chart/canvas.js'
 import { ChartTemplate } from './chart/template.js'
 import { Magnifier } from './chart/magnifier.js'
+import { Chart } from './chart/index.js'
 
 const chart = {
   init () {
     const main = qs('main')
-
+    main.style.width = window.innerWidth
     const state = {
       active: {},
       initial: {}
@@ -23,12 +24,59 @@ const chart = {
         const json = normilizer.map(obj => ({ ...obj, id: rand }))
 
         json.forEach((data, idx) => {
-          state.initial[idx] = Chart.init(idx, main, data)
+          state.initial[idx] = ChartRoot.init(idx, main, data)
         })
       })
       .catch(err => { throw err })
 
+    qs('.toggle-mode-btn').addEventListener('click', function () {
+      document.body.classList.toggle('dark')
+    })
+  }
+}
+
+const ChartRoot = {
+  init (id, main, data) {
+    console.log(window.innerWidth)
+    const w = window.innerWidth - 20
+    const h = 400
+    const minimapHeight = 100
+    const idAttr = `followers-${id}`
+    main.insertAdjacentHTML('beforeEnd', ChartTemplate(idAttr, data))
+    const svg = qs(`#${idAttr} .chart`)
+    const svgMinimap = qs(`#${idAttr} .minimap-chart`)
+    const svgMinimapChart = qs(`#${idAttr} .magnifier`)
+    svgMinimapChart.style.width = w + 'px'
+
+    const coordInitialMinimap = Chart.init(data).getCoords(w, minimapHeight, [0, w])
+    Canvas(svgMinimap, w, minimapHeight, data).line(0, w, coordInitialMinimap).render()
+
+    // const magnifier =
+
+    actionResize(0, 100).render()
+
+    // magnifier.init()
+
+    function actionResize (min, max) {
+      const layout = Canvas(svg, w, h, data)
+      const coords = Chart.init(data).getCoords(w, h, [min, max])
+      return {
+        render () {
+          layout.line(min, max, coords).render()
+          layout.axises(min, max, coords).render()
+          layout.tooltip(min, max, coords).render()
+          new Magnifier(idAttr, actionResize).init()
+        },
+        update () {
+          layout.line(min, max, coords).update()
+          layout.axises(min, max, coords).update()
+          // layout.tooltip(left, width).update()
+        }
+      }
+    }
+
     qs('main').addEventListener('click', function (e) {
+      // console.log(this.upperMin, this.upperMax)
       let target = e.target
       let childrens = target.childNodes
       if (target.classList.value.includes('toggle-btn')) {
@@ -43,45 +91,6 @@ const chart = {
         })
       }
     })
-
-    qs('.toggle-mode-btn').addEventListener('click', function () {
-      document.body.classList.toggle('dark')
-    })
-  }
-}
-
-const Chart = {
-  init (id, main, data) {
-    console.log(window.innerWidth)
-    const w = window.innerWidth - 20
-    const h = 400
-    const minimapHeight = 100
-    const idAttr = `followers-${id}`
-    main.insertAdjacentHTML('beforeEnd', ChartTemplate(idAttr, data))
-    const svg = qs(`#${idAttr} .chart`)
-    const svgMinimap = qs(`#${idAttr} .minimap-chart`)
-    const svgMinimapChart = qs(`#${idAttr} .magnifier`)
-    svgMinimapChart.style.width = w + 'px'
-
-    Canvas(svgMinimap, w, minimapHeight, data).line(0, w).render()
-    const magnifier = new Magnifier(idAttr, actionResize)
-    magnifier.init()
-
-    function actionResize (left, width) {
-      const layout = Canvas(svg, w, h, data)
-      return {
-        render () {
-          layout.line(left, width).render()
-          layout.axises(left, width).render()
-          layout.tooltip(left, width).render()
-        },
-        update () {
-          layout.line(left, width).update()
-          layout.axises(left, width).update()
-          // layout.tooltip(left, width).update()
-        }
-      }
-    }
 
     return this
   }

@@ -1,6 +1,6 @@
 
 import { setAttrNs, DAYS, MONTHES } from '../utils.js'
-import { Chart } from './index.js'
+
 import { Line } from './line.js'
 import { Axis } from './axis.js'
 import { Tooltip } from './tooltip.js'
@@ -12,17 +12,16 @@ export function Canvas (svg, width, height, data) {
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
 
   return {
-    update (min, max) {
+    update (min, max, coords) {
 
     },
 
-    tooltip: function (min, max) {
-      const coords = Chart.init(data).getCoords(width, height, [min, max])
+    tooltip: function (min, max, coords) {
       let { xAxis, x } = coords[0]
       let upd = xAxis.map((item, idx) => ({ ...item, value: x[idx], idx }))
       let ax = generateAxisWithoutFilter(upd, width)
 
-      console.log(coords)
+      // console.log(coords)
       let initial = coords.map(coord => ({
         name: coord.name,
         key: coord.key,
@@ -101,12 +100,11 @@ export function Canvas (svg, width, height, data) {
       }
     },
 
-    line: function (min, max, chartKey) {
-      const coords = Chart.init(data).getCoords(width, height, [min, max])
+    line: function (min, max, coords) {
       return {
         render: function () {
           coords.forEach(({ key, points, color }) => {
-            svg.appendChild(Line.draw(key, points, color, chartKey))
+            svg.appendChild(Line.draw(key, points, color))
           })
         },
         update: function () {
@@ -117,8 +115,7 @@ export function Canvas (svg, width, height, data) {
         }
       }
     },
-    axises: function (min, max) {
-      const coords = Chart.init(data).getCoords(width, height, [min, max])
+    axises: function (min, max, coords) {
       // TODO : filter axises from both and setup bigger
       let { xAxis, yAxis } = coords[0]
 

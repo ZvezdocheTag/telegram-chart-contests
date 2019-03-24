@@ -14,17 +14,7 @@ export class Magnifier {
   }
 
   init () {
-    this.initDefault()
-    this.initShadow()
     this.listeners()
-
-    this.actionResize(0, 100).render()
-  }
-
-  initDefault () {
-    this.el.style.left = `${0}px`
-    this.el.style.right = `${0}px`
-    this.el.style.width = `${100}px`
   }
 
   initShadow () {
