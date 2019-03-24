@@ -161,6 +161,15 @@ footer {
   cursor: col-resize;
 }
 
+.minimap-thumb__control:before {
+  content: '';
+  width: 15px;
+  height: 100%;
+  background: transparent;
+  position: absolute;
+  left: -4px;
+}
+
 .magnifier_shadow {
   background: rgba(0, 0, 0, 0.1);
   position: absolute;

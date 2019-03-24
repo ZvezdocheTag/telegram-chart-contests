@@ -53,6 +53,7 @@ export class Magnifier {
   }
 
   resizeStart (e) {
+    this.touchInit = true
     let side = e.target.dataset.thumbSide
     let width = this.el.offsetWidth
     let offset = this.el.offsetLeft
@@ -66,6 +67,7 @@ export class Magnifier {
     }
 
     const resize = (ec) => {
+      console.log(ec)
       let resizePageX = ec.pageX
 
       if (ec.type === 'touchmove') {
@@ -79,13 +81,14 @@ export class Magnifier {
 
       let maxLeft = l + handlersWidth
       let maxRight = r + handlersWidth
+
       if (side === 'right') {
-        if (maxRight >= 0) {
+        if (maxRight >= 0 && (containerWidth - r) > calcWidth) {
           this.resizeRight(elW, getLeft, containerWidth, (elW + offset))
         }
       }
       if (side === 'left') {
-        if (maxLeft >= 0) {
+        if (maxLeft >= 0 && (calcWidth - handlersWidth) > 0) {
           this.resizeLeft(calcWidth, resizePageX)
         }
       }
@@ -101,10 +104,12 @@ export class Magnifier {
     document.addEventListener('touchmove', resize, false)
 
     document.addEventListener('mouseup', (e) => {
+      this.touchInit = false
       document.removeEventListener('mousemove', resize)
     }, false)
 
     document.addEventListener('touchend', (e) => {
+      this.touchInit = false
       document.removeEventListener('touchmove', resize)
     }, false)
   }
