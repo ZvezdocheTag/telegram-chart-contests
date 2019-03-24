@@ -30,24 +30,19 @@ export class Magnifier {
     this.el.style.width = `${100}px`
   }
 
-  resizeLeft (init, le) {
-    this.el.style.right = 0 + 'px'
-    return (width, resize) => {
-      this.el.style.width = (width) + 'px'
-      this.el.style.left = `${resize}px`
-      this.shadowLeft.style.width = resize + 'px'
+  resizeLeft (width, resize) {
+    this.el.style.width = (width) + 'px'
+    this.el.style.left = `${resize}px`
+    this.shadowLeft.style.width = resize + 'px'
 
-      this.actionResize(resize, width + resize).update()
-    }
+    this.actionResize(resize, width + resize).update()
   }
 
-  resizeRight (init) {
-    return (width, left, container, r) => {
-      this.el.style.width = `${width}px`
-      this.shadowRight.style.width = (container - r) + 'px'
+  resizeRight (width, left, container, r) {
+    this.el.style.width = `${width}px`
+    this.shadowRight.style.width = (container - r) + 'px'
 
-      this.actionResize(left, left + width).update()
-    }
+    this.actionResize(left, left + width).update()
   }
 
   dragCenter (l, r, width) {
@@ -63,22 +58,11 @@ export class Magnifier {
     let offset = this.el.offsetLeft
     let containerWidth = this.container.offsetWidth
     let getLeft = getCoords(this.el).left
-
+    let handlersWidth = 8
     let pageX = e.pageX
-
-    let leftAction = null
-    let rightAction = null
 
     if (e.type === 'touchstart') {
       pageX = e.touches[0].pageX
-    }
-
-    if (side === 'right') {
-      rightAction = this.resizeRight(containerWidth - width + pageX)
-    }
-
-    if (side === 'left') {
-      leftAction = this.resizeLeft(containerWidth - width - pageX, pageX - offset)
     }
 
     const resize = (ec) => {
@@ -93,19 +77,21 @@ export class Magnifier {
       let l = getLeft + (resizePageX - pageX)
       let r = containerWidth - (l + width)
 
+      let maxLeft = l + handlersWidth
+      let maxRight = r + handlersWidth
       if (side === 'right') {
-        if (r + 8 >= 0) {
-          rightAction(elW, getLeft, containerWidth, (elW + offset))
+        if (maxRight >= 0) {
+          this.resizeRight(elW, getLeft, containerWidth, (elW + offset))
         }
       }
       if (side === 'left') {
-        if ((l + 8) >= 0) {
-          leftAction(calcWidth, resizePageX)
+        if (maxLeft >= 0) {
+          this.resizeLeft(calcWidth, resizePageX)
         }
       }
 
       if (side === 'center') {
-        if (l + 8 >= 0 && r + 8 >= 0) {
+        if (maxLeft >= 0 && maxRight >= 0) {
           this.dragCenter(l, r, width)
         }
       }
@@ -128,15 +114,3 @@ export class Magnifier {
     this.el.addEventListener('touchstart', this.resizeStart, false)
   }
 }
-
-// createCursor (e) {
-//   let customCursor = document.createElement('div')
-//   this.customCursor = customCursor
-//   customCursor.classList.add('resize-cursor')
-
-//   this.container.insertAdjacentElement('beforeend', customCursor)
-
-//   setTimeout(() => {
-//     customCursor.classList.add('mount')
-//   }, 100)
-// }

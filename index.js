@@ -99,11 +99,11 @@ const ChartRoot = {
             id: id,
             item: data
           }
-          let upd = calculateChartRanges(active.item, btn)
-          let coor = processCoords(w, h, [this.upperMin, this.upperMax], upd)
+          let coor = processCoords(w, h, [this.upperMin, this.upperMax], active.item)
 
-          layout.line(this.upperMin, this.upperMax, coor).update()
-          layout.axises(this.upperMin, this.upperMax, coor).update()
+          console.log(coor)
+          // layout.line(this.upperMin, this.upperMax, coor).update()
+          // layout.axises(this.upperMin, this.upperMax, coor).update()
         }
 
         wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
@@ -116,30 +116,4 @@ const ChartRoot = {
   }
 }
 
-function calculateChartRanges ({ names, types, columns, colors }, active) {
-  return Object.keys(names).map(key => {
-    const $X = 'x'
-
-    if (types[ key ] === 'line' && types[ $X ]) {
-      return {
-        color: colors[ key ],
-        x: columns[ $X ],
-        y: columns[ key ],
-        key: key,
-        name: names[ key ],
-        xRange: getRange(columns[ $X ]),
-        yRange: getRange(columns[ key ]),
-        len: columns.length
-      }
-    }
-
-    return null
-  }).filter(line => line.key !== active)
-}
-function getRange (arr) {
-  return {
-    max: Math.max.apply(null, arr),
-    min: Math.min.apply(null, arr)
-  }
-}
 chart.init()
