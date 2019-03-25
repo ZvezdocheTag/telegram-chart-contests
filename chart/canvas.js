@@ -1,5 +1,4 @@
 
-import { setAttrNs } from '../utils.js'
 import { Line } from './line.js'
 import { Axis, generateAxis } from './axis.js'
 import { Tooltip } from './tooltip.js'
@@ -38,14 +37,13 @@ export function Canvas (svg, width, height) {
         },
         update: function () {
           coords.forEach(({ key, points }) => {
-            let group = svg.querySelector(`#${key}`)
-            setAttrNs(group.querySelector('polyline'), [{ points: points }])
+            Line.update(svg, key, points)
           })
         }
       }
     },
     axises: function (min, max, coords) {
-      // TODO : filter axises from both and setup bigger
+      // TODO : add reduce function to caclculate bigger values
       let { xAxis, yAxis } = coords[0]
       let { horizontal, vertical } = generateAxis(xAxis, yAxis, width, height)
 
@@ -60,6 +58,5 @@ export function Canvas (svg, width, height) {
         }
       }
     }
-
   }
 }

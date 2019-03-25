@@ -19,5 +19,9 @@ export const Line = {
     g.appendChild(polyline)
 
     return g
+  },
+  update (svg, key, points) {
+    let group = svg.querySelector(`#${key}`)
+    setAttrNs(group.querySelector('polyline'), [{ points: points }])
   }
 }
