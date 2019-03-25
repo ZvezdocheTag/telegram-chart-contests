@@ -1,92 +1,87 @@
-import { scaleLiniar, scaleTime } from './scale.js'
-import { convertMonthToString } from '../utils.js'
 
-export function calculateChartRanges ({ names, types, columns, colors }) {
-  return Object.keys(names).map(key => {
-    const $X = 'x'
+import { qs } from '../utils.js'
+import { processCoords } from './utils.js'
+import { Canvas } from './canvas.js'
+import { ChartTemplate } from './template.js'
+import { Magnifier } from './magnifier.js'
 
-    if (types[ key ] === 'line' && types[ $X ]) {
+export const ChartRoot = {
+  init (id, main, data) {
+    const w = window.innerWidth - 20
+    const h = 400
+    const minimapHeight = 100
+    const idAttr = `followers-${id}`
+    main.insertAdjacentHTML('beforeEnd', ChartTemplate(idAttr, data))
+    const svg = qs(`#${idAttr} .chart`)
+    const svgMinimap = qs(`#${idAttr} .minimap-chart`)
+    const svgMinimapChart = qs(`#${idAttr} .magnifier`)
+    svgMinimapChart.style.width = w + 'px'
+
+    const layout = Canvas(svg, w, h, data)
+
+    let binded = actionResize.bind(this)
+    binded(0, 100).render()
+
+    this.upperMin = 0
+    this.upperMax = 100
+
+    function actionResize (min, max) {
+      this.upperMin = min
+      this.upperMax = max
+      const layoutMinimap = Canvas(svgMinimap, w, minimapHeight, data)
+      const coords = processCoords(w, h, [min, max], data)
+      const coordInitialMinimap = processCoords(w, minimapHeight, null, data)
+
       return {
-        color: colors[ key ],
-        x: columns[ $X ],
-        y: columns[ key ],
-        key: key,
-        name: names[ key ],
-        xRange: getRange(columns[ $X ]),
-        yRange: getRange(columns[ key ]),
-        len: columns.length
+        render () {
+          layout.line(min, max, coords).render()
+          layout.axises(min, max, coords).render()
+          layout.tooltip(min, max, coords).render()
+          layoutMinimap.line(0, w, coordInitialMinimap).render()
+          new Magnifier(idAttr, binded).init()
+        },
+        update () {
+          layout.line(min, max, coords).update()
+          layout.axises(min, max, coords).update()
+          layout.tooltip(min, max, coords).render()
+        }
       }
     }
 
-    return null
-  }).filter(line => line)
-}
-
-export function processCoords (w, h, ranges, lines) {
-  let active = calculateChartRanges(lines)
-  let updatedMax = []
-
-  let result = active.map(line => {
-    let {
-      xRange: { max: xMax, min: xMin },
-      yRange: { max: yMax, min: yMin }
-    } = line
-
-    updatedMax.push(yMin)
-    updatedMax.push(yMax)
-
-    let xScale = scaleTime([0, w], [xMin, xMax])
-    let yScale = scaleLiniar([h, 0], [yMax, yMin])
-
-    let scaleLine = line.x.map(xScale)
-    let scaleLineY = line.y.map(yScale)
-
-    let xAxisTikers = line.x.map(convertMonthToString)
-    if (ranges) {
-      updatedMax = []
-      let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
-      xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
+    let active = {
+      item: null,
+      id: null
     }
 
-    scaleLine = line.x.map(xScale)
+    qs('main').addEventListener('click', (e) => {
+      let target = e.target
+      let childrens = target.childNodes
+      let wrap = target.closest('.chart-wrapper')
+      let wrapId = wrap.id.slice(-1)
 
-    return {
-      ...line,
-      xCoords: scaleLine,
-      yCoords: scaleLineY,
-      xAxisTikers: xAxisTikers,
+      if (target.classList.value.includes('toggle-btn')) {
+        childrens.item(1).classList.toggle('active')
+        childrens.item(1).classList.toggle('on')
+        childrens.item(1).classList.toggle('off')
 
-      xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })),
-      yAxis: scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] })),
-      points: scaleLine.map((x, idx) => `${Math.round(x)}, ${Math.round(scaleLineY[idx])}`).join(' ')
-    }
-  })
+        let btn = target.dataset.toggleBtn
 
-  return result
-}
+        if (id === parseInt(wrapId, 10)) {
+          active = {
+            id: id,
+            item: data
+          }
+          let coor = processCoords(w, h, [this.upperMin, this.upperMax], active.item)
+          layout.line(this.upperMin, this.upperMax, coor).update()
+          layout.axises(this.upperMin, this.upperMax, coor).update()
+        }
 
-function getRange (arr) {
-  return {
-    max: Math.max.apply(null, arr),
-    min: Math.min.apply(null, arr)
+        wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
+          line.classList.toggle('remove')
+        })
+      }
+    })
+
+    return this
   }
-}
-
-function findRange (coords, [ min, max ]) {
-  let minIndex = 0
-  let maxIndex = 0
-  let n = 0
-  let k = 0
-
-  while (min > coords[n]) {
-    n += 1
-    minIndex = n
-    k = n
-  }
-  while (max > coords[k]) {
-    k += 1
-    maxIndex = k
-  }
-
-  return [ minIndex, maxIndex ]
 }
