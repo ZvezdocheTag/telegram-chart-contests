@@ -1,7 +1,7 @@
 
 import { setAttrNs } from '../utils.js'
 import { Line } from './line.js'
-import { Axis } from './axis.js'
+import { Axis, generateAxis } from './axis.js'
 import { Tooltip } from './tooltip.js'
 
 export function Canvas (svg, width, height) {
@@ -47,8 +47,7 @@ export function Canvas (svg, width, height) {
     axises: function (min, max, coords) {
       // TODO : filter axises from both and setup bigger
       let { xAxis, yAxis } = coords[0]
-      let withId = xAxis.map((o, idx) => ({ ...o, idx }))
-      let { horizontal, vertical } = generateAxis(withId, yAxis, width, height)
+      let { horizontal, vertical } = generateAxis(xAxis, yAxis, width, height)
 
       return {
         render: function () {
@@ -63,38 +62,4 @@ export function Canvas (svg, width, height) {
     }
 
   }
-}
-
-function generateAxis (axis, axisY, width, height) {
-  let curr = axis.filter((item, idx) => item.x >= 0 && item.x <= width)
-  let minMaxY = {
-    min: axisY[curr[0].idx].tick,
-    max: axisY[curr.length - 1].tick
-  }
-  let amount = curr.length
-  let MAX_IN_ARRAY = 6
-  let filtered = amount / MAX_IN_ARRAY
-  let ar = axis.filter((idm, id) => id % Math.round(filtered) === 0)
-  let updated = ar.filter((item, idx) => item.x >= 0).slice(0, 6)
-  return {
-    horizontal: updated,
-    vertical: generateAxisY(minMaxY.max, minMaxY.min, height, MAX_IN_ARRAY)
-  }
-}
-
-function generateAxisY (max, min, layoutMax, maxInLine) {
-  let diff = max - min
-  const tick = layoutMax / maxInLine
-  let t = diff / (maxInLine - 1)
-  let generateTicks = Array.from({ length: maxInLine }, (o, idx) => {
-    if (idx === 0) {
-      return min
-    }
-    if (idx === maxInLine - 1) {
-      return max
-    }
-    return min + (t * idx)
-  })
-
-  return generateTicks.reverse().map((value, idx) => ({ y: tick * idx, tick: Math.round(value) }))
 }
