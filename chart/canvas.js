@@ -1,10 +1,8 @@
 
-import { setAttrNs, DAYS, MONTHES } from '../utils.js'
-
+import { setAttrNs } from '../utils.js'
 import { Line } from './line.js'
 import { Axis } from './axis.js'
 import { Tooltip } from './tooltip.js'
-import { TooltipTemplate } from './template.js'
 
 export function Canvas (svg, width, height) {
   svg.setAttribute('width', width)
@@ -12,89 +10,21 @@ export function Canvas (svg, width, height) {
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
 
   return {
-    update (min, max, coords) {
-
-    },
-
     tooltip: function (min, max, coords) {
-      let { xAxis, x } = coords[0]
-      let upd = xAxis.map((item, idx) => ({ ...item, value: x[idx], idx }))
-      let ax = generateAxisWithoutFilter(upd, width)
-
-      let initial = coords.map(coord => ({
-        name: coord.name,
-        key: coord.key,
-        color: coord.color,
-        value: coord.y[0]
-      }))
-
-      svg.addEventListener('mouseenter', startEvent, { passive: true })
-      svg.addEventListener('touchstart', startEvent, { passive: true })
-
-      function startEvent (e) {
-        if (!document.querySelector('.chart-tooltip')) {
-          document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords(initial)))
-        }
-
-        let pageX = e.pageX
-        let pageY = e.pageY
-        if (e.type === 'touchstart') {
-          pageX = e.touches[0].pageX
-          pageY = e.touches[0].pageY
-        }
-
-        let container = this.closest('svg')
-        let tooltip = document.querySelector('.chart-tooltip')
-
-        tooltip.classList.add('active')
-        tooltip.style.top = pageY + 'px'
-        tooltip.style.left = pageX + 'px'
-
-        // const tHandler = throttled(200, move)
-        let line = [...container.childNodes].find(item => item.nodeName === 'line')
-
-        function move (ec) {
-          let resizePageX = ec.pageX
-          let resizePageY = ec.pageY
-          if (ec.type === 'touchmove') {
-            resizePageX = ec.touches[0].pageX
-            resizePageY = ec.touches[0].pageX
-          }
-
-          let or = ax.filter(item => {
-            return item.x < resizePageX
-          }).slice(-1)[0]
-
-          let lines = []
-          coords.forEach(({ yAxis, color, name, key }) => {
-            lines.push({ value: yAxis[or.idx].tick, color, name, key, position: { y: yAxis[or.idx].y, x: or.x } })
-          })
-
-          tooltip.style.top = (resizePageY - 50) + 'px'
-          tooltip.style.left = (resizePageX + 50) + 'px'
-          Tooltip.update(line, resizePageX, resizePageY, getByCoords(lines, or.value), svg)
-        }
-
-        function leaveEvent () {
-          let tooltipEl = document.querySelector('.chart-tooltip')
-          if (tooltipEl) {
-            document.body.removeChild(tooltipEl)
-          }
-          Tooltip.reset(line, svg)
-
-          this.removeEventListener('mousemove', move)
-        }
-
-        this.addEventListener('mousemove', move, { passive: true })
-        this.addEventListener('touchmove', move, { passive: true })
-
-        this.addEventListener('mouseleave', leaveEvent)
-        this.addEventListener('touchend', leaveEvent)
-      }
-
       return {
         render () {
           Tooltip.draw(svg, height, coords)
+
+          let { startEvent, move, leaveEvent } = Tooltip.listeners(coords, svg, width)
+
+          svg.addEventListener('mouseenter', startEvent, { passive: true })
+          svg.addEventListener('touchstart', startEvent, { passive: true })
+
+          svg.addEventListener('mousemove', move, { passive: true })
+          svg.addEventListener('touchmove', move, { passive: true })
+
+          svg.addEventListener('mouseleave', leaveEvent)
+          svg.addEventListener('touchend', leaveEvent)
         }
       }
     },
@@ -117,28 +47,25 @@ export function Canvas (svg, width, height) {
     axises: function (min, max, coords) {
       // TODO : filter axises from both and setup bigger
       let { xAxis, yAxis } = coords[0]
-
       let withId = xAxis.map((o, idx) => ({ ...o, idx }))
-      let { horizontal, vertical } = generateAxis(withId, yAxis, width)
-      let calc = generateAxisY(vertical.max, vertical.min, height)
+      let { horizontal, vertical } = generateAxis(withId, yAxis, width, height)
 
       return {
         render: function () {
           Axis.render(svg, horizontal, 'x', width)
-          Axis.render(svg, calc, 'y', width)
+          Axis.render(svg, vertical, 'y', width)
         },
         update: function () {
           Axis.update(svg, horizontal, 'x')
-          Axis.update(svg, calc, 'y', width)
+          Axis.update(svg, vertical, 'y', width)
         }
-
       }
     }
 
   }
 }
 
-function generateAxis (axis, axisY, width) {
+function generateAxis (axis, axisY, width, height) {
   let curr = axis.filter((item, idx) => item.x >= 0 && item.x <= width)
   let minMaxY = {
     min: axisY[curr[0].idx].tick,
@@ -151,43 +78,23 @@ function generateAxis (axis, axisY, width) {
   let updated = ar.filter((item, idx) => item.x >= 0).slice(0, 6)
   return {
     horizontal: updated,
-    vertical: minMaxY
+    vertical: generateAxisY(minMaxY.max, minMaxY.min, height, MAX_IN_ARRAY)
   }
 }
 
-function generateAxisY (max, min, layoutMax) {
-  const AMOUNT_COORDS_Y = 6
+function generateAxisY (max, min, layoutMax, maxInLine) {
   let diff = max - min
-  const tick = layoutMax / AMOUNT_COORDS_Y
-  let t = diff / (AMOUNT_COORDS_Y - 1)
-  let generateTicks = Array.from({ length: AMOUNT_COORDS_Y }, (o, idx) => {
+  const tick = layoutMax / maxInLine
+  let t = diff / (maxInLine - 1)
+  let generateTicks = Array.from({ length: maxInLine }, (o, idx) => {
     if (idx === 0) {
       return min
     }
-    if (idx === AMOUNT_COORDS_Y - 1) {
+    if (idx === maxInLine - 1) {
       return max
     }
     return min + (t * idx)
   })
 
   return generateTicks.reverse().map((value, idx) => ({ y: tick * idx, tick: Math.round(value) }))
-}
-
-function generateAxisWithoutFilter (axis, width) {
-  let amount = axis.map((o, idx) => ({ ...o, idx })).filter((item, idx) => {
-    return item.x >= 0 && item.x <= width
-  })
-
-  return amount
-}
-
-function getByCoords (coords, key = new Date()) {
-  let date = new Date(key)
-  let dater = date.getDate()
-  let day = date.getDay()
-  let month = date.getMonth()
-  return {
-    time: `${DAYS[day].slice(0, 3)}, ${MONTHES[month]} ${dater}`,
-    lines: coords
-  }
 }

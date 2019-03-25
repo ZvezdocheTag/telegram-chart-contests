@@ -36,7 +36,7 @@ export function processCoords (w, h, ranges, lines) {
     updatedMax.push(yMax)
 
     let xScale = scaleTime([0, w], [xMin, xMax])
-    let yScale = scaleLiniar([h, 0], [yMin, yMax])
+    let yScale = scaleLiniar([h, 0], [yMax, yMin])
 
     let scaleLine = line.x.map(xScale)
     let scaleLineY = line.y.map(yScale)
