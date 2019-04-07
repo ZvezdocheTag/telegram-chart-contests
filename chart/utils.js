@@ -22,6 +22,10 @@ export function calculateChartRanges ({ names, types, columns, colors }) {
   }).filter(line => line)
 }
 
+export function updateScales() {
+    console.log("F")
+}
+updateScales()
 export function processCoords (w, h, ranges, lines) {
   let active = calculateChartRanges(lines)
   let updatedMax = []
@@ -41,14 +45,29 @@ export function processCoords (w, h, ranges, lines) {
     let scaleLine = line.x.map(xScale)
     let scaleLineY = line.y.map(yScale)
 
+    console.log(ranges, 0, w)
     let xAxisTikers = line.x.map(convertMonthToString)
     if (ranges) {
       updatedMax = []
       let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
       xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
+      
+      let filteredY = line.y.filter((_, idx) => idx >= rangeMin && idx <= rangeMax)
+      let sorted = filteredY.sort((a, b) => a - b);
+      console.log(filteredY.length, line.y.length, rangeMin, rangeMax)
+      let yRangeFirst = sorted.slice(0, 1)[0];
+      let yRangeSecond = sorted.slice(-1)[0]
+      let [ yMinRange, yMaxRange] = yRangeFirst > yRangeSecond ? [yRangeSecond, yRangeFirst] : [yRangeFirst, yRangeSecond]
+      // console.log(line.y[rangeMax - 1], line.y[rangeMin], line.y , "F", yMinRange, yMaxRange )
+
+      yScale = scaleLiniar([h, 0], [ yMaxRange, yMinRange ])
+      
+      scaleLineY = line.y.map(yScale).map(item => Math.round(item))
+      // console.log(scaleLineY)
     }
 
     scaleLine = line.x.map(xScale)
+    // scaleLineY = line.y.map(yScale)
 
     return {
       ...line,

@@ -1,6 +1,11 @@
 import { qs, normilizeColumns, rand } from './utils.js'
 import { ChartRoot } from './chart/index.js'
 
+function normilizeData(data) {
+  return data.map(obj => Object.assign({}, obj, {
+    columns: normilizeColumns(obj.columns)
+  }))
+}
 const chart = {
   init () {
     const main = qs('main')
@@ -12,13 +17,11 @@ const chart = {
 
     fetch('chart_data.json')
       .then(res => res.json())
-      .then((out) => {
-        const normilizer = out.map(obj => Object.assign({}, obj, {
-          columns: normilizeColumns(obj.columns)
-        }))
+      .then((data) => {
+        const normilizer = normilizeData(data)
         const json = normilizer.map(obj => ({ ...obj, id: rand }))
 
-        json.forEach((data, idx) => {
+        json.slice(0, 1).forEach((data, idx) => {
           state.initial[idx] = ChartRoot.init(idx, main, data)
         })
       })

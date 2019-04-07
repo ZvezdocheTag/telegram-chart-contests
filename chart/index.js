@@ -42,8 +42,8 @@ export const ChartRoot = {
         },
         update () {
           layout.line(min, max, coords).update()
-          layout.axises(min, max, coords).update()
-          layout.tooltip(min, max, coords).render()
+          // layout.axises(min, max, coords).update()
+          // layout.tooltip(min, max, coords).render()
         }
       }
     }
@@ -73,7 +73,8 @@ export const ChartRoot = {
           }
           let coor = processCoords(w, h, [this.upperMin, this.upperMax], active.item)
           layout.line(this.upperMin, this.upperMax, coor).update()
-          layout.axises(this.upperMin, this.upperMax, coor).update()
+          console.log()
+          // layout.axises(this.upperMin, this.upperMax, coor).update()
         }
 
         wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
