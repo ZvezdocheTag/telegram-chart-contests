@@ -24,14 +24,15 @@ const Button = (axis, name, color) => {
   </button>
   `
 }
-
-export const ChartTemplate = (name, chart) => {
+{/* <svg class="minimap-chart" id="graph-minimap">
+</svg> */}
+export const ChartTemplate = (name, chart, { w, h, mW, mH }) => {
   const temp = `
     <div id="${name}" class="chart-wrapper">
-    <svg class="chart" id="graph"></svg>
+    <canvas class="chart" id="graph" width="${w}" height="${h}"></canvas>
     <div class="minimap">
-        <svg class="minimap-chart" id="graph-minimap">
-        </svg>
+        <canvas class="minimap-chart" id="graph-minimap" width="${mW}" height="${mH}">
+        </canvas>
         <div class="magnifier">
             <div class="magnifier_shadow left"></div>
             <div class="magnifier_shadow right"></div>

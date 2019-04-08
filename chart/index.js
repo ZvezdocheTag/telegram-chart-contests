@@ -1,23 +1,36 @@
 
 import { qs } from '../utils.js'
 import { processCoords } from './utils.js'
-import { Canvas } from './canvas.js'
+// import { Canvas } from './canvas.js'
+// import { Line } from './line.js'
 import { ChartTemplate } from './template.js'
 import { Magnifier } from './magnifier.js'
+import { Axis, generateAxis } from './axis.js'
+import { Tooltip } from './tooltip.js'
 
 export const ChartRoot = {
+  config() {
+
+  },
+
   init (id, main, data) {
+    // console.log(data, id, main)
     const w = window.innerWidth - 20
     const h = 400
-    const minimapHeight = 100
+    const mH = 100
     const idAttr = `followers-${id}`
-    main.insertAdjacentHTML('beforeEnd', ChartTemplate(idAttr, data))
-    const svg = qs(`#${idAttr} .chart`)
-    const svgMinimap = qs(`#${idAttr} .minimap-chart`)
+    let template = ChartTemplate(idAttr, data, { w: w, h: h, mW: w, mH: mH });
+    let b = main.insertAdjacentHTML('beforeEnd', template)
+    // let bChart = 
+    // console.log(b)
+    console.log(data)
+    const svg = qs(`#${idAttr} .chart`).getContext("2d")
+    const svgMinimap = qs(`#${idAttr} .minimap-chart`).getContext("2d")
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
-    svgMinimapChart.style.width = w + 'px'
+
 
     const layout = Canvas(svg, w, h, data)
+    const layoutMinimap = Canvas(svgMinimap, w, mH, data)
 
     let binded = actionResize.bind(this)
     binded(0, 100).render()
@@ -28,9 +41,8 @@ export const ChartRoot = {
     function actionResize (min, max) {
       this.upperMin = min
       this.upperMax = max
-      const layoutMinimap = Canvas(svgMinimap, w, minimapHeight, data)
       const coords = processCoords(w, h, [min, max], data)
-      const coordInitialMinimap = processCoords(w, minimapHeight, null, data)
+      const coordInitialMinimap = processCoords(w, mH, null, data)
 
       return {
         render () {
@@ -73,7 +85,7 @@ export const ChartRoot = {
           }
           let coor = processCoords(w, h, [this.upperMin, this.upperMax], active.item)
           layout.line(this.upperMin, this.upperMax, coor).update()
-          console.log()
+          // console.log()
           // layout.axises(this.upperMin, this.upperMax, coor).update()
         }
 
@@ -85,4 +97,122 @@ export const ChartRoot = {
 
     return this
   }
+}
+
+
+
+export function Canvas (svg, width, height) {
+
+  return {
+    tooltip: function (min, max, coords) {
+      return {
+        render () {
+          // Tooltip.draw(svg, height, coords)
+
+          // let { startEvent, move, leaveEvent } = Tooltip.listeners(coords, svg, width)
+
+          // svg.addEventListener('mouseenter', startEvent, { passive: true })
+          // svg.addEventListener('touchstart', startEvent, { passive: true })
+
+          // svg.addEventListener('mousemove', move, { passive: true })
+          // svg.addEventListener('touchmove', move, { passive: true })
+
+          // svg.addEventListener('mouseleave', leaveEvent)
+          // svg.addEventListener('touchend', leaveEvent)
+        }
+      }
+    },
+
+    line: function (min, max, coords) {
+      // console.log(coords)
+      return {
+        render: function () {
+        
+          renderLine(svg, coords)
+        },
+        update: function () {
+          svg.clearRect(0, 0, width, height)
+          renderLine(svg, coords)
+        }
+      }
+    },
+
+    axises: function (min, max, coords) {
+      // TODO : add reduce function to caclculate bigger values
+      // let { xAxis, yAxis } = coords[0]
+      // let { horizontal, vertical } = generateAxis(xAxis, yAxis, width, height)
+
+      return {
+        render: function () {
+          // Axis.render(svg, horizontal, 'x', width)
+          // Axis.render(svg, vertical, 'y', width)
+        },
+        update: function () {
+          // Axis.update(svg, horizontal, 'x')
+          // Axis.update(svg, vertical, 'y', width)
+        }
+      }
+    }
+  }
+}
+
+
+function drawLine(cx, data, color) {
+  cx.strokeStyle = color;
+  cx.beginPath();
+  cx.moveTo(0, 0);
+  for (let i = 0; i < data.length; i += 1) {
+    let [x, y] = data[i];
+    cx.lineTo(x, y);
+  }
+  cx.stroke();
+}
+
+function barRect(cx, data, color) {
+  const width = 10;
+  let baseY = 0;
+  cx.beginPath();
+  cx.fillStyle = color;
+
+  data.forEach((item, idx) => {
+    let [x, y] = item;
+    let shift = idx * width;
+    let shiftLeft = shift - width / 2;
+    let shiftRight = shift + width / 2;
+
+    cx.moveTo(shiftLeft, baseY);
+    cx.lineTo(shiftLeft, y);
+    cx.lineTo(shiftRight, y);
+    cx.lineTo(shiftRight, baseY);
+    cx.fill();
+  });
+}
+function drawArea(cx, data, color) {
+  cx.fillStyle = color;
+  cx.beginPath();
+  cx.moveTo(0, 0);
+
+  for (let i = 0; i < data.length; i += 1) {
+    let [x, y] = data[i];
+    cx.lineTo(x, y);
+    if(i === data.length - 1) {
+      cx.lineTo(x, 0);
+    }
+  }
+  cx.fill()
+}
+function renderLine(ctx, coords) {
+  // console.log(sd)  
+  coords.reverse().forEach(({ key, points, color, types }) => {
+    if(types === "line") {
+      drawLine(ctx, points, color)
+    }
+    if(types === "bar") {
+      barRect(ctx, points, color)
+    }
+
+    if(types === "area") {
+      drawArea(ctx, points, color)
+    }
+    })
 }

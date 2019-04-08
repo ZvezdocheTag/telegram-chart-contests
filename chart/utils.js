@@ -5,20 +5,17 @@ export function calculateChartRanges ({ names, types, columns, colors }) {
   return Object.keys(names).map(key => {
     const $X = 'x'
 
-    if (types[ key ] === 'line' && types[ $X ]) {
-      return {
-        color: colors[ key ],
-        x: columns[ $X ],
-        y: columns[ key ],
-        key: key,
-        name: names[ key ],
-        xRange: getRange(columns[ $X ]),
-        yRange: getRange(columns[ key ]),
-        len: columns.length
-      }
+    return {
+      color: colors[ key ],
+      x: columns[ $X ],
+      y: columns[ key ],
+      key: key,
+      name: names[ key ],
+      xRange: getRange(columns[ $X ]),
+      yRange: getRange(columns[ key ]),
+      len: columns.length,
+      types: types[ key ]
     }
-
-    return null
   }).filter(line => line)
 }
 
@@ -77,7 +74,7 @@ export function processCoords (w, h, ranges, lines) {
 
       xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })),
       yAxis: scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] })),
-      points: scaleLine.map((x, idx) => `${Math.round(x)}, ${Math.round(scaleLineY[idx])}`).join(' ')
+      points: scaleLine.map((x, idx) => [Math.round(x), Math.round(scaleLineY[idx])])
     }
   })
 
