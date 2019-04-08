@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    #update {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+    }
+</style>
+<button id="update">Update</button>
+<svg width="960" height="500">
+    <g transform="translate(0,150)" id="axis"></g>
+</svg>
+<script src="https://d3js.org/d3.v4.0.0-alpha.44.min.js"></script>
+<script>
+    var scale = d3.scaleLinear()
+        .rangeRound([100, 860]);
+
+    var axis = d3.axisBottom(scale);
+
+    d3.select("#update")
+        .on("click", clicked);
+
+    d3.select("#axis")
+        .call(update);
+
+    function clicked() {
+        setInterval(() => {
+            d3.select("#axis")
+                .call(update);
+        }, 1000)
+    }
+
+    function update(group) {
+        console.log(group)
+        scale.domain([0, Math.random() * 100]);
+        group.call(axis);
+    }
+</script>

@@ -34,6 +34,24 @@
   font-size: 0.9em;
 }
 
+.default-upd {
+  --scroll-bg: #E2EEF9;
+  --scroll-op: .6;
+
+  --grid-lines: #182D3B;
+  --grid-op: .1;
+
+  --zoom-out-txt: #108BE3;
+  --tooltip-arrow: #D2D5D7;
+
+}
+
+.chart-axis {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .default {
   --text-color: #222222;
   --page-bg: #fff;
@@ -270,6 +288,7 @@ footer {
 
 .chart-wrapper {
   margin-bottom: 80px;
+  position: relative;
 
 }
 

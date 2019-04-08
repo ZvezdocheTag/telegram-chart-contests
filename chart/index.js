@@ -23,14 +23,35 @@ export const ChartRoot = {
     let b = main.insertAdjacentHTML('beforeEnd', template)
     // let bChart = 
     // console.log(b)
-    console.log(data)
+    // console.log(data)
     const svg = qs(`#${idAttr} .chart`).getContext("2d")
+    const svgAxis = qs(`#${idAttr} .chart-axis`)
     const svgMinimap = qs(`#${idAttr} .minimap-chart`).getContext("2d")
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
 
 
+
+    function axisesRender(min, max, coords) {
+      // TODO : add reduce function to caclculate bigger values
+      let { xAxis, yAxis } = coords[0]
+      let { horizontal, vertical } = generateAxis(xAxis, yAxis, w, h)
+
+      return {
+        render: function () {
+          Axis.render(svgAxis, horizontal, 'x', w)
+          Axis.render(svgAxis, vertical, 'y', w)
+        },
+        update: function () {
+          Axis.update(svgAxis, horizontal, 'x')
+          Axis.update(svgAxis, vertical, 'y', w)
+        }
+      }
+    }
+
     const layout = Canvas(svg, w, h, data)
     const layoutMinimap = Canvas(svgMinimap, w, mH, data)
+
+   
 
     let binded = actionResize.bind(this)
     binded(0, 100).render()
@@ -47,13 +68,16 @@ export const ChartRoot = {
       return {
         render () {
           layout.line(min, max, coords).render()
-          layout.axises(min, max, coords).render()
+          axisesRender(min, max, coords).render()
+          // layout.axises(min, max, coords).render()
+
           layout.tooltip(min, max, coords).render()
           layoutMinimap.line(0, w, coordInitialMinimap).render()
           new Magnifier(idAttr, binded).init()
         },
         update () {
           layout.line(min, max, coords).update()
+          axisesRender(min, max, coords).update()
           // layout.axises(min, max, coords).update()
           // layout.tooltip(min, max, coords).render()
         }

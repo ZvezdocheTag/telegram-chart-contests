@@ -30,6 +30,7 @@ export const ChartTemplate = (name, chart, { w, h, mW, mH }) => {
   const temp = `
     <div id="${name}" class="chart-wrapper">
     <canvas class="chart" id="graph" width="${w}" height="${h}"></canvas>
+    <svg class="chart-axis" id="graph-axis" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"></svg>
     <div class="minimap">
         <canvas class="minimap-chart" id="graph-minimap" width="${mW}" height="${mH}">
         </canvas>
