@@ -1,58 +1,37 @@
 
 import { qs } from '../utils.js'
 import { processCoords } from './utils.js'
-// import { Canvas } from './canvas.js'
+import { colorTheme } from '../colorTheme.js'
 // import { Line } from './line.js'
 import { ChartTemplate } from './template.js'
 import { Magnifier } from './magnifier.js'
 import { Axis, generateAxis } from './axis.js'
 import { Tooltip } from './tooltip.js'
 
+const LAYOUT_MODE_DAY = "day"
+const LAYOUT_MODE_NIGHT = "night"
+
 export const ChartRoot = {
+  layoutColorMode: colorTheme[LAYOUT_MODE_DAY],
+
   config() {
 
   },
 
   init (id, main, data) {
-    // console.log(data, id, main)
+    console.log(this.layoutColorMode)
     const w = window.innerWidth - 20
     const h = 400
     const mH = 100
     const idAttr = `followers-${id}`
-    let template = ChartTemplate(idAttr, data, { w: w, h: h, mW: w, mH: mH });
+    let template = ChartTemplate(idAttr, data, { w: w, h: h, mW: w, mH: mH, colors: this.layoutColorMode });
     let b = main.insertAdjacentHTML('beforeEnd', template)
-    // let bChart = 
-    // console.log(b)
-    // console.log(data)
     const svg = qs(`#${idAttr} .chart`).getContext("2d")
-    const svgAxis = qs(`#${idAttr} .chart-axis`)
+    const svgAxis = qs(`#${idAttr} .chart-axises`)
     const svgMinimap = qs(`#${idAttr} .minimap-chart`).getContext("2d")
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
-
-
-
-    function axisesRender(min, max, coords) {
-      // TODO : add reduce function to caclculate bigger values
-      let { xAxis, yAxis } = coords[0]
-      let { horizontal, vertical } = generateAxis(xAxis, yAxis, w, h)
-
-      return {
-        render: function () {
-          Axis.render(svgAxis, horizontal, 'x', w)
-          Axis.render(svgAxis, vertical, 'y', w)
-        },
-        update: function () {
-          Axis.update(svgAxis, horizontal, 'x')
-          Axis.update(svgAxis, vertical, 'y', w)
-        }
-      }
-    }
-
     const layout = Canvas(svg, w, h, data)
     const layoutMinimap = Canvas(svgMinimap, w, mH, data)
-
-   
-
     let binded = actionResize.bind(this)
     binded(0, 100).render()
 
@@ -80,6 +59,24 @@ export const ChartRoot = {
           axisesRender(min, max, coords).update()
           // layout.axises(min, max, coords).update()
           // layout.tooltip(min, max, coords).render()
+        }
+      }
+    }
+
+    function axisesRender(min, max, coords) {
+      // TODO : add reduce function to caclculate bigger values
+      let { xAxis, yAxis } = coords[0]
+      let { horizontal, vertical } = generateAxis(xAxis, yAxis, w, h)
+
+      return {
+        render: function () {
+          console.log(svgAxis, "F")
+          Axis.render(svgAxis, horizontal, 'x', w)
+          Axis.render(svgAxis, vertical, 'y', w)
+        },
+        update: function () {
+          Axis.update(svgAxis, horizontal, 'x')
+          Axis.update(svgAxis, vertical, 'y', w)
         }
       }
     }

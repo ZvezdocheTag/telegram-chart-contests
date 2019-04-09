@@ -31,29 +31,29 @@ const chart = {
       })
       .catch(err => { throw err })
 
-      fetch('/data/3/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[3] = ChartRoot.init(3, main, normilizer)
-      })
-      .catch(err => { throw err })
+      // fetch('/data/3/overview.json')
+      // .then(res => res.json())
+      // .then((data) => {
+      //   const normilizer = normilizeData(data)
+      //   state.initial[3] = ChartRoot.init(3, main, normilizer)
+      // })
+      // .catch(err => { throw err })
 
-      fetch('/data/4/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[4] = ChartRoot.init(4, main, normilizer)
-      })
-      .catch(err => { throw err })
+      // fetch('/data/4/overview.json')
+      // .then(res => res.json())
+      // .then((data) => {
+      //   const normilizer = normilizeData(data)
+      //   state.initial[4] = ChartRoot.init(4, main, normilizer)
+      // })
+      // .catch(err => { throw err })
 
-      fetch('/data/5/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[5] = ChartRoot.init(5, main, normilizer)
-      })
-      .catch(err => { throw err })
+      // fetch('/data/5/overview.json')
+      // .then(res => res.json())
+      // .then((data) => {
+      //   const normilizer = normilizeData(data)
+      //   state.initial[5] = ChartRoot.init(5, main, normilizer)
+      // })
+      // .catch(err => { throw err })
 
     qs('.toggle-mode-btn').addEventListener('click', function () {
       document.body.classList.toggle('dark')

@@ -3,16 +3,8 @@ import { setAttrNs } from '../utils.js'
 
 export const Axis = {
   render (svg, ticks, axis, width) {
-    const xmlns = 'http://www.w3.org/2000/svg'
-
-    const wrapper = document.createElementNS(xmlns, 'g')
-
-    let transformAx = axis === 'x' ? `translate(${0}, 385)` : `translate(0, ${0})`
-    setAttrNs(wrapper, [
-      { class: `tick-wrapper-${axis}` },
-      { transform: transformAx }
-    ])
-    svg.insertAdjacentElement('afterbegin', wrapper)
+    // console.log(svg, svg.querySelector(`tick-wrapper-${axis}`), svg.children)
+    const wrapper = svg.querySelector(`.tick-wrapper-${axis}`)
     let tickWrapper = createTick(wrapper, axis, width)
     ticks.forEach(item => {
       let tick = item.tick
