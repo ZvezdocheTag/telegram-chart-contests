@@ -27,6 +27,7 @@ export const ChartRoot = {
     let template = ChartTemplate(idAttr, data, { w: w, h: h, mW: w, mH: mH, colors: this.layoutColorMode });
     let b = main.insertAdjacentHTML('beforeEnd', template)
     const svg = qs(`#${idAttr} .chart`).getContext("2d")
+    // svg.scale(1,-1)
     const svgAxis = qs(`#${idAttr} .chart-axises`)
     const svgMinimap = qs(`#${idAttr} .minimap-chart`).getContext("2d")
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
@@ -153,11 +154,11 @@ export function Canvas (svg, width, height) {
       return {
         render: function () {
         
-          renderLine(svg, coords)
+          renderLine(svg, coords, height)
         },
         update: function () {
           svg.clearRect(0, 0, width, height)
-          renderLine(svg, coords)
+          renderLine(svg, coords, height)
         }
       }
     },
@@ -182,25 +183,28 @@ export function Canvas (svg, width, height) {
 }
 
 
-function drawLine(cx, data, color) {
+function drawLine(cx, data, color, height) {
   cx.strokeStyle = color;
   cx.beginPath();
-  cx.moveTo(0, 0);
+  cx.moveTo(0, height);
   for (let i = 0; i < data.length; i += 1) {
-    let [x, y] = data[i];
+    let [x, yInitial] = data[i];
+    let y = revertY(yInitial, height)
+
     cx.lineTo(x, y);
   }
   cx.stroke();
 }
 
-function barRect(cx, data, color) {
+function barRect(cx, data, color, height) {
   const width = 10;
-  let baseY = 0;
+  let baseY = height;
   cx.beginPath();
   cx.fillStyle = color;
 
   data.forEach((item, idx) => {
-    let [x, y] = item;
+    let [x, yInitial] = item;
+    let y = revertY(yInitial, height)
     let shift = idx * width;
     let shiftLeft = shift - width / 2;
     let shiftRight = shift + width / 2;
@@ -212,32 +216,43 @@ function barRect(cx, data, color) {
     cx.fill();
   });
 }
-function drawArea(cx, data, color) {
+function drawArea(cx, data, color, height) {
   cx.fillStyle = color;
   cx.beginPath();
-  cx.moveTo(0, 0);
+  // console.log(height, "Ff")
+  cx.moveTo(0, height);
 
   for (let i = 0; i < data.length; i += 1) {
-    let [x, y] = data[i];
+    let [x, yInitial] = data[i];
+    let y = revertY(yInitial, height)
+    // console.log(yBasis, y)
     cx.lineTo(x, y);
     if(i === data.length - 1) {
-      cx.lineTo(x, 0);
+      cx.lineTo(x, height);
     }
   }
   cx.fill()
 }
-function renderLine(ctx, coords) {
-  // console.log(sd)  
+function revertY(py, h) {
+  return -py + h;
+}
+
+function renderLine(ctx, coords, height) {
+  // console.log(sd) 
+  // let upd = cartToScreen(height)
+  // console.log(height)
+  ctx.save()
   coords.reverse().forEach(({ key, points, color, types }) => {
     if(types === "line") {
-      drawLine(ctx, points, color)
+      drawLine(ctx, points, color, height)
     }
     if(types === "bar") {
-      barRect(ctx, points, color)
+      barRect(ctx, points, color, height)
     }
 
     if(types === "area") {
-      drawArea(ctx, points, color)
+      drawArea(ctx, points, color, height)
     }
     })
+    ctx.restore(); 
 }
