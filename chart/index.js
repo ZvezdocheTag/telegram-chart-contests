@@ -19,10 +19,10 @@ export const ChartRoot = {
   },
 
   init (id, main, data) {
-    console.log(this.layoutColorMode)
-    const w = window.innerWidth - 20
-    const h = 400
-    const mH = 100
+    // console.log(main.offsetWidth)
+    const w = main.offsetWidth - 20
+    const h = 250
+    const mH = 50
     const idAttr = `followers-${id}`
     let template = ChartTemplate(idAttr, data, { w: w, h: h, mW: w, mH: mH, colors: this.layoutColorMode });
     let b = main.insertAdjacentHTML('beforeEnd', template)
@@ -50,17 +50,21 @@ export const ChartRoot = {
           axisesRender(min, max, coords).render()
           // layout.axises(min, max, coords).render()
 
-          layout.tooltip(min, max, coords).render()
+          // layout.tooltip(min, max, coords).render()
           layoutMinimap.line(0, w, coordInitialMinimap).render()
           new Magnifier(idAttr, binded).init()
         },
         update () {
           layout.line(min, max, coords).update()
           axisesRender(min, max, coords).update()
+          layout.tooltip(min, max, coords).render()
           // layout.axises(min, max, coords).update()
-          // layout.tooltip(min, max, coords).render()
         }
       }
+    }
+
+    function tooltipUpdate() {
+      let line = svgAxis.querySelector('.tooltip-line')
     }
 
     function axisesRender(min, max, coords) {
