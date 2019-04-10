@@ -1,5 +1,5 @@
 import { qs, normilizeColumns, rand } from './utils.js'
-import { ChartRoot } from './chart/index.js'
+import ChartRoot from './chart/index.js'
 
 function normilizeData(data) {
   return Object.assign({}, data, {
@@ -55,9 +55,9 @@ const chart = {
       })
       .catch(err => { throw err })
 
-    qs('.toggle-mode-btn').addEventListener('click', function () {
-      document.body.classList.toggle('dark')
-    })
+    // qs('.toggle-mode-btn').addEventListener('click', function () {
+    //   document.body.classList.toggle('dark')
+    // })
   }
 }
 chart.init()

@@ -14,7 +14,9 @@ export class Magnifier {
   }
 
   init () {
-    this.listeners()
+    this.el.addEventListener('mousedown', this.resizeStart, { passive: true })
+    this.el.addEventListener('touchstart', this.resizeStart, { passive: true })
+    
     this.initShadow()
     this.initDefault()
   }
@@ -50,8 +52,6 @@ export class Magnifier {
     this.shadowLeft.style.width = l + 'px'
     this.shadowRight.style.width = r + 'px'
     this.actionResize(l, l + width).update()
-    // setTimeout(() => {
-    // }, 500)
   }
 
   resizeStart (e) {
@@ -113,10 +113,5 @@ export class Magnifier {
       this.touchInit = false
       document.removeEventListener('touchmove', resize)
     }, false)
-  }
-
-  listeners () {
-    this.el.addEventListener('mousedown', this.resizeStart, { passive: true })
-    this.el.addEventListener('touchstart', this.resizeStart, { passive: true })
   }
 }

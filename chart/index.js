@@ -1,72 +1,106 @@
 
-import { qs } from '../utils.js'
+import { qs, setAttrNs } from '../utils.js'
 import { processCoords } from './utils.js'
 import { colorTheme } from '../colorTheme.js'
 // import { Line } from './line.js'
 import { ChartTemplate } from './template.js'
 import { Magnifier } from './magnifier.js'
 import { Axis, generateAxis } from './axis.js'
-import { Tooltip } from './tooltip.js'
 
 const LAYOUT_MODE_DAY = "day"
 const LAYOUT_MODE_NIGHT = "night"
 
-export const ChartRoot = {
+const ChartRoot = {
   layoutColorMode: colorTheme[LAYOUT_MODE_DAY],
 
-  config() {
+  state: {
+    chart: {},
+    ineracted: {},
+    mouseEvents: {
+      chart: null,
+      minimap: null,
+    }
+  },
 
+  setActiveChartItem(id) {
+    // console.log(id, current.activeItems, "CLICK")
+    // let isSameExist = current.activeItems.find(item_id => item_id === id);
+    // let removeSame = current.activeItems.filter(item_id => item_id === id );
+    let addNew = [...current.activeItems, id]
+    
+    // console.log(id, "CLICK", addNew, this, current)
+    current.activeItems = addNew
   },
 
   init (id, main, data) {
-    // console.log(main.offsetWidth)
     const w = main.offsetWidth - 20
     const h = 250
     const mH = 50
-    const idAttr = `followers-${id}`
+    const idAttr = `_${id}`
     let template = ChartTemplate(idAttr, data, { w: w, h: h, mW: w, mH: mH, colors: this.layoutColorMode });
     let b = main.insertAdjacentHTML('beforeEnd', template)
     const svg = qs(`#${idAttr} .chart`).getContext("2d")
-    // svg.scale(1,-1)
+    this.state.chart[idAttr] = qs(`#${idAttr} .chart`);
+
+    Object.entries(data.names).forEach(([key, name]) => {
+      if(!this.state.ineracted[idAttr]) {
+        this.state.ineracted[idAttr] = {}
+      }
+      this.state.ineracted[idAttr][key] = {
+        name: name,
+        active: false,
+        ranges: [],
+      }
+    })
+    
+
     const svgAxis = qs(`#${idAttr} .chart-axises`)
     const svgMinimap = qs(`#${idAttr} .minimap-chart`).getContext("2d")
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
+
     const layout = Canvas(svg, w, h, data)
     const layoutMinimap = Canvas(svgMinimap, w, mH, data)
     let binded = actionResize.bind(this)
     
-    this.upperMin = 0
-    this.upperMax = 100
-    
-    const coords = processCoords(w, h, null, data)
-    const coordInitialMinimap = processCoords(w, mH, null, data)
-    
+
+    document.addEventListener('click', clickBindToChart)
+
+    TooltipInit(svgAxis)
+
     binded(0, 100).render()
+
     function actionResize (min, max) {
-      this.upperMin = min
-      this.upperMax = max
+      // const coords = processCoords(w, h, [min, max], data)
+      const coords = processCoords(w, h, null, data)
+      const coordInitialMinimap = processCoords(w, mH, null, data)
 
       return {
         render () {
           layout.line(min, max, coords).render()
           axisesRender(min, max, coords).render()
-          // layout.axises(min, max, coords).render()
+          layout.axises(min, max, coords).render()
 
-          // layout.tooltip(min, max, coords).render()
           layoutMinimap.line(0, w, coordInitialMinimap).render()
           new Magnifier(idAttr, binded).init()
         },
         update () {
+          // EVENT THAT UPDATE MAX RESIZE
           // layout.line(min, max, coords).update()
           // axisesRender(min, max, coords).update()
-          // layout.tooltip(min, max, coords).render()
           // layout.axises(min, max, coords).update()
         }
       }
     }
 
-    function tooltipUpdate() {
-      let line = svgAxis.querySelector('.tooltip-line')
+
+
+    function tooltipUpdate(target) {
+      // let initial = coords.map(coord => ({
+      //   name: coord.name,
+      //   key: coord.key,
+      //   color: coord.color,
+      //   value: coord.y[0]
+      // }))
     }
 
     function axisesRender(min, max, coords) {
@@ -76,7 +110,7 @@ export const ChartRoot = {
 
       return {
         render: function () {
-          console.log(svgAxis, "F")
+          // console.log(svgAxis, "F")
           Axis.render(svgAxis, horizontal, 'x', w)
           Axis.render(svgAxis, vertical, 'y', w)
         },
@@ -87,43 +121,10 @@ export const ChartRoot = {
       }
     }
 
-    let active = {
-      item: null,
-      id: null
-    }
-
-    qs('main').addEventListener('click', (e) => {
-      let target = e.target
-      let childrens = target.childNodes
-      let wrap = target.closest('.chart-wrapper')
-      let wrapId = wrap.id.slice(-1)
-
-      if (target.classList.value.includes('toggle-btn')) {
-        childrens.item(1).classList.toggle('active')
-        childrens.item(1).classList.toggle('on')
-        childrens.item(1).classList.toggle('off')
-
-        let btn = target.dataset.toggleBtn
-
-        if (id === parseInt(wrapId, 10)) {
-          active = {
-            id: id,
-            item: data
-          }
-          let coor = processCoords(w, h, [this.upperMin, this.upperMax], active.item)
-          layout.line(this.upperMin, this.upperMax, coor).update()
-          // console.log()
-          // layout.axises(this.upperMin, this.upperMax, coor).update()
-        }
-
-        wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
-          line.classList.toggle('remove')
-        })
-      }
-    })
-
     return this
-  }
+  },
+
+
 }
 
 
@@ -131,25 +132,6 @@ export const ChartRoot = {
 export function Canvas (svg, width, height) {
 
   return {
-    tooltip: function (min, max, coords) {
-      return {
-        render () {
-          // Tooltip.draw(svg, height, coords)
-
-          // let { startEvent, move, leaveEvent } = Tooltip.listeners(coords, svg, width)
-
-          // svg.addEventListener('mouseenter', startEvent, { passive: true })
-          // svg.addEventListener('touchstart', startEvent, { passive: true })
-
-          // svg.addEventListener('mousemove', move, { passive: true })
-          // svg.addEventListener('touchmove', move, { passive: true })
-
-          // svg.addEventListener('mouseleave', leaveEvent)
-          // svg.addEventListener('touchend', leaveEvent)
-        }
-      }
-    },
-
     line: function (min, max, coords) {
       // console.log(coords)
       return {
@@ -157,9 +139,7 @@ export function Canvas (svg, width, height) {
         
           renderLine(svg, coords, height)
         },
-        update: function () {
-          console.log("CLEAR", coords)
-          
+        update: function () {     
           svg.clearRect(0, 0, width, height)
           renderLine(svg, coords, height)
         }
@@ -184,7 +164,6 @@ export function Canvas (svg, width, height) {
     }
   }
 }
-
 
 function drawLine(cx, data, color, height) {
   cx.strokeStyle = color;
@@ -219,6 +198,7 @@ function barRect(cx, data, color, height) {
     cx.fill();
   });
 }
+
 function drawArea(cx, data, color, height) {
   cx.fillStyle = color;
   cx.beginPath();
@@ -236,14 +216,12 @@ function drawArea(cx, data, color, height) {
   }
   cx.fill()
 }
+
 function revertY(py, h) {
   return -py + h;
 }
 
 function renderLine(ctx, coords, height) {
-  // console.log(sd) 
-  // let upd = cartToScreen(height)
-  // console.log(height)
   ctx.save()
   coords.reverse().forEach(({ key, points, color, types }) => {
     if(types === "line") {
@@ -259,3 +237,146 @@ function renderLine(ctx, coords, height) {
     })
     ctx.restore(); 
 }
+
+function TooltipInit(svg) {
+  let line = null;
+  let tooltip = document.querySelector('.chart-tooltip')
+
+  svg.addEventListener('mouseenter', enterMouse, { passive: true })
+  svg.addEventListener('touchstart', enterMouse, { passive: true })
+
+  svg.addEventListener('mousemove', moveMouse, { passive: true })
+  svg.addEventListener('touchmove', moveMouse, { passive: true })
+
+  svg.addEventListener('mouseleave', mouseLeave)
+  svg.addEventListener('touchend', mouseLeave)
+
+  function enterMouse (e) {
+    line = e.target.querySelector('.tooltip-line')
+    if(!tooltip.classList.contains('active')) {
+      tooltip.classList.add('active')
+    }
+  }
+
+  function moveMouse (e) {
+    let offsetX = e.offsetX
+    let offsetY = e.offsetY
+    let pageX = e.pageX
+    let pageY = e.pageY
+
+    if (e.type === 'touchmove') {
+      pageX = e.touches[0].pageX
+      pageY = e.touches[0].pageY
+      offsetX = e.touches[0].offsetX
+      offsetY = e.touches[0].offsetY
+    }
+
+    tooltip.style.top = (pageY - 10) + 'px'
+    tooltip.style.left = (pageX + 10) + 'px'
+
+    line.style.transform = `translate(${offsetX}px, 0)`
+  }
+
+  function mouseLeave (e) {
+    line = null
+    if(tooltip.classList.contains('active')) {
+      tooltip.classList.remove('active')
+    }
+  }  
+}
+
+function clickButton(e) {
+    let target = e.target
+    if (target.classList.value.includes('toggle-btn')) {
+      let wrap = target.closest('.chart-wrapper')
+      let dataId = target.dataset.toggleBtn
+      let btnState = this.state.ineracted[wrap.id][dataId]
+
+
+      target.classList.toggle('active')
+      btnState.active = btnState.active ? false : true
+    }
+}
+
+let clickBindToChart = clickButton.bind(ChartRoot)
+
+export default ChartRoot
+
+// update (line, x, y, data, svg) {
+//   let title = document.querySelector('.chart-tooltip h5')
+//   let list = document.querySelector('.chart-tooltip ul')
+
+//   setAttrNs(line, [
+//     { x1: data.lines[0].position.x },
+//     { x2: data.lines[0].position.x }
+//   ])
+
+//   // data.lines.forEach(item => {
+//   //   let sel = list.querySelector(`[data-key=${item.key}]`)
+
+//   //   let point = svg.querySelector(`circle[data-key=${item.key}]`)
+//   //   setAttrNs(point, [
+//   //     { cx: item.position.x },
+//   //     { cy: item.position.y },
+//   //     { opacity: 1 }
+//   //   ])
+
+//   //   let childVal = sel.querySelector('.tooltip-item-value')
+//   //   childVal.textContent = item.value
+//   // })
+
+//   // title.textContent = data.time
+// },
+
+
+    //   if (id === parseInt(wrapId, 10)) {
+    //     active = {
+    //       id: id,
+    //       item: data
+    //     }
+    //     let coor = processCoords(w, h, [this.upperMin, this.upperMax], active.item)
+    //     layout.line(this.upperMin, this.upperMax, coor).update()
+    //     // console.log()
+    //     // layout.axises(this.upperMin, this.upperMax, coor).update()
+    //   }
+
+    //   wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
+    //     line.classList.toggle('remove')
+    //   })
+
+
+    // function tooltipDraw (svg) {
+    //   // svg.insertAdjacentElement('beforeend', line)
+    
+    //   // coords.forEach(coordinate => {
+    //   //   let dot = document.createElementNS(xmlns, 'circle')
+    
+    //   //   setAttrNs(dot, [
+    //   //     { class: 'svg-line-points' },
+    //   //     { 'data-key': coordinate.key },
+    //   //     { cx: 0 },
+    //   //     { r: 5 },
+    //   //     { opacity: 0 },
+    //   //     { cy: 0 },
+    //   //     { stroke: `${coordinate.color}` },
+    //   //     { 'stroke-width': `3` }
+    //   //   ])
+    
+    //   //   svg.insertAdjacentElement('beforeend', dot)
+    //   // })
+    // }
+
+
+
+// TOOLTIP UPDATE
+          // let or = ax.filter(item => {
+      //   return item.x < resizePageX
+      // }).slice(-1)[0]
+
+      // let lines = []
+      // coords.forEach(({ yAxis, color, name, key }) => {
+      //   lines.push({ value: yAxis[or.idx].tick, color, name, key, position: { y: yAxis[or.idx].y, x: or.x } })
+      // })
+
+
+      // Tooltip.update(line, resizePageX, resizePageY, getByCoords(lines, or.value), svg)
