@@ -50,6 +50,8 @@ export class Magnifier {
     this.shadowLeft.style.width = l + 'px'
     this.shadowRight.style.width = r + 'px'
     this.actionResize(l, l + width).update()
+    // setTimeout(() => {
+    // }, 500)
   }
 
   resizeStart (e) {

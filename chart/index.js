@@ -34,16 +34,17 @@ export const ChartRoot = {
     const layout = Canvas(svg, w, h, data)
     const layoutMinimap = Canvas(svgMinimap, w, mH, data)
     let binded = actionResize.bind(this)
-    binded(0, 100).render()
-
+    
     this.upperMin = 0
     this.upperMax = 100
-
+    
+    const coords = processCoords(w, h, null, data)
+    const coordInitialMinimap = processCoords(w, mH, null, data)
+    
+    binded(0, 100).render()
     function actionResize (min, max) {
       this.upperMin = min
       this.upperMax = max
-      const coords = processCoords(w, h, [min, max], data)
-      const coordInitialMinimap = processCoords(w, mH, null, data)
 
       return {
         render () {
@@ -56,9 +57,9 @@ export const ChartRoot = {
           new Magnifier(idAttr, binded).init()
         },
         update () {
-          layout.line(min, max, coords).update()
-          axisesRender(min, max, coords).update()
-          layout.tooltip(min, max, coords).render()
+          // layout.line(min, max, coords).update()
+          // axisesRender(min, max, coords).update()
+          // layout.tooltip(min, max, coords).render()
           // layout.axises(min, max, coords).update()
         }
       }
@@ -157,6 +158,8 @@ export function Canvas (svg, width, height) {
           renderLine(svg, coords, height)
         },
         update: function () {
+          console.log("CLEAR", coords)
+          
           svg.clearRect(0, 0, width, height)
           renderLine(svg, coords, height)
         }
