@@ -19,7 +19,8 @@ const ChartRoot = {
     mouseEvents: {
       chart: null,
       minimap: null,
-    }
+    },
+    ranges: {}
   },
 
   setActiveChartItem(id) {
@@ -49,7 +50,6 @@ const ChartRoot = {
       this.state.ineracted[idAttr][key] = {
         name: name,
         active: false,
-        ranges: [],
       }
     })
     
@@ -58,8 +58,14 @@ const ChartRoot = {
     const svgMinimap = qs(`#${idAttr} .minimap-chart`).getContext("2d")
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
 
+    
+    const coords = processCoords(w, h, null, data)
+    // const coords = processCoords(w, h, null, data)
+    const coordInitialMinimap = processCoords(w, mH, null, data)
+
     const layout = Canvas(svg, w, h, data)
     const layoutMinimap = Canvas(svgMinimap, w, mH, data)
+
     let binded = actionResize.bind(this)
     
 
@@ -69,11 +75,11 @@ const ChartRoot = {
 
     binded(0, 100).render()
 
-    function actionResize (min, max) {
-      // const coords = processCoords(w, h, [min, max], data)
-      const coords = processCoords(w, h, null, data)
-      const coordInitialMinimap = processCoords(w, mH, null, data)
+    function actionResize (min, max, e) {
+      let chartId = svgAxis.closest('.chart-wrapper').id
 
+      this.state.ranges[chartId] = [min, max]
+      // console.log(this, min, max, wrapper)
       return {
         render () {
           layout.line(min, max, coords).render()
@@ -85,9 +91,10 @@ const ChartRoot = {
         },
         update () {
           // EVENT THAT UPDATE MAX RESIZE
+
           // layout.line(min, max, coords).update()
-          // axisesRender(min, max, coords).update()
-          // layout.axises(min, max, coords).update()
+          axisesRender(min, max, coords).update()
+          layout.axises(min, max, coords).update()
         }
       }
     }
@@ -288,6 +295,7 @@ function TooltipInit(svg) {
 function clickButton(e) {
     let target = e.target
     if (target.classList.value.includes('toggle-btn')) {
+      console.log(this)
       let wrap = target.closest('.chart-wrapper')
       let dataId = target.dataset.toggleBtn
       let btnState = this.state.ineracted[wrap.id][dataId]
