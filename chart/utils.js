@@ -47,6 +47,7 @@ export function processCoords (w, h, ranges, lines) {
     if (ranges) {
       updatedMax = []
       let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
+      // console.log(line.x[rangeMin], line.x[rangeMax - 1],0, w)
       xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
       
       let filteredY = line.y.filter((_, idx) => idx >= rangeMin && idx <= rangeMax)

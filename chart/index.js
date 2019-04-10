@@ -59,8 +59,7 @@ const ChartRoot = {
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
 
     
-    const coords = processCoords(w, h, null, data)
-    // const coords = processCoords(w, h, null, data)
+ 
     const coordInitialMinimap = processCoords(w, mH, null, data)
 
     const layout = Canvas(svg, w, h, data)
@@ -72,17 +71,31 @@ const ChartRoot = {
     document.addEventListener('click', clickBindToChart)
 
     TooltipInit(svgAxis)
-
+    
+    let dragDiff = 100 - 0;
+    let coords = processCoords(w, h, [0, 100], data)
     binded(0, 100).render()
+
+    let x = 0
 
     function actionResize (min, max, e) {
       let chartId = svgAxis.closest('.chart-wrapper').id
+   // const coords = processCoords(w, h, [0, 100], data)
+  //  const coords = processCoords(w, h, [min, max], data)
+  
+  setTimeout(() => {
+    coords = processCoords(w, h, [min, max], data)
 
+      }, 100)
+
+      if(dragDiff !== max - min) {
+        dragDiff = max - min
+      }
+      // let scale = 2;
       this.state.ranges[chartId] = [min, max]
-      // console.log(this, min, max, wrapper)
       return {
         render () {
-          layout.line(min, max, coords).render()
+          renderLine(svg, coords, h)
           axisesRender(min, max, coords).render()
           layout.axises(min, max, coords).render()
 
@@ -90,9 +103,8 @@ const ChartRoot = {
           new Magnifier(idAttr, binded).init()
         },
         update () {
-          // EVENT THAT UPDATE MAX RESIZE
-
-          // layout.line(min, max, coords).update()
+          svg.clearRect(0, 0, w, h)
+          renderLine(svg, coords, h)
           axisesRender(min, max, coords).update()
           layout.axises(min, max, coords).update()
         }
@@ -139,7 +151,7 @@ const ChartRoot = {
 export function Canvas (svg, width, height) {
 
   return {
-    line: function (min, max, coords) {
+    line: function (min, max, coords, diff) {
       // console.log(coords)
       return {
         render: function () {
@@ -172,15 +184,16 @@ export function Canvas (svg, width, height) {
   }
 }
 
-function drawLine(cx, data, color, height) {
+function drawLine(cx, data, color, height, diff = 0) {
+
   cx.strokeStyle = color;
   cx.beginPath();
   cx.moveTo(0, height);
   for (let i = 0; i < data.length; i += 1) {
     let [x, yInitial] = data[i];
     let y = revertY(yInitial, height)
-
-    cx.lineTo(x, y);
+    let updX = x - diff
+    cx.lineTo(updX, y);
   }
   cx.stroke();
 }
@@ -189,7 +202,7 @@ function barRect(cx, data, color, height) {
   const width = 10;
   let baseY = height;
   cx.beginPath();
-  cx.fillStyle = color;
+  cx.strokeStyle = color;
 
   data.forEach((item, idx) => {
     let [x, yInitial] = item;
@@ -202,7 +215,7 @@ function barRect(cx, data, color, height) {
     cx.lineTo(shiftLeft, y);
     cx.lineTo(shiftRight, y);
     cx.lineTo(shiftRight, baseY);
-    cx.fill();
+    cx.stroke();
   });
 }
 
@@ -228,11 +241,11 @@ function revertY(py, h) {
   return -py + h;
 }
 
-function renderLine(ctx, coords, height) {
+function renderLine(ctx, coords, height, diff) {
   ctx.save()
   coords.reverse().forEach(({ key, points, color, types }) => {
     if(types === "line") {
-      drawLine(ctx, points, color, height)
+      drawLine(ctx, points, color, height, diff)
     }
     if(types === "bar") {
       barRect(ctx, points, color, height)
