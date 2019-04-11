@@ -1,5 +1,5 @@
 
-import { qs, setAttrNs } from '../utils.js'
+import { qs, DAYS, MONTHES } from '../utils.js'
 import { processCoords } from './utils.js'
 import { colorTheme } from '../colorTheme.js'
 // import { Line } from './line.js'
@@ -20,7 +20,9 @@ const ChartRoot = {
       chart: null,
       minimap: null
     },
-    ranges: {}
+    ranges: {},
+    calculation: {},
+    tooltipPos: { x: 0, left: 0 }
   },
 
   setActiveChartItem (id) {
@@ -66,20 +68,20 @@ const ChartRoot = {
 
     document.addEventListener('click', clickBindToChart)
 
-    TooltipInit(svgAxis)
+    Tooltip(svgAxis)
 
     let dragDiff = 100 - 0
 
     let coords = processCoords(w, h, [0, 100], data)
-    var canvasTemp = document.createElement('canvas')
+    // var canvasTemp = document.createElement('canvas')
 
-    
-var tCtx = canvasTemp.getContext('2d')
-    canvasTemp.width = w
-    canvasTemp.height = h
     binded(0, 100).render()
 
-    let x = 0
+    // var tCtx = canvasTemp.getContext('2d')
+    // canvasTemp.width = w
+    // canvasTemp.height = h
+
+    // let x = 0
 
     function actionResize (min, max, e) {
       let chartId = svgAxis.closest('.chart-wrapper').id
@@ -93,8 +95,9 @@ var tCtx = canvasTemp.getContext('2d')
       if (dragDiff !== max - min) {
         dragDiff = max - min
       }
-      // let scale = 2;
+
       this.state.ranges[chartId] = [min, max]
+      this.state.calculation[chartId] = coords
       return {
         render () {
           // cach the smiley
@@ -115,15 +118,6 @@ var tCtx = canvasTemp.getContext('2d')
           layout.axises(min, max, coords).update()
         }
       }
-    }
-
-    function tooltipUpdate (target) {
-      // let initial = coords.map(coord => ({
-      //   name: coord.name,
-      //   key: coord.key,
-      //   color: coord.color,
-      //   value: coord.y[0]
-      // }))
     }
 
     function axisesRender (min, max, coords) {
@@ -242,7 +236,6 @@ function revertY (py, h) {
 function renderLine (ctx, coords, height, diff) {
   ctx.save()
   coords.reverse().forEach(({ key, points, color, types }) => {
-    let upd = points.slice(0, 100)
     if (types === 'line') {
       drawLine(ctx, points, color, height, diff)
     }
@@ -258,8 +251,14 @@ function renderLine (ctx, coords, height, diff) {
 }
 
 function TooltipInit (svg) {
+  let self = this
+
   let line = null
+  let currentChart = null
+  let getFirstRange = null
+
   let tooltip = document.querySelector('.chart-tooltip')
+  let dataId = svg.closest('.chart-wrapper').id
 
   svg.addEventListener('mouseenter', enterMouse, { passive: true })
   svg.addEventListener('touchstart', enterMouse, { passive: true })
@@ -271,6 +270,24 @@ function TooltipInit (svg) {
   svg.addEventListener('touchend', mouseLeave)
 
   function enterMouse (e) {
+    currentChart = self.state.calculation[dataId]
+    getFirstRange = currentChart[0].currentRangeData
+
+    console.log(currentChart)
+    tooltip.insertAdjacentHTML('beforeend', '<ul class="tooltip-list"></ul>')
+    const list = tooltip.querySelector('.tooltip-list')
+
+    currentChart.forEach((line, idx) => {
+      // let html =  `<li style="color: ${line.color};" data-key="${line.key}">
+      // console.log(line)
+      let html = `<li data-key="${line.key}">
+        <div class="tooltip-item-name">${line.name}</div>
+        <div class="tooltip-item-value">${line.valueX}</div>
+      </li>`
+
+      list.insertAdjacentHTML('beforeend', html)
+    })
+
     line = e.target.querySelector('.tooltip-line')
     if (!tooltip.classList.contains('active')) {
       tooltip.classList.add('active')
@@ -290,24 +307,84 @@ function TooltipInit (svg) {
       offsetY = e.touches[0].offsetY
     }
 
+    // HERE WE RECIEVE IDX
+    let [ currentTooltipPos ] = getFirstRange.filter(item => {
+      return item.x < offsetX
+    }).slice(-1)
+    let currentCoords = null
+    if (currentTooltipPos) {
+      currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
+    }
+
+    if (currentCoords) {
+      rerenderTooltip(currentCoords)
+    }
     tooltip.style.top = (pageY - 10) + 'px'
     tooltip.style.left = (pageX + 10) + 'px'
 
     line.style.transform = `translate(${offsetX}px, 0)`
   }
 
+  function rerenderTooltip (items) {
+    let keyTime = items[0].value
+    let date = new Date(keyTime)
+    let dater = date.getDate()
+    let day = date.getDay()
+    let month = date.getMonth()
+    console.log(items)
+    const title = tooltip.querySelector('.tooltip-title')
+    const list = tooltip.querySelector('.tooltip-list')
+    title.textContent = `${DAYS[day].slice(0, 3)}, ${MONTHES[month]} ${dater}`
+
+    items.forEach(item => {
+      let curr = list.querySelector(`[data-key=${item.key}]`)
+      curr.querySelector('.tooltip-item-value').textContent = item.valueY
+      // console.log(curr)
+    })
+    // return {
+    //   time: ,
+    //   lines: items
+    // }
+  }
+
+  function findHoveredCoordinates (coordinates, hoveredIdx) {
+    let currentHovered = []
+    coordinates.forEach((item) => {
+      currentHovered.push(item.currentRangeData[hoveredIdx])
+    })
+
+    return currentHovered
+  }
   function mouseLeave (e) {
     line = null
+    const list = tooltip.querySelector('.tooltip-list')
+
+    list.remove()
     if (tooltip.classList.contains('active')) {
       tooltip.classList.remove('active')
     }
   }
 }
 
+export const TooltipTemplate = ({ time, lines }) => {
+  let linesTemplate = lines.map((line, idx) => `<li style="color: ${line.color};" data-key="${line.key}">
+    <div class="tooltip-item-name">${line.name}</div>
+    <div class="tooltip-item-value">${line.value}</div>
+  </li>`)
+
+  return `
+    <div class="chart-tooltip" >
+      <h5>${time}</h5>
+      <ul>
+        ${linesTemplate.join(' ')}
+      </ul>
+    </div>
+  `
+}
+
 function clickButton (e) {
   let target = e.target
   if (target.classList.value.includes('toggle-btn')) {
-    console.log(this)
     let wrap = target.closest('.chart-wrapper')
     let dataId = target.dataset.toggleBtn
     let btnState = this.state.ineracted[wrap.id][dataId]
@@ -318,6 +395,7 @@ function clickButton (e) {
 }
 
 let clickBindToChart = clickButton.bind(ChartRoot)
+let Tooltip = TooltipInit.bind(ChartRoot)
 
 export default ChartRoot
 

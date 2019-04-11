@@ -19,8 +19,8 @@ export function calculateChartRanges ({ names, types, columns, colors }) {
   }).filter(line => line)
 }
 
-export function updateScales() {
-    // console.log("F")
+export function updateScales () {
+  // console.log("F")
 }
 updateScales()
 export function processCoords (w, h, ranges, lines) {
@@ -49,24 +49,37 @@ export function processCoords (w, h, ranges, lines) {
       let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
       // console.log(line.x[rangeMin], line.x[rangeMax - 1],0, w)
       xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
-      
+
       let filteredY = line.y.filter((_, idx) => idx >= rangeMin && idx <= rangeMax)
-      let sorted = filteredY.sort((a, b) => a - b);
+      let sorted = filteredY.sort((a, b) => a - b)
       // console.log(filteredY.length, line.y.length, rangeMin, rangeMax)
-      let yRangeFirst = sorted.slice(0, 1)[0];
+      let yRangeFirst = sorted.slice(0, 1)[0]
       let yRangeSecond = sorted.slice(-1)[0]
       let [ yMinRange, yMaxRange] = yRangeFirst > yRangeSecond ? [yRangeSecond, yRangeFirst] : [yRangeFirst, yRangeSecond]
       // console.log(line.y[rangeMax - 1], line.y[rangeMin], line.y , "F", yMinRange, yMaxRange )
 
       yScale = scaleLiniar([h, 0], [ yMaxRange, yMinRange ])
-      
+
       scaleLineY = line.y.map(yScale).map(item => Math.round(item))
       scaleLine = line.x.map(xScale)
-      // scaleLine = line.x.map(xScale).filter((_, idx) => idx >= rangeMin && idx <= rangeMax)
-      // console.log(scaleLine)
     }
 
-    // scaleLineY = line.y.map(yScale)
+    let xAxis = scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] }))
+    let yAxis = scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] }))
+    let points = scaleLine.map((x, idx) => [Math.round(x), Math.round(scaleLineY[idx])])
+
+    let upd = xAxis.map((item, idx) => ({ ...item, y: yAxis[idx], value: line.x[idx], valueY: line.y[idx], key: line.key, valueX: line.x[idx], idx, name: line.name, color: line.color }))
+    // Get just values by the ranges
+
+    function generateAxisWithoutFilter (axis, w) {
+      let amount = axis.map((o, idx) => ({ ...o, idx })).filter((item, idx) => {
+        return item.x >= 0 && item.x <= w
+      })
+
+      return amount
+    }
+
+    let currentRangeData = generateAxisWithoutFilter(upd, w)
 
     return {
       ...line,
@@ -74,9 +87,10 @@ export function processCoords (w, h, ranges, lines) {
       yCoords: scaleLineY,
       xAxisTikers: xAxisTikers,
 
-      xAxis: scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] })),
-      yAxis: scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] })),
-      points: scaleLine.map((x, idx) => [Math.round(x), Math.round(scaleLineY[idx])])
+      xAxis: xAxis,
+      yAxis: yAxis,
+      points: points,
+      currentRangeData: currentRangeData
     }
   })
 

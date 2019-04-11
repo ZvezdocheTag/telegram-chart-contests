@@ -1,18 +1,3 @@
-export const TooltipTemplate = ({ time, lines }) => {
-  let linesTemplate = lines.map((line, idx) => `<li style="color: ${line.color};" data-key="${line.key}">
-    <div class="tooltip-item-name">${line.name}</div>
-    <div class="tooltip-item-value">${line.value}</div>
-  </li>`)
-
-  return `
-    <div class="chart-tooltip" >
-      <h5>${time}</h5>
-      <ul>
-        ${linesTemplate.join(' ')}
-      </ul>
-    </div>
-  `
-}
 
 const Button = (axis, name, color) => {
   return `
@@ -24,8 +9,7 @@ const Button = (axis, name, color) => {
   </button>
   `
 }
-{/* <svg class="minimap-chart" id="graph-minimap">
-</svg> */}
+
 export const ChartTemplate = (name, chart, { w, h, mW, mH, colors }) => {
   const temp = `
     <div id="${name}" class="chart-wrapper">
