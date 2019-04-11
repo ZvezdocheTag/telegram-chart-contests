@@ -190,23 +190,27 @@ function drawLine (cx, data, color, height, diff = 0) {
   cx.stroke()
 }
 
-function barRect (cx, data, color, height) {
-  const width = 10
+function barRect (cx, data, color, height, diffWidth) {
+  const width = diffWidth
   let baseY = height
   cx.beginPath()
   cx.fillStyle = color
-  cx.moveTo(0, baseY)
 
+  // console.log(data, 'II')
   data.forEach((item, idx) => {
-    let [x, yInitial] = item
-    let y = revertY(yInitial, height)
-    let shift = idx * width
-    let shiftLeft = shift - width / 2
-    let shiftRight = shift + width / 2
-
-    cx.lineTo(shiftLeft, y)
-    cx.lineTo(shiftRight, y)
-    cx.lineTo(shiftRight, baseY)
+    let [x, y] = item
+    // let yr = revertY(y, height)
+    // console.log(revertY(y, height), y, height)
+    // let shift = idx * width
+    // let shiftLeft = shift - width / 2
+    // let shiftRight = shift + width / 2
+    if (x > 0 && x < 500) {
+      // console.log(shiftLeft, shiftRight, width, y, x, yr, height)
+      cx.moveTo(x, baseY)
+      cx.lineTo(x, y)
+      cx.lineTo(x + width, y)
+      cx.lineTo(x + width, baseY)
+    }
   })
   cx.fill()
 }
@@ -235,12 +239,18 @@ function revertY (py, h) {
 
 function renderLine (ctx, coords, height, diff) {
   ctx.save()
-  coords.reverse().forEach(({ key, points, color, types }) => {
+  console.log(this)
+  coords.reverse().forEach(({ key, points, color, types, currentRangeData }) => {
+    // let a = xCoords.slice(0, 1)
+    // let b = xCoords.slice(-1)
+    // let diffWidth = Math.round((b - a) / xCoords.length)
+    let diffWidth = 500 / currentRangeData.length
+    console.log(diffWidth)
     if (types === 'line') {
       drawLine(ctx, points, color, height, diff)
     }
     if (types === 'bar') {
-      barRect(ctx, points, color, height)
+      barRect(ctx, points, color, height, diffWidth)
     }
 
     if (types === 'area') {
@@ -331,7 +341,7 @@ function TooltipInit (svg) {
     let dater = date.getDate()
     let day = date.getDay()
     let month = date.getMonth()
-    console.log(items)
+    // console.log(items)
     const title = tooltip.querySelector('.tooltip-title')
     const list = tooltip.querySelector('.tooltip-list')
     title.textContent = `${DAYS[day].slice(0, 3)}, ${MONTHES[month]} ${dater}`

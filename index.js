@@ -39,13 +39,13 @@ const chart = {
       })
       .catch(err => { throw err })
 
-    // fetch('/data/4/overview.json')
-    // .then(res => res.json())
-    // .then((data) => {
-    //   const normilizer = normilizeData(data)
-    //   state.initial[4] = ChartRoot.init(4, main, normilizer)
-    // })
-    // .catch(err => { throw err })
+    fetch('/data/4/overview.json')
+      .then(res => res.json())
+      .then((data) => {
+        const normilizer = normilizeData(data)
+        state.initial[4] = ChartRoot.init(4, main, normilizer)
+      })
+      .catch(err => { throw err })
 
     // fetch('/data/5/overview.json')
     // .then(res => res.json())
