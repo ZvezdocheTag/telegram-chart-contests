@@ -7,8 +7,8 @@ import { ChartTemplate } from './template.js'
 import { Magnifier } from './magnifier.js'
 import { Axis, generateAxis } from './axis.js'
 
-const LAYOUT_MODE_DAY = "day"
-const LAYOUT_MODE_NIGHT = "night"
+const LAYOUT_MODE_DAY = 'day'
+const LAYOUT_MODE_NIGHT = 'night'
 
 const ChartRoot = {
   layoutColorMode: colorTheme[LAYOUT_MODE_DAY],
@@ -18,17 +18,17 @@ const ChartRoot = {
     ineracted: {},
     mouseEvents: {
       chart: null,
-      minimap: null,
+      minimap: null
     },
     ranges: {}
   },
 
-  setActiveChartItem(id) {
+  setActiveChartItem (id) {
     // console.log(id, current.activeItems, "CLICK")
     // let isSameExist = current.activeItems.find(item_id => item_id === id);
     // let removeSame = current.activeItems.filter(item_id => item_id === id );
     let addNew = [...current.activeItems, id]
-    
+
     // console.log(id, "CLICK", addNew, this, current)
     current.activeItems = addNew
   },
@@ -38,63 +38,67 @@ const ChartRoot = {
     const h = 250
     const mH = 50
     const idAttr = `_${id}`
-    let template = ChartTemplate(idAttr, data, { w: w, h: h, mW: w, mH: mH, colors: this.layoutColorMode });
+    let template = ChartTemplate(idAttr, data, { w: w, h: h, mW: w, mH: mH, colors: this.layoutColorMode })
     let b = main.insertAdjacentHTML('beforeEnd', template)
-    const svg = qs(`#${idAttr} .chart`).getContext("2d")
-    this.state.chart[idAttr] = qs(`#${idAttr} .chart`);
+    const svg = qs(`#${idAttr} .chart`).getContext('2d')
+    this.state.chart[idAttr] = qs(`#${idAttr} .chart`)
 
     Object.entries(data.names).forEach(([key, name]) => {
-      if(!this.state.ineracted[idAttr]) {
+      if (!this.state.ineracted[idAttr]) {
         this.state.ineracted[idAttr] = {}
       }
       this.state.ineracted[idAttr][key] = {
         name: name,
-        active: false,
+        active: false
       }
     })
-    
 
     const svgAxis = qs(`#${idAttr} .chart-axises`)
-    const svgMinimap = qs(`#${idAttr} .minimap-chart`).getContext("2d")
+    const svgMinimap = qs(`#${idAttr} .minimap-chart`).getContext('2d')
     const svgMinimapChart = qs(`#${idAttr} .magnifier`)
 
-    
- 
     const coordInitialMinimap = processCoords(w, mH, null, data)
 
     const layout = Canvas(svg, w, h, data)
     const layoutMinimap = Canvas(svgMinimap, w, mH, data)
 
     let binded = actionResize.bind(this)
-    
 
     document.addEventListener('click', clickBindToChart)
 
     TooltipInit(svgAxis)
-    
-    let dragDiff = 100 - 0;
+
+    let dragDiff = 100 - 0
+
     let coords = processCoords(w, h, [0, 100], data)
+    var canvasTemp = document.createElement('canvas')
+
+    
+var tCtx = canvasTemp.getContext('2d')
+    canvasTemp.width = w
+    canvasTemp.height = h
     binded(0, 100).render()
 
     let x = 0
 
     function actionResize (min, max, e) {
       let chartId = svgAxis.closest('.chart-wrapper').id
-   // const coords = processCoords(w, h, [0, 100], data)
-  //  const coords = processCoords(w, h, [min, max], data)
-  
-  setTimeout(() => {
-    coords = processCoords(w, h, [min, max], data)
+      // const coords = processCoords(w, h, [0, 100], data)
+      //  const coords = processCoords(w, h, [min, max], data)
+      coords = processCoords(w, h, [min, max], data)
+      // setTimeout(() => {
 
-      }, 100)
+      // }, 100)
 
-      if(dragDiff !== max - min) {
+      if (dragDiff !== max - min) {
         dragDiff = max - min
       }
       // let scale = 2;
       this.state.ranges[chartId] = [min, max]
       return {
         render () {
+          // cach the smiley
+
           renderLine(svg, coords, h)
           axisesRender(min, max, coords).render()
           layout.axises(min, max, coords).render()
@@ -104,6 +108,8 @@ const ChartRoot = {
         },
         update () {
           svg.clearRect(0, 0, w, h)
+          // svg.scale(1.002,1)
+          // svg.drawImage(tCtx.canvas, 0, 0);
           renderLine(svg, coords, h)
           axisesRender(min, max, coords).update()
           layout.axises(min, max, coords).update()
@@ -111,9 +117,7 @@ const ChartRoot = {
       }
     }
 
-
-
-    function tooltipUpdate(target) {
+    function tooltipUpdate (target) {
       // let initial = coords.map(coord => ({
       //   name: coord.name,
       //   key: coord.key,
@@ -122,7 +126,7 @@ const ChartRoot = {
       // }))
     }
 
-    function axisesRender(min, max, coords) {
+    function axisesRender (min, max, coords) {
       // TODO : add reduce function to caclculate bigger values
       let { xAxis, yAxis } = coords[0]
       let { horizontal, vertical } = generateAxis(xAxis, yAxis, w, h)
@@ -141,24 +145,19 @@ const ChartRoot = {
     }
 
     return this
-  },
-
+  }
 
 }
 
-
-
 export function Canvas (svg, width, height) {
-
   return {
     line: function (min, max, coords, diff) {
       // console.log(coords)
       return {
         render: function () {
-        
           renderLine(svg, coords, height)
         },
-        update: function () {     
+        update: function () {
           svg.clearRect(0, 0, width, height)
           renderLine(svg, coords, height)
         }
@@ -184,82 +183,82 @@ export function Canvas (svg, width, height) {
   }
 }
 
-function drawLine(cx, data, color, height, diff = 0) {
-
-  cx.strokeStyle = color;
-  cx.beginPath();
-  cx.moveTo(0, height);
+function drawLine (cx, data, color, height, diff = 0) {
+  cx.strokeStyle = color
+  cx.beginPath()
+  cx.moveTo(0, height)
   for (let i = 0; i < data.length; i += 1) {
-    let [x, yInitial] = data[i];
+    let [x, yInitial] = data[i]
     let y = revertY(yInitial, height)
     let updX = x - diff
-    cx.lineTo(updX, y);
+    cx.lineTo(updX, y)
   }
-  cx.stroke();
+  cx.stroke()
 }
 
-function barRect(cx, data, color, height) {
-  const width = 10;
-  let baseY = height;
-  cx.beginPath();
-  cx.strokeStyle = color;
+function barRect (cx, data, color, height) {
+  const width = 10
+  let baseY = height
+  cx.beginPath()
+  cx.fillStyle = color
+  cx.moveTo(0, baseY)
 
   data.forEach((item, idx) => {
-    let [x, yInitial] = item;
+    let [x, yInitial] = item
     let y = revertY(yInitial, height)
-    let shift = idx * width;
-    let shiftLeft = shift - width / 2;
-    let shiftRight = shift + width / 2;
+    let shift = idx * width
+    let shiftLeft = shift - width / 2
+    let shiftRight = shift + width / 2
 
-    cx.moveTo(shiftLeft, baseY);
-    cx.lineTo(shiftLeft, y);
-    cx.lineTo(shiftRight, y);
-    cx.lineTo(shiftRight, baseY);
-    cx.stroke();
-  });
+    cx.lineTo(shiftLeft, y)
+    cx.lineTo(shiftRight, y)
+    cx.lineTo(shiftRight, baseY)
+  })
+  cx.fill()
 }
 
-function drawArea(cx, data, color, height) {
-  cx.fillStyle = color;
-  cx.beginPath();
+function drawArea (cx, data, color, height) {
+  cx.fillStyle = color
+  cx.beginPath()
   // console.log(height, "Ff")
-  cx.moveTo(0, height);
+  cx.moveTo(0, height)
 
   for (let i = 0; i < data.length; i += 1) {
-    let [x, yInitial] = data[i];
+    let [x, yInitial] = data[i]
     let y = revertY(yInitial, height)
     // console.log(yBasis, y)
-    cx.lineTo(x, y);
-    if(i === data.length - 1) {
-      cx.lineTo(x, height);
+    cx.lineTo(x, y)
+    if (i === data.length - 1) {
+      cx.lineTo(x, height)
     }
   }
   cx.fill()
 }
 
-function revertY(py, h) {
-  return -py + h;
+function revertY (py, h) {
+  return -py + h
 }
 
-function renderLine(ctx, coords, height, diff) {
+function renderLine (ctx, coords, height, diff) {
   ctx.save()
   coords.reverse().forEach(({ key, points, color, types }) => {
-    if(types === "line") {
+    let upd = points.slice(0, 100)
+    if (types === 'line') {
       drawLine(ctx, points, color, height, diff)
     }
-    if(types === "bar") {
+    if (types === 'bar') {
       barRect(ctx, points, color, height)
     }
 
-    if(types === "area") {
+    if (types === 'area') {
       drawArea(ctx, points, color, height)
     }
-    })
-    ctx.restore(); 
+  })
+  ctx.restore()
 }
 
-function TooltipInit(svg) {
-  let line = null;
+function TooltipInit (svg) {
+  let line = null
   let tooltip = document.querySelector('.chart-tooltip')
 
   svg.addEventListener('mouseenter', enterMouse, { passive: true })
@@ -273,7 +272,7 @@ function TooltipInit(svg) {
 
   function enterMouse (e) {
     line = e.target.querySelector('.tooltip-line')
-    if(!tooltip.classList.contains('active')) {
+    if (!tooltip.classList.contains('active')) {
       tooltip.classList.add('active')
     }
   }
@@ -299,24 +298,23 @@ function TooltipInit(svg) {
 
   function mouseLeave (e) {
     line = null
-    if(tooltip.classList.contains('active')) {
+    if (tooltip.classList.contains('active')) {
       tooltip.classList.remove('active')
     }
-  }  
+  }
 }
 
-function clickButton(e) {
-    let target = e.target
-    if (target.classList.value.includes('toggle-btn')) {
-      console.log(this)
-      let wrap = target.closest('.chart-wrapper')
-      let dataId = target.dataset.toggleBtn
-      let btnState = this.state.ineracted[wrap.id][dataId]
+function clickButton (e) {
+  let target = e.target
+  if (target.classList.value.includes('toggle-btn')) {
+    console.log(this)
+    let wrap = target.closest('.chart-wrapper')
+    let dataId = target.dataset.toggleBtn
+    let btnState = this.state.ineracted[wrap.id][dataId]
 
-
-      target.classList.toggle('active')
-      btnState.active = btnState.active ? false : true
-    }
+    target.classList.toggle('active')
+    btnState.active = !btnState.active
+  }
 }
 
 let clickBindToChart = clickButton.bind(ChartRoot)
@@ -349,55 +347,50 @@ export default ChartRoot
 //   // title.textContent = data.time
 // },
 
+//   if (id === parseInt(wrapId, 10)) {
+//     active = {
+//       id: id,
+//       item: data
+//     }
+//     let coor = processCoords(w, h, [this.upperMin, this.upperMax], active.item)
+//     layout.line(this.upperMin, this.upperMax, coor).update()
+//     // console.log()
+//     // layout.axises(this.upperMin, this.upperMax, coor).update()
+//   }
 
-    //   if (id === parseInt(wrapId, 10)) {
-    //     active = {
-    //       id: id,
-    //       item: data
-    //     }
-    //     let coor = processCoords(w, h, [this.upperMin, this.upperMax], active.item)
-    //     layout.line(this.upperMin, this.upperMax, coor).update()
-    //     // console.log()
-    //     // layout.axises(this.upperMin, this.upperMax, coor).update()
-    //   }
+//   wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
+//     line.classList.toggle('remove')
+//   })
 
-    //   wrap.querySelectorAll(`.chart-line-${btn}`).forEach(line => {
-    //     line.classList.toggle('remove')
-    //   })
+// function tooltipDraw (svg) {
+//   // svg.insertAdjacentElement('beforeend', line)
 
+//   // coords.forEach(coordinate => {
+//   //   let dot = document.createElementNS(xmlns, 'circle')
 
-    // function tooltipDraw (svg) {
-    //   // svg.insertAdjacentElement('beforeend', line)
-    
-    //   // coords.forEach(coordinate => {
-    //   //   let dot = document.createElementNS(xmlns, 'circle')
-    
-    //   //   setAttrNs(dot, [
-    //   //     { class: 'svg-line-points' },
-    //   //     { 'data-key': coordinate.key },
-    //   //     { cx: 0 },
-    //   //     { r: 5 },
-    //   //     { opacity: 0 },
-    //   //     { cy: 0 },
-    //   //     { stroke: `${coordinate.color}` },
-    //   //     { 'stroke-width': `3` }
-    //   //   ])
-    
-    //   //   svg.insertAdjacentElement('beforeend', dot)
-    //   // })
-    // }
+//   //   setAttrNs(dot, [
+//   //     { class: 'svg-line-points' },
+//   //     { 'data-key': coordinate.key },
+//   //     { cx: 0 },
+//   //     { r: 5 },
+//   //     { opacity: 0 },
+//   //     { cy: 0 },
+//   //     { stroke: `${coordinate.color}` },
+//   //     { 'stroke-width': `3` }
+//   //   ])
 
-
+//   //   svg.insertAdjacentElement('beforeend', dot)
+//   // })
+// }
 
 // TOOLTIP UPDATE
-          // let or = ax.filter(item => {
-      //   return item.x < resizePageX
-      // }).slice(-1)[0]
+// let or = ax.filter(item => {
+//   return item.x < resizePageX
+// }).slice(-1)[0]
 
-      // let lines = []
-      // coords.forEach(({ yAxis, color, name, key }) => {
-      //   lines.push({ value: yAxis[or.idx].tick, color, name, key, position: { y: yAxis[or.idx].y, x: or.x } })
-      // })
+// let lines = []
+// coords.forEach(({ yAxis, color, name, key }) => {
+//   lines.push({ value: yAxis[or.idx].tick, color, name, key, position: { y: yAxis[or.idx].y, x: or.x } })
+// })
 
-
-      // Tooltip.update(line, resizePageX, resizePageY, getByCoords(lines, or.value), svg)
+// Tooltip.update(line, resizePageX, resizePageY, getByCoords(lines, or.value), svg)

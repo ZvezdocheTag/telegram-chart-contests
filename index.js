@@ -1,7 +1,7 @@
 import { qs, normilizeColumns, rand } from './utils.js'
 import ChartRoot from './chart/index.js'
 
-function normilizeData(data) {
+function normilizeData (data) {
   return Object.assign({}, data, {
     columns: normilizeColumns(data.columns)
   })
@@ -23,15 +23,15 @@ const chart = {
       })
       .catch(err => { throw err })
 
-      fetch('/data/2/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[1] = ChartRoot.init(1, main, normilizer)
-      })
-      .catch(err => { throw err })
+    // fetch('/data/2/overview.json')
+    // .then(res => res.json())
+    // .then((data) => {
+    //   const normilizer = normilizeData(data)
+    //   state.initial[1] = ChartRoot.init(1, main, normilizer)
+    // })
+    // .catch(err => { throw err })
 
-      fetch('/data/3/overview.json')
+    fetch('/data/3/overview.json')
       .then(res => res.json())
       .then((data) => {
         const normilizer = normilizeData(data)
@@ -39,21 +39,21 @@ const chart = {
       })
       .catch(err => { throw err })
 
-      fetch('/data/4/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[4] = ChartRoot.init(4, main, normilizer)
-      })
-      .catch(err => { throw err })
+    // fetch('/data/4/overview.json')
+    // .then(res => res.json())
+    // .then((data) => {
+    //   const normilizer = normilizeData(data)
+    //   state.initial[4] = ChartRoot.init(4, main, normilizer)
+    // })
+    // .catch(err => { throw err })
 
-      fetch('/data/5/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[5] = ChartRoot.init(5, main, normilizer)
-      })
-      .catch(err => { throw err })
+    // fetch('/data/5/overview.json')
+    // .then(res => res.json())
+    // .then((data) => {
+    //   const normilizer = normilizeData(data)
+    //   state.initial[5] = ChartRoot.init(5, main, normilizer)
+    // })
+    // .catch(err => { throw err })
 
     // qs('.toggle-mode-btn').addEventListener('click', function () {
     //   document.body.classList.toggle('dark')

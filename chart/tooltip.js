@@ -37,6 +37,7 @@ function getByCoords (coords, key = new Date()) {
   let dater = date.getDate()
   let day = date.getDay()
   let month = date.getMonth()
+  
   return {
     time: `${DAYS[day].slice(0, 3)}, ${MONTHES[month]} ${dater}`,
     lines: coords
@@ -58,7 +59,9 @@ function move (ec) {
     return item.x < resizePageX
   }).slice(-1)[0]
 
+
   let lines = []
+  
   coords.forEach(({ yAxis, color, name, key }) => {
     lines.push({ value: yAxis[or.idx].tick, color, name, key, position: { y: yAxis[or.idx].y, x: or.x } })
   })
@@ -83,13 +86,4 @@ function move (ec) {
 //   if (!document.querySelector('.chart-tooltip')) {
 //     document.body.insertAdjacentHTML('beforeend', TooltipTemplate(getByCoords(initial)))
 //   }
-
-//   if (e.type === 'touchstart') {
-//     pageX = e.touches[0].pageX
-//     pageY = e.touches[0].pageY
-//   }
-
-//   tooltip.classList.add('active')
-//   tooltip.style.top = pageY + 'px'
-//   tooltip.style.left = pageX + 'px'
 // }
