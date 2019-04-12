@@ -1,8 +1,11 @@
+const CANVAS_COLOR_TYPES_FOLLOWERS = 'followers'
+const CANVAS_COLOR_TYPE_APPS = 'apps'
+const CANVAS_COLOR_TYPE_ONLINES = 'onlines'
 
 const chartBarsApps = {
   day: {
-    axisText: ['252529', .5],
-    mask: ['FFFFFF', .5],
+    axisText: ['252529', 0.5],
+    mask: ['FFFFFF', 0.5],
     'Apples': {
       item: '3497ED',
       btn: '3497ED',
@@ -42,13 +45,13 @@ const chartBarsApps = {
       item: '55BFE6',
       btn: '35AADC',
       tooltipText: '269ED4'
-    },
+    }
   },
 
   night: {
-    axisTextY: ['ECF2F8', .5],
-    axisTextX: ['A3B1C2', .6],
-    mask: ['242F3E', .5],
+    axisTextY: ['ECF2F8', 0.5],
+    axisTextX: ['A3B1C2', 0.6],
+    mask: ['242F3E', 0.5],
     'Apples': {
       item: '4681BB',
       btn: '4681BB',
@@ -88,7 +91,7 @@ const chartBarsApps = {
       item: '479FC4',
       btn: '479FC4',
       tooltipText: '43ADDE'
-    },
+    }
   }
 }
 
@@ -108,7 +111,7 @@ const chartOnlines = {
       item: '5CBCDF',
       btn: '5CBCDF',
       tooltipText: '5CBCDF'
-    },
+    }
   },
   night: {
     'Views': {
@@ -125,14 +128,14 @@ const chartOnlines = {
       item: '4697B3',
       btn: '4697B3',
       tooltipText: '4697B3'
-    },
+    }
   }
 }
 
 const chartColorsLines = {
   day: {
-    axisText: "8E8E93",
-    "Joined": {
+    axisText: '8E8E93',
+    'Joined': {
       item: 'FE3C30',
       btn: 'E65850',
       tooltipText: 'F34C44'
@@ -152,11 +155,11 @@ const chartColorsLines = {
       item: 'E8AF14',
       btn: 'F5BD25',
       tooltipText: 'E4AE1B'
-    },
+    }
   },
   night: {
-    axisText: ['A3B1C2', .6],
-    "Joined": {
+    axisText: ['A3B1C2', 0.6],
+    'Joined': {
       item: 'E6574F',
       btn: 'CF5D57',
       tooltipText: 'F7655E'
@@ -175,29 +178,20 @@ const chartColorsLines = {
       item: 'DEB93F',
       btn: 'C9AF4F',
       tooltipText: 'DEB93F'
-    },
+    }
   }
 }
 
 export const colorTheme = {
   day: {
-    scrollBg: 'E2EEF9',
-    scrollSelector: 'C0D1E1',
-    gridLines: ['182D3B', .1],
-    zoomOutText: '108BE3',
-    tooltipArrow: 'D2D5D7',
-    lines: chartColorsLines.day,
-    onlines: chartOnlines.day,
-    bars: chartBarsApps.day
+    [CANVAS_COLOR_TYPES_FOLLOWERS]: chartColorsLines.day,
+    [CANVAS_COLOR_TYPE_ONLINES]: chartOnlines.day,
+    [CANVAS_COLOR_TYPE_APPS]: chartBarsApps.day
   },
+
   night: {
-    scrollBg: '304259',
-    scrollSelector: '56626D',
-    gridLines: ['FFFFFF', .1],
-    zoomOutText: '48AAF0',
-    tooltipArrow: 'D2D5D7',
-    lines: chartColorsLines.night,
-    onlines: chartOnlines.night,
-    bars: chartBarsApps.night
+    [CANVAS_COLOR_TYPES_FOLLOWERS]: chartColorsLines.night,
+    [CANVAS_COLOR_TYPE_ONLINES]: chartOnlines.night,
+    [CANVAS_COLOR_TYPE_APPS]: chartBarsApps.night
   }
 }

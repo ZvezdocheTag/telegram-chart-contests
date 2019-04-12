@@ -19,11 +19,8 @@ export function calculateChartRanges ({ names, types, columns, colors }) {
   }).filter(line => line)
 }
 
-export function updateScales () {
-  // console.log("F")
-}
-updateScales()
 export function processCoords (w, h, ranges, lines) {
+  // console.log(lines)
   let active = calculateChartRanges(lines)
   let updatedMax = []
 

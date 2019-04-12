@@ -1,8 +1,153 @@
-:root {}
+main {
+  margin: 0 auto;
+  max-width: 500px;
+}
+
+.chart-wrapper {
+  margin-bottom: 80px;
+  position: relative;
+}
+
+.chart-wrapper>canvas,
+.chart-wrapper>svg {
+  width: 100%;
+  height: 250px;
+}
+
+.chart-wrapper>svg {
+  height: 275px;
+}
+
+body {
+  background-color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+button {
+  cursor: pointer;
+}
+
+footer {
+  text-align: center;
+}
+
+.chart-axises {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* LIGHT GLOBAL */
+.default {
+  color: #222;
+  background-color: #fff;
+}
+
+.chart-axises text {
+  fill: #8E8E93;
+}
+
+/* svg[data-color-theme="onlines"] .chart-axises text {
+  fill: #8E8E93;
+}
+svg[data-color-theme="followers"] .chart-axises text {
+  fill: #8E8E93;
+} */
+svg[data-color-theme="apps"] .chart-axises text {
+  fill: #252529;
+  opacity: .5;
+}
+
+/* --axis-tick-color: #546778;
+--axis-tick-color: #96a2aa; */
+.scroll-selector {
+  background-color: #C0D1E1;
+}
+
+.magnifier__thumb {
+  border: 1px solid #C0D1E1;
+}
+
+.scroll-background {
+  background-color: #E2EEF9;
+  opacity: .6;
+}
+
+.toggle-mode-btn {
+  color: #108be3;
+}
+
+.zoom-out-text {
+  color: #108BE3;
+}
+
+.chart-tooltip.arrow {
+  color: #D2D5D7;
+}
+
+.axis-line line {
+  stroke: #182D3B;
+  opacity: .1;
+}
+
+/* DARK GLOBAL */
+.default.dark {
+  color: #fff;
+  background-color: #242f3e;
+}
+
+.dark .chart-axises text {
+  fill: #A3B1C2;
+  opacity: .6;
+}
+
+/* .dark [data-color-theme="apps"] {
+  background: red;
+} */
+
+.dark [data-color-theme="apps"] .tick-x text {
+  fill: #A3B1C2;
+  opacity: .6;
+}
+
+.dark [data-color-theme="apps"] .tick-y text {
+  fill: #ECF2F8;
+  opacity: .5;
+}
+
+.dark .scroll-selector {
+  background-color: #56626D;
+}
+
+.dark .scroll-background {
+  background-color: #304259;
+  opacity: .6;
+}
 
 
 
+.dark .magnifier__thumb {
+  border: 1px solid #C0D1E1;
+}
 
+.dark .zoom-out-text {
+  color: #48AAF0;
+}
+
+.dark .chart-tooltip.arrow {
+  color: #D2D5D7;
+}
+
+.dark .axis-line line {
+  stroke: #FFFFFF;
+  opacity: .1;
+}
+
+.dark .toggle-mode-btn {
+  color: #36a8f1;
+}
+
+/* TOOLTIP  */
 .chart-tooltip.active {
   opacity: 1;
   transform: scale(1);
@@ -14,72 +159,36 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  flex-wrap: wrap;
 }
-
-
 
 .chart-tooltip li {
   flex: 1;
   margin-right: 15px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .chart-tooltip li:last-child {
   margin-right: 0px;
+  /* margin-bottom: 10px; */
 }
 
 .tooltip-item-name {
-  font-size: 1.3em;
+  font-size: 14px;
   font-weight: bold;
+  flex: 1;
 }
 
 .tooltip-item-value {
   font-size: 0.9em;
+  text-align: right;
+  width: 30px;
 }
 
-.default-upd {
-  --scroll-bg: #E2EEF9;
-  --scroll-op: .6;
-
-  --grid-lines: #182D3B;
-  --grid-op: .1;
-
-  --zoom-out-txt: #108BE3;
-  --tooltip-arrow: #D2D5D7;
-
-}
-
-.chart-axises {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.default {
-  --text-color: #222222;
-  --page-bg: #fff;
-  --axis-tick-color: #96a2aa;
-  --axis-tick-line-bg: #f2f4f5;
-  --layout-measure-line: #dfe6eb;
-
-  --magnifier-border-color: #ddeaf3;
-  --link-color: #108be3;
-
-  --btn-border: #e6ecf0;
-
-  --transition-var: background-color 0.3s ease;
-}
-
-.default.dark {
-  --text-color: #ffffff;
-  --page-bg: #242f3e;
-  --axis-tick-color: #546778;
-  --axis-tick-line-bg: #3b4a5a;
-  --layout-measure-line: rgba(223, 230, 235, .4);
-
-  --magnifier-border-color: #40566b;
-  --link-color: #36a8f1;
-
-  --btn-border: #344658;
+.tooltip-list {
+  max-width: 100px;
 }
 
 .chart-tooltip {
@@ -96,11 +205,16 @@
   transform: scale(0);
 }
 
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .chart-tooltip h5 {
   margin: 0;
-  font-size: 1.1em;
-  margin-bottom: 0.2em;
-  color: var(--text-color);
+  font-size: 12px;
+  margin-bottom: 12px;
 }
 
 .tick-wrapper-x text,
@@ -108,48 +222,6 @@
   font-size: 12px;
 }
 
-.svg-line-points {
-  fill: var(--page-bg);
-}
-
-.svg-linear {
-  stroke: var(--layout-measure-line);
-}
-
-main {
-  margin: 0 auto;
-  max-width: 500px;
-}
-
-.chart-wrapper {
-  margin-bottom: 80px;
-  position: relative;
-
-}
-
-.chart-wrapper>canvas,
-.chart-wrapper>svg {
-  width: 100%;
-  height: 250px;
-}
-
-.chart-wrapper>svg {
-  height: 275px;
-}
-
-
-body {
-  background-color: var(--page-bg);
-  transition: var(--transition-var);
-}
-
-button {
-  cursor: pointer;
-}
-
-footer {
-  text-align: center;
-}
 
 .toggle-mode-btn {
   box-sizing: border-box;
@@ -159,11 +231,6 @@ footer {
   box-shadow: none;
   border: none;
   background: none;
-  color: var(--link-color, #000);
-}
-
-.page-title {
-  color: var(--text-color, #000);
 }
 
 .minimap {
@@ -186,7 +253,6 @@ footer {
   height: calc(100% - 4px);
   left: 0px;
   background-color: transparent;
-  border: 2px solid grey;
 }
 
 
@@ -195,8 +261,6 @@ footer {
   width: 10px;
   height: calc(100% + 4px);
   top: -2px;
-  /* opacity: .7; */
-  background: grey;
   cursor: col-resize;
 }
 
@@ -214,7 +278,7 @@ footer {
 }
 
 .magnifier_shadow {
-  background: rgba(0, 0, 0, 0.1);
+  /* background: rgba(0, 0, 0, 0.1); */
   position: absolute;
   height: 100%;
 }
@@ -302,7 +366,7 @@ footer {
   height: 20px;
   border-radius: 50%;
   background: transparent;
-  color: #fff;
+  color: currentColor;
   position: absolute;
   top: 6px;
   transform-origin: center;
@@ -312,7 +376,7 @@ footer {
 
 .target:before {
   content: '';
-  color: #fff;
+  color: currentColor;
   position: absolute;
   margin-left: -6px;
   margin-top: 5px;
@@ -326,8 +390,6 @@ footer {
   transition: all .3s ease .2s;
 }
 
-
-
 .chart {
   margin-bottom: 30px;
 }
@@ -336,27 +398,9 @@ footer {
   margin-bottom: 40px;
 }
 
-.tick-y text,
-.tick-x text {
-  fill: var(--axis-tick-color);
-
-  /* --axis-tick-color: #546778; */
-  /* --axis-tick-line-bg: #3b4a5a; */
-}
-
-.tick-y line {
-  stroke: var(--axis-tick-line-bg);
-}
-
 .toggle-btn {
   margin-right: 4px;
   margin-bottom: 4px;
-  /* background-color: currentColor; */
-
-}
-
-.toggle-btn.active {
-  background-color: currentColor;
 }
 
 .dot {
