@@ -20,11 +20,16 @@ export function calculateChartRanges ({ names, types, columns, colors }) {
 }
 
 export function processCoords (w, h, ranges, lines) {
-  // console.log(lines)
   let active = calculateChartRanges(lines)
   let updatedMax = []
 
-  let result = active.map(line => {
+  let res = {
+    horizontal: null,
+    vertical: {},
+    data: null
+  }
+
+  res.data = active.map(line => {
     let {
       xRange: { max: xMax, min: xMin },
       yRange: { max: yMax, min: yMin }
@@ -75,8 +80,13 @@ export function processCoords (w, h, ranges, lines) {
 
       return amount
     }
-
+    let { horizontal } = generateAxis(xAxis, yAxis, w, h)
     let currentRangeData = generateAxisWithoutFilter(upd, w)
+
+    let vertical = generateYAxis(currentRangeData, h)
+
+    res.horizontal = horizontal
+    res.vertical[line.key] = vertical
 
     return {
       ...line,
@@ -86,12 +96,16 @@ export function processCoords (w, h, ranges, lines) {
 
       xAxis: xAxis,
       yAxis: yAxis,
+      horizontal: horizontal,
+      vertical: vertical,
       points: points,
       currentRangeData: currentRangeData
     }
   })
 
-  return result
+  res.commonY = generateCommonYAxis(res.vertical, h)
+  // console.log()
+  return res
 }
 
 function getRange (arr) {
@@ -118,4 +132,76 @@ function findRange (coords, [ min, max ]) {
   }
 
   return [ minIndex, maxIndex ]
+}
+
+function generateCommonYAxis (obj, height) {
+  let common = Object.values(obj).reduce((curr, next) => {
+    let values = next.map(item => item.tick)
+    return curr.concat(values)
+  }, [])
+
+  let getMaxMin = getRange(common)
+  let ticksValue = generateAxisY(getMaxMin.max, getMaxMin.min, height, 6)
+  return ticksValue
+}
+
+function generateYAxis (range, height) {
+  let getYs = range.map(item => item.valueY)
+  let getMaxMin = getRange(getYs)
+
+  let ticksValue = generateTicks(getYs, getMaxMin)
+  const tick = height / ticksValue.length
+  // eachSix
+  // console.log(eachSix.map((item, idx) => ({ y: tick * idx, tick: Math.round(item) })), getMaxMin)
+  return ticksValue.map((item, idx) => ({ y: tick * idx, tick: Math.round(item) }))
+}
+
+function generateTicks (getYs, getMaxMin) {
+  let amount = getYs.length
+  let MAX_IN_ARRAY = 4
+  let filtered = amount / MAX_IN_ARRAY
+  let eachSix = getYs.filter((idm, id) => id % Math.round(filtered) === 0).slice(0, MAX_IN_ARRAY)
+  eachSix.unshift(getMaxMin.min)
+  eachSix.push(getMaxMin.max)
+
+  return eachSix
+}
+function generateTicksCommon (getYs, getMaxMin) {
+  let amount = getYs.length
+  let MAX_IN_ARRAY = 6
+  let filtered = amount / MAX_IN_ARRAY
+  let eachSix = getYs.filter((idm, id) => id % Math.round(filtered) === 0).slice(0, MAX_IN_ARRAY)
+  return eachSix
+}
+
+function generateAxis (axisX, axisY, width, height) {
+  // Add index
+  let axisXwithId = axisX.map((o, idx) => ({ ...o, idx }))
+  let curr = axisXwithId.filter((item, idx) => item.x >= 0 && item.x <= width)
+  let amount = curr.length
+  let MAX_IN_ARRAY = 6
+  let filtered = amount / MAX_IN_ARRAY
+  let ar = axisXwithId.filter((idm, id) => id % Math.round(filtered) === 0)
+  let updated = ar.filter((item, idx) => item.x >= 0).slice(0, 6)
+
+  return {
+    horizontal: updated
+  }
+}
+
+function generateAxisY (max, min, layoutMax, maxInLine) {
+  let diff = max - min
+  const tick = layoutMax / maxInLine
+  let t = diff / (maxInLine - 1)
+  let generateTicks = Array.from({ length: maxInLine }, (o, idx) => {
+    if (idx === 0) {
+      return min
+    }
+    if (idx === maxInLine - 1) {
+      return max
+    }
+    return min + (t * idx)
+  })
+
+  return generateTicks.reverse().map((value, idx) => ({ y: tick * idx, tick: Math.round(value) }))
 }

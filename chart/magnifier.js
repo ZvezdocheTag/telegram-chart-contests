@@ -16,7 +16,7 @@ export class Magnifier {
   init () {
     this.el.addEventListener('mousedown', this.resizeStart, { passive: true })
     this.el.addEventListener('touchstart', this.resizeStart, { passive: true })
-    
+
     this.initShadow()
     this.initDefault()
   }
@@ -37,21 +37,21 @@ export class Magnifier {
     this.el.style.left = `${resize}px`
     this.shadowLeft.style.width = resize + 'px'
 
-    this.actionResize(resize, width + resize).update()
+    this.actionResize.update(resize, width + resize)
   }
 
   resizeRight (width, left, container, r) {
     this.el.style.width = `${width}px`
     this.shadowRight.style.width = (container - r) + 'px'
 
-    this.actionResize(left, left + width).update()
+    this.actionResize.update(left, left + width)
   }
 
   dragCenter (l, r, width) {
     this.el.style.left = l + 'px'
     this.shadowLeft.style.width = l + 'px'
     this.shadowRight.style.width = r + 'px'
-    this.actionResize(l, l + width).update()
+    this.actionResize.update(l, l + width)
   }
 
   resizeStart (e) {

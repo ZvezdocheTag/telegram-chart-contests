@@ -4,7 +4,7 @@ import { colorTheme } from './colorTheme.js'
 import { processCoords } from './chart/utils.js'
 import { ChartTemplate } from './chart/template.js'
 import { Magnifier } from './chart/magnifier.js'
-import { Axis, generateAxis } from './chart/axis.js'
+import { Axis } from './chart/axis.js'
 
 const CANVAS_COLOR_TYPES_FOLLOWERS = 'followers'
 const CANVAS_COLOR_TYPE_APPS = 'apps'
@@ -62,24 +62,13 @@ const ChartRoot = {
   },
 
   setStyleMode (params) {
-    console.log(this, params, layoutColorMode)
-    // document.body.style.backgroundColor = params.pageBg
-    // document.body.style.color = params.textColor
-
     Object.values(this.state.chart).forEach(item => {
       let controls = item.querySelector('.chart-contols').children
       let currentTheme = item.dataset.colorTheme
 
       for (let i = 0; i < controls.length; i += 1) {
-        console.log(params[currentTheme], controls[i].innerText)
         setupDefaultButtonColor(controls[i], params[currentTheme][controls[i].innerText].btn)
       }
-      // console.log(item.dataset.colorTheme)
-      // item.querySelector('.chart-contols').childNodes.forEach(item => {
-      //   // if (item.classList.includes('toggle-btn')) {
-      //     // setupDefaultButtonColor(item)
-      //   // }
-      // })
     })
   },
 
@@ -111,30 +100,23 @@ const ChartRoot = {
     const mH = 50
     const idAttr = `_${id}`
 
-    let colr = colorTheme[layoutColorMode][colorType]
-    this.state.colorsPallet = colr
-    this.state.colorType = colorType
-    this.state.ranges[idAttr] = [0, 100]
+    let y_scaled = false
+    let stacked = false
+    let percentage = false
 
-    // console.log()
-    let coordInitialMinimap = processCoords(w, mH, null, data)
-    let coords = processCoords(w, h, [0, 100], data)
+    if (data.y_scaled) {
+      y_scaled = true
+    }
 
-    let template = ChartTemplate(idAttr, data, { w: w, h: h, mW: w, mH: mH, colors: colorType, title })
-    main.insertAdjacentHTML('beforeEnd', template)
+    if (data.stacked) {
+      stacked = true
+    }
 
-    const wrapper = qs(`#${idAttr}`)
-    const controls = wrapper.querySelector('.chart-contols')
-    const chart = wrapper.querySelector('.chart')
-    this.state.chart[idAttr] = wrapper
-    const chartMinimap = wrapper.querySelector('.minimap-chart')
-    const svgAxis = wrapper.querySelector('.chart-axises')
-    const svg = chart.getContext('2d')
-    const svgMinimap = chartMinimap.getContext('2d')
-    const chartHeaderDates = qs(`.chart-header.${idAttr} .dates-range`)
+    if (data.percentage) {
+      percentage = true
+    }
 
-    // RENDER PART
-    chartHeaderDates.textContent = getDataRangeToString(coords)
+    // console.log(data)
     Object.entries(data.names).forEach(([key, name]) => {
       if (!this.state.ineracted[idAttr]) {
         this.state.ineracted[idAttr] = {}
@@ -143,56 +125,85 @@ const ChartRoot = {
         name: name,
         active: false
       }
+    })
 
+    let interacted = this.state.ineracted[idAttr]
+    let colr = colorTheme[layoutColorMode][colorType]
+    this.state.colorsPallet = colr
+    this.state.colorType = colorType
+    this.state.ranges[idAttr] = [0, 100]
+
+    let initialProcess = processCoords(w, h, [0, 100], data)
+    let coords = initialProcess.data
+    this.state.calculation[idAttr] = coords
+    // console.log(processCoords(w, h, [0, 100], data))
+    let coordInitialMinimap = processCoords(w, mH, null, data, interacted).data
+
+    let template = ChartTemplate(idAttr, data, {
+      w: w, h: h, mW: w, mH: mH, colors: colorType, title
+    })
+
+    main.insertAdjacentHTML('beforeEnd', template)
+
+    const wrapper = qs(`#${idAttr}`)
+    const controls = wrapper.querySelector('.chart-contols')
+    const chart = wrapper.querySelector('.chart')
+    this.state.chart[idAttr] = wrapper
+    const chartMinimap = wrapper.querySelector('.minimap-chart')
+    const svgAxis = wrapper.querySelector('.chart-axises')
+    let wrappersX = svgAxis.querySelector(`.tick-wrapper-x`)
+    let wrappersY = svgAxis.querySelector(`.tick-wrapper-y`)
+    let wrappersYAll = svgAxis.querySelectorAll(`.tick-wrapper-y`)
+
+    const svg = chart.getContext('2d')
+    const svgMinimap = chartMinimap.getContext('2d')
+    const chartHeaderDates = qs(`.chart-header.${idAttr} .dates-range`)
+
+    // RENDER PART
+    console.log(coords)
+    chartHeaderDates.textContent = getDataRangeToString(coords)
+    Object.entries(data.names).forEach(([key, name]) => {
       controls.insertAdjacentHTML('beforeEnd', this.Button(key, name, colr[name].btn))
     })
 
-    let binded = actionResize.bind(this)
-
     document.addEventListener('click', clickBindToChart)
 
+    renderLine(svg, coords, h)
+    renderLine(svgMinimap, coordInitialMinimap, mH)
+
+    let setupResize = actionResize(svg, w, h, data, wrappersYAll, wrappersX, y_scaled)
+    // console.log(initialProcess, 'Fd')
+
+    // console.log(initialProcess)
+    wrappersYAll.forEach(item => {
+      let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
+      Axis.render(item, yCurrentData, 'y', w)
+    })
+
+    Axis.render(wrappersX, initialProcess.horizontal, 'x', w)
     Tooltip(svgAxis)
-
-    let dragDiff = 100 - 0
-
-    binded(0, 100).render()
-
-    function actionResize (min, max, e) {
-      let chartId = svgAxis.closest('.chart-wrapper').id
-      coords = processCoords(w, h, [min, max], data)
-      if (dragDiff !== max - min) {
-        dragDiff = max - min
-      }
-
-      this.state.ranges[chartId] = [min, max]
-      this.state.calculation[chartId] = coords
-      let { xAxis, yAxis } = coords[0]
-      let { horizontal, vertical } = generateAxis(xAxis, yAxis, w, h)
-
-      return {
-        render () {
-          renderLine(svg, coords, h)
-          renderLine(svgMinimap, coordInitialMinimap, mH)
-
-          Axis.render(svgAxis, horizontal, 'x', w)
-          Axis.render(svgAxis, vertical, 'y', w)
-
-          new Magnifier(idAttr, binded).init()
-        },
-        update () {
-          svg.clearRect(0, 0, w, h)
-
-          renderLine(svg, coords, h)
-
-          Axis.update(svgAxis, horizontal, 'x')
-          Axis.update(svgAxis, vertical, 'y', w)
-        }
-      }
-    }
+    new Magnifier(idAttr, setupResize).init()
 
     return this
   }
 
+}
+
+function actionResize (svg, w, h, data, svgAxisY, svgAxisX, y_scaled) {
+  return {
+    update (min, max) {
+      let initialProcess = processCoords(w, h, [min, max], data)
+      let coords = initialProcess.data
+      svg.clearRect(0, 0, w, h)
+      renderLine(svg, coords, h)
+      // renderLine(svgMinimap, coordInitialMinimap, mH, interacted)
+      Axis.update(svgAxisX, initialProcess.horizontal, 'x')
+      svgAxisY.forEach(item => {
+        let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
+        Axis.update(item, yCurrentData, 'y', w)
+      })
+    }
+  }
 }
 
 function drawLine (cx, data, color, height, diff = 0) {
@@ -245,9 +256,10 @@ function revertY (py, h) {
   return -py + h
 }
 
-function renderLine (ctx, coords, height, diff) {
+function renderLine (ctx, coords, height, interacted) {
   ctx.save()
-  // console.log(this)
+  // let upd = interacted
+  // console.log(coords, interacted)
   coords.reverse().forEach(({ key, points, color, types, currentRangeData }) => {
     // let a = xCoords.slice(0, 1)
     // let b = xCoords.slice(-1)
@@ -255,7 +267,7 @@ function renderLine (ctx, coords, height, diff) {
     let diffWidth = 500 / currentRangeData.length
     // console.log(diffWidth)
     if (types === 'line') {
-      drawLine(ctx, points, color, height, diff)
+      drawLine(ctx, points, color, height)
     }
     if (types === 'bar') {
       barRect(ctx, points, color, height, diffWidth)
@@ -396,32 +408,38 @@ export const TooltipTemplate = ({ time, lines }) => {
   `
 }
 
-function clickButton (e) {
-  let target = e.target
-  if (target.classList.value.includes('toggle-btn')) {
-    let wrap = target.closest('.chart-wrapper')
-    let dataId = target.dataset.toggleBtn
-    let color = target.dataset.color
-    let btnState = this.state.ineracted[wrap.id][dataId]
-
-    if (!btnState.active) {
-      target.style.backgroundColor = 'transparent'
-      target.style.color = `#${color}`
-      target.style.borderColor = `#${color}`
-    } else {
-      setupDefaultButtonColor(target, color)
-    }
-    target.classList.toggle('active')
-    btnState.active = !btnState.active
-  }
-}
-
 function setupDefaultButtonColor (btn, color) {
   btn.style.backgroundColor = `#${color}`
   btn.style.color = `#FFF`
   btn.style.borderColor = `transparent`
 }
 
+function clickButton (e) {
+  let target = e.target
+  console.log(this)
+  if (target.classList.value.includes('toggle-btn')) {
+    let wrap = target.closest('.chart-wrapper')
+    let dataId = target.dataset.toggleBtn
+    let color = target.dataset.color
+    let btnState = this.state.ineracted[wrap.id][dataId]
+
+    console.log(btnState)
+    if (!btnState.active) {
+      btnState.active = true
+      target.style.backgroundColor = 'transparent'
+      target.style.color = `#${color}`
+      target.style.borderColor = `#${color}`
+    } else {
+      btnState.active = false
+      setupDefaultButtonColor(target, color)
+    }
+    target.classList.toggle('active')
+
+    // console.log(btnState)
+    // binded(0, 100).update()
+    // console.log(dataId, self.state)
+  }
+}
 let clickBindToChart = clickButton.bind(ChartRoot)
 let Tooltip = TooltipInit.bind(ChartRoot)
 
