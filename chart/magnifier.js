@@ -1,9 +1,23 @@
-import { qs, getCoords } from '../utils.js'
+import { qs } from '../utils.js'
+
+function getCoords (elem) {
+  let box = elem.getBoundingClientRect()
+  let body = document.body
+  let docEl = document.documentElement
+  let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
+  let clientLeft = docEl.clientLeft || body.clientLeft || 0
+  let left = box.left + scrollLeft - clientLeft
+
+  return {
+    left: left
+  }
+}
 
 export class Magnifier {
-  constructor (idAttr, cb) {
+  constructor (idAttr, cb, interacted) {
     this.el = qs(`#${idAttr} [data-thumb-side="center"]`)
     this.container = this.el.parentElement
+    this.interacted = interacted
     this.controlLeft = this.el.querySelector('.left')
     this.controlRight = this.el.querySelector('.right')
     this.shadowLeft = this.container.querySelector('.magnifier_shadow.left')
@@ -37,21 +51,21 @@ export class Magnifier {
     this.el.style.left = `${resize}px`
     this.shadowLeft.style.width = resize + 'px'
 
-    this.actionResize.update(resize, width + resize)
+    this.actionResize.update(resize, width + resize, this.interacted)
   }
 
   resizeRight (width, left, container, r) {
     this.el.style.width = `${width}px`
     this.shadowRight.style.width = (container - r) + 'px'
 
-    this.actionResize.update(left, left + width)
+    this.actionResize.update(left, left + width, this.interacted)
   }
 
   dragCenter (l, r, width) {
     this.el.style.left = l + 'px'
     this.shadowLeft.style.width = l + 'px'
     this.shadowRight.style.width = r + 'px'
-    this.actionResize.update(l, l + width)
+    this.actionResize.update(l, l + width, this.interacted)
   }
 
   resizeStart (e) {

@@ -18,7 +18,7 @@ function renderLines (names, w) {
 
   return lines
 }
-export const ChartTemplate = (name, chart, { w, h, mW, mH, colors, title }) => {
+function ChartTemplate (name, chart, { w, h, mW, mH, colors, title }) {
   let lines = chart.y_scaled ? renderLines(chart.names, w)
     : `<g class="tick-wrapper-y" transform="translate(0, 0)"></g>`
 

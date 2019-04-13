@@ -1,512 +1,874 @@
-import { qs, normilizeColumns, DAYS, MONTHES, MONTHES_FULL } from './utils.js'
+'use strict'
+
+// import { qs, normilizeColumns, DAYS, MONTHES, MONTHES_FULL } from './utils.js'
 import { colorTheme } from './colorTheme.js'
 
-import { processCoords } from './chart/utils.js'
-import { ChartTemplate } from './chart/template.js'
+// import { processCoords } from './chart/utils.js'
+// import { ChartTemplate } from './chart/template.js'
 import { Magnifier } from './chart/magnifier.js'
-import { Axis } from './chart/axis.js'
+// import { Axis } from './chart/axis.js'
 
-const CANVAS_COLOR_TYPES_FOLLOWERS = 'followers'
-const CANVAS_COLOR_TYPE_APPS = 'apps'
-const CANVAS_COLOR_TYPE_ONLINES = 'onlines'
-const LAYOUT_MODE_DAY = 'day'
-const LAYOUT_MODE_NIGHT = 'night'
+(function () {
+  // CONSTANTS
+  const MONTHES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const MONTHES_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December']
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const CANVAS_COLOR_TYPES_FOLLOWERS = 'followers'
+  const CANVAS_COLOR_TYPE_APPS = 'apps'
+  const CANVAS_COLOR_TYPE_ONLINES = 'onlines'
+  const LAYOUT_MODE_DAY = 'day'
+  const LAYOUT_MODE_NIGHT = 'night'
 
-let layoutColorMode = LAYOUT_MODE_DAY
+  let layoutColorMode = LAYOUT_MODE_DAY
 
-function getFullDate (value, isFullMonthView) {
-  let initial = new Date(value)
-  let date = initial.getDate()
-  let day = initial.getDay()
-  let month = initial.getMonth()
-  let year = initial.getFullYear()
-
-  if (isFullMonthView) {
-    return `${date} ${MONTHES_FULL[month]} ${year}`
-  }
-  return `${DAYS[day].slice(0, 3)}, ${MONTHES[month]} ${date} ${year}`
-}
-
-function getDataRangeToString (coords) {
-  let [ getCurrentRangesFirst ] = coords[0].currentRangeData.slice(0, 1)
-  let [ getCurrentRangesLast ] = coords[0].currentRangeData.slice(-1)
-
-  let from = getFullDate(getCurrentRangesFirst.value, true)
-  let to = getFullDate(getCurrentRangesLast.value, true)
-
-  return `${from} - ${to}`
-}
-
-const ChartRoot = {
-  state: {
-    chart: {},
-    ineracted: {},
-    mouseEvents: {
-      chart: null,
-      minimap: null
+  const getDataFormat = {
+    'id_1': {
+      link: '/data/1/overview.json',
+      colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
+      title: 'Followers',
+      id: 'id_1'
     },
-    ranges: {},
-    calculation: {},
-    tooltipPos: { x: 0, left: 0 },
-    colorsPallet: null
-  },
-
-  setActiveChartItem (id) {
-    // console.log(id, current.activeItems, "CLICK")
-    // let isSameExist = current.activeItems.find(item_id => item_id === id);
-    // let removeSame = current.activeItems.filter(item_id => item_id === id );
-    let addNew = [...current.activeItems, id]
-
-    // console.log(id, "CLICK", addNew, this, current)
-    current.activeItems = addNew
-  },
-
-  setStyleMode (params) {
-    Object.values(this.state.chart).forEach(item => {
-      let controls = item.querySelector('.chart-contols').children
-      let currentTheme = item.dataset.colorTheme
-
-      for (let i = 0; i < controls.length; i += 1) {
-        setupDefaultButtonColor(controls[i], params[currentTheme][controls[i].innerText].btn)
-      }
-    })
-  },
-
-  renderControls () {
-    const wrap = Object.entries(chart.names)
-      .map(([key, value]) => this.Button(key, value, chart.colors[key])).join(' ')
-
-    return wrap
-  },
-
-  Button: function (key, name, color) {
-    console.log(color)
-    // style="color: ${`#fff`};background-color: ${color}"
-    return `
-    <button 
-      class="toggle-btn pulse" 
-      style="color: ${`#fff`};background-color: #${color};border: 1px solid transparent" 
-      data-toggle-btn="${key}" data-color="${color}">
-      <div class="target icon off">
-      <div class="dot"></div>
-    </div>
-    ${name}
-    </button>
-  `
-  },
-  init (id, main, data, title, colorType) {
-    const w = main.offsetWidth - 20
-    const h = 250
-    const mH = 50
-    const idAttr = `_${id}`
-
-    let y_scaled = false
-    let stacked = false
-    let percentage = false
-
-    if (data.y_scaled) {
-      y_scaled = true
+    'id_2': {
+      link: '/data/2/overview.json',
+      colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
+      title: 'Interactions',
+      id: 'id_2'
+    },
+    'id_3': {
+      link: '/data/3/overview.json',
+      colorScheme: CANVAS_COLOR_TYPE_APPS,
+      title: 'Messages',
+      id: 'id_3'
+    },
+    'id_4': {
+      link: '/data/4/overview.json',
+      colorScheme: CANVAS_COLOR_TYPE_ONLINES,
+      title: 'Views',
+      id: 'id_4'
+    },
+    'id_5': {
+      link: '/data/5/overview.json',
+      colorScheme: CANVAS_COLOR_TYPE_APPS,
+      title: 'Apps',
+      id: 'id_5'
     }
-
-    if (data.stacked) {
-      stacked = true
-    }
-
-    if (data.percentage) {
-      percentage = true
-    }
-
-    // console.log(data)
-    Object.entries(data.names).forEach(([key, name]) => {
-      if (!this.state.ineracted[idAttr]) {
-        this.state.ineracted[idAttr] = {}
-      }
-      this.state.ineracted[idAttr][key] = {
-        name: name,
-        active: false
-      }
-    })
-
-    let interacted = this.state.ineracted[idAttr]
-    let colr = colorTheme[layoutColorMode][colorType]
-    this.state.colorsPallet = colr
-    this.state.colorType = colorType
-    this.state.ranges[idAttr] = [0, 100]
-
-    let initialProcess = processCoords(w, h, [0, 100], data)
-    let coords = initialProcess.data
-    this.state.calculation[idAttr] = coords
-    // console.log(processCoords(w, h, [0, 100], data))
-    let coordInitialMinimap = processCoords(w, mH, null, data, interacted).data
-
-    let template = ChartTemplate(idAttr, data, {
-      w: w, h: h, mW: w, mH: mH, colors: colorType, title
-    })
-
-    main.insertAdjacentHTML('beforeEnd', template)
-
-    const wrapper = qs(`#${idAttr}`)
-    const controls = wrapper.querySelector('.chart-contols')
-    const chart = wrapper.querySelector('.chart')
-    this.state.chart[idAttr] = wrapper
-    const chartMinimap = wrapper.querySelector('.minimap-chart')
-    const svgAxis = wrapper.querySelector('.chart-axises')
-    let wrappersX = svgAxis.querySelector(`.tick-wrapper-x`)
-    let wrappersY = svgAxis.querySelector(`.tick-wrapper-y`)
-    let wrappersYAll = svgAxis.querySelectorAll(`.tick-wrapper-y`)
-
-    const svg = chart.getContext('2d')
-    const svgMinimap = chartMinimap.getContext('2d')
-    const chartHeaderDates = qs(`.chart-header.${idAttr} .dates-range`)
-
-    // RENDER PART
-    console.log(coords)
-    chartHeaderDates.textContent = getDataRangeToString(coords)
-    Object.entries(data.names).forEach(([key, name]) => {
-      controls.insertAdjacentHTML('beforeEnd', this.Button(key, name, colr[name].btn))
-    })
-
-    document.addEventListener('click', clickBindToChart)
-
-    renderLine(svg, coords, h)
-    renderLine(svgMinimap, coordInitialMinimap, mH)
-
-    let setupResize = actionResize(svg, w, h, data, wrappersYAll, wrappersX, y_scaled)
-    // console.log(initialProcess, 'Fd')
-
-    // console.log(initialProcess)
-    wrappersYAll.forEach(item => {
-      let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
-      Axis.render(item, yCurrentData, 'y', w)
-    })
-
-    Axis.render(wrappersX, initialProcess.horizontal, 'x', w)
-    Tooltip(svgAxis)
-    new Magnifier(idAttr, setupResize).init()
-
-    return this
   }
 
-}
+  const chart = {
+    state: {},
+    init () {
+      const main = qs('main')
+      main.style.width = window.innerWidth
+      let dataReq = Object.values(getDataFormat)
 
-function actionResize (svg, w, h, data, svgAxisY, svgAxisX, y_scaled) {
-  return {
-    update (min, max) {
-      let initialProcess = processCoords(w, h, [min, max], data)
-      let coords = initialProcess.data
-      svg.clearRect(0, 0, w, h)
-      renderLine(svg, coords, h)
-      // renderLine(svgMinimap, coordInitialMinimap, mH, interacted)
-      Axis.update(svgAxisX, initialProcess.horizontal, 'x')
-      svgAxisY.forEach(item => {
-        let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
-        Axis.update(item, yCurrentData, 'y', w)
+      for (let d of dataReq) {
+        fetch(d.link)
+          .then(res => res.json())
+          .then((data) => {
+            ChartRoot.init(d.id, main, normilizeData(data), d.title, d.colorScheme)
+          })
+          .catch(err => { throw err })
+      }
+
+      qs('.toggle-mode-btn').addEventListener('click', function () {
+        document.body.classList.toggle('dark')
+        layoutColorMode = layoutColorMode === 'day' ? LAYOUT_MODE_NIGHT : LAYOUT_MODE_DAY
+        ChartRoot.setStyleMode(colorTheme[layoutColorMode])
       })
     }
   }
-}
 
-function drawLine (cx, data, color, height, diff = 0) {
-  cx.strokeStyle = color
-  cx.beginPath()
-  cx.moveTo(0, height)
-  for (let i = 0; i < data.length; i += 1) {
-    let [x, yInitial] = data[i]
-    let y = revertY(yInitial, height)
-    let updX = x - diff
-    cx.lineTo(updX, y)
-  }
-  cx.stroke()
-}
+  var Axis = {
+    render (axisWrapper, ticks, axis, width) {
+      let tickWrapper = createTick(axisWrapper, axis, width)
 
-function barRect (cx, data, color, height, diffWidth) {
-  const width = Math.round(diffWidth)
-  let baseY = height
-  cx.beginPath()
-  cx.fillStyle = color
-  data.forEach((item, idx) => {
-    let [x, y] = item
-    if (x > 0 && x < 500) {
-      cx.moveTo(x, baseY)
-      cx.lineTo(x, y)
-      cx.lineTo(x + width, y)
-      cx.lineTo(x + width, baseY)
+      ticks.forEach(item => {
+        let tick = item.tick
+        let tickEl = tickWrapper.cloneNode(true)
+        tickEl.children[0].textContent = tick
+
+        let transform = axis === 'x' ? `translate(${item[axis]}, 0)` : `translate(0, ${item[axis]})`
+        setAttrNs(tickEl, [
+          { transform: transform }
+        ])
+        axisWrapper.appendChild(tickEl)
+      })
+    },
+
+    update (svg, ticks, axis) {
+      // console.log(svg, ticks, "F")
+      if(!ticks) {
+        svg.style.opacity = 0
+        return
+      }
+      svg.style.opacity = 1
+      let curr = svg.querySelectorAll(`.tick-${axis}`)
+      ticks.forEach((tick, idx) => {
+        let transform = axis === 'x' ? `translate(${tick[axis]}, 0)` : `translate(0, ${tick[axis]})`
+        setAttrNs(curr[idx], [
+          { transform: transform }
+        ])
+        curr[idx].children[0].textContent = tick.tick
+      })
     }
-  })
-  cx.fill()
-}
 
-function drawArea (cx, data, color, height) {
-  cx.fillStyle = color
-  cx.beginPath()
-  cx.moveTo(0, height)
-
-  for (let i = 0; i < data.length; i += 1) {
-    let [x, yInitial] = data[i]
-    let y = revertY(yInitial, height)
-    cx.lineTo(x, y)
-    if (i === data.length - 1) {
-      cx.lineTo(x, height)
-    }
   }
-  cx.fill()
-}
 
-function revertY (py, h) {
-  return -py + h
-}
+  function getDataRangeToString (coords) {
+    let [ getCurrentRangesFirst ] = coords[0].currentRangeData.slice(0, 1)
+    let [ getCurrentRangesLast ] = coords[0].currentRangeData.slice(-1)
 
-function renderLine (ctx, coords, height, interacted) {
-  ctx.save()
-  // let upd = interacted
-  // console.log(coords, interacted)
-  coords.reverse().forEach(({ key, points, color, types, currentRangeData }) => {
+    let from = getFullDate(getCurrentRangesFirst.value, true)
+    let to = getFullDate(getCurrentRangesLast.value, true)
+
+    return `${from} - ${to}`
+  }
+
+  // function
+
+  const ChartRoot = {
+    state: {
+      chart: {},
+      ineracted: {},
+      mouseEvents: {
+        chart: null,
+        minimap: null
+      },
+      ranges: {},
+      calculation: {},
+      tooltipPos: { x: 0, left: 0 },
+      colorsPallet: null
+    },
+
+    setStyleMode (params) {
+      Object.values(this.state.chart).forEach(item => {
+        let controls = item.querySelector('.chart-contols').children
+        let currentTheme = item.dataset.colorTheme
+
+        for (let i = 0; i < controls.length; i += 1) {
+          setupDefaultButtonColor(controls[i], params[currentTheme][controls[i].innerText].btn)
+        }
+      })
+    },
+
+    renderControls () {
+      const wrap = Object.entries(chart.names)
+        .map(([key, value]) => Button(key, value, chart.colors[key])).join(' ')
+
+      return wrap
+    },
+
+    init (id, main, data, title, colorType) {
+      console.log(this)
+      const w = main.offsetWidth - 20
+      const h = 250
+      const mH = 50
+      const idAttr = `_${id}`
+
+      let y_scaled = false
+      let stacked = false
+      let percentage = false
+
+      if (data.y_scaled) {
+        y_scaled = true
+      }
+
+      if (data.stacked) {
+        stacked = true
+      }
+
+      if (data.percentage) {
+        percentage = true
+      }
+
+      Object.entries(data.names).forEach(([key, name]) => {
+        if (!this.state.ineracted[idAttr]) {
+          this.state.ineracted[idAttr] = {}
+        }
+        this.state.ineracted[idAttr][key] = {
+          name: name,
+          active: false
+        }
+      })
+
+      let interacted = this.state.ineracted[idAttr]
+      let colr = colorTheme[layoutColorMode][colorType]
+      this.state.ranges[idAttr] = [0, 100]
+
+      let initialProcess = processCoords(w, h, [0, 100], data)
+      let coords = initialProcess.data
+      this.state.calculation[idAttr] = coords
+
+      let coordInitialMinimap = processCoords(w, mH, null, data, interacted).data
+
+      let template = ChartTemplate(idAttr, data, {
+        w: w, h: h, mW: w, mH: mH, colors: colorType, title
+      })
+
+      main.insertAdjacentHTML('beforeEnd', template)
+
+      const wrapper = qs(`#${idAttr}`)
+      const controls = wrapper.querySelector('.chart-contols')
+      const chart = wrapper.querySelector('.chart')
+      this.state.chart[idAttr] = wrapper
+      const chartMinimap = wrapper.querySelector('.minimap-chart')
+      const svgAxis = wrapper.querySelector('.chart-axises')
+      let wrappersX = svgAxis.querySelector(`.tick-wrapper-x`)
+      let wrappersY = svgAxis.querySelector(`.tick-wrapper-y`)
+      let wrappersYAll = svgAxis.querySelectorAll(`.tick-wrapper-y`)
+
+      const svg = chart.getContext('2d')
+      const svgMinimap = chartMinimap.getContext('2d')
+      const chartHeaderDates = qs(`.chart-header.${idAttr} .dates-range`)
+
+      // RENDER PART
+      // console.log(coords)
+      chartHeaderDates.textContent = getDataRangeToString(coords)
+      Object.entries(data.names).forEach(([key, name]) => {
+        controls.insertAdjacentHTML('beforeEnd', Button(key, name, colr[name].btn))
+      })
+
+      let resizeFunc = actionResize.bind(this)
+      let setupResize = resizeFunc(svg, w, h, data, wrappersYAll, wrappersX, y_scaled)
+
+      function actionResize (svg, w, h, data, svgAxisY, svgAxisX, y_scaled) {
+        // console.log(this)
+        let self = this
+        return {
+          update (min, max, status) {
+            self.state.ranges[idAttr] = [min, max]
+            let initialProcess = processCoords(w, h, [min, max], data, status)
+            let initialProcessMin = processCoords(w, mH, null, data, status)
+            let coords = initialProcess.data
+
+            svg.clearRect(0, 0, w, h)
+            renderLine(svg, coords, h)
+            svgMinimap.clearRect(0, 0, w, mH)
+            renderLine(svgMinimap, initialProcessMin.data, mH)
+            console.log(initialProcess.vertical)
+            Axis.update(svgAxisX, initialProcess.horizontal, 'x')
+            svgAxisY.forEach(item => {
+              let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
+              Axis.update(item, yCurrentData, 'y', w)
+            })
+          }
+        }
+      }
+
+      controls.childNodes.forEach(child => {
+        let self = this
+        child.addEventListener('click', function (e) {
+          let target = e.target
+          let color = target.dataset.color
+          let btnId = target.dataset.toggleBtn
+          target.classList.toggle('active')
+
+          let [min, max] = self.state.ranges[idAttr]
+          let isActive = target.classList.value.includes('active')
+          let currBtn = interacted[btnId]
+          currBtn.active = isActive
+
+          setupResize.update(min, max, interacted)
+          if (isActive) {
+            target.style.backgroundColor = 'transparent'
+            target.style.color = `#${color}`
+            target.style.borderColor = `#${color}`
+          } else {
+            setupDefaultButtonColor(target, color)
+          }
+        })
+      })
+
+      renderLine(svg, coords, h)
+      renderLine(svgMinimap, coordInitialMinimap, mH)
+
+      // console.log(initialProcess, 'Fd')
+
+      // console.log(setupResize)
+      wrappersYAll.forEach(item => {
+        let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
+        Axis.render(item, yCurrentData, 'y', w)
+      })
+
+      Axis.render(wrappersX, initialProcess.horizontal, 'x', w)
+      Tooltip(svgAxis)
+      new Magnifier(idAttr, setupResize, interacted).init()
+
+      return this
+    }
+
+  }
+
+  function revertY (py, h) {
+    return -py + h
+  }
+
+  function renderLine (ctx, coords, height, interacted) {
+    ctx.save()
+    // let upd = interacted
+    // console.log(coords, interacted)
+    coords.reverse().forEach(({ key, points, color, types, currentRangeData }) => {
     // let a = xCoords.slice(0, 1)
     // let b = xCoords.slice(-1)
     // let diffWidth = Math.round((b - a) / xCoords.length)
-    let diffWidth = 500 / currentRangeData.length
-    // console.log(diffWidth)
-    if (types === 'line') {
-      drawLine(ctx, points, color, height)
-    }
-    if (types === 'bar') {
-      barRect(ctx, points, color, height, diffWidth)
-    }
+      let diffWidth = 500 / currentRangeData.length
+      // console.log(diffWidth)
+      if (types === 'line') {
+        drawLine(ctx, points, color, height)
+      }
+      if (types === 'bar') {
+        barRect(ctx, points, color, height, diffWidth)
+      }
 
-    if (types === 'area') {
-      drawArea(ctx, points, color, height)
-    }
-  })
-  ctx.restore()
-}
+      if (types === 'area') {
+        drawArea(ctx, points, color, height)
+      }
+    })
+    ctx.restore()
+  }
 
-function TooltipInit (svg) {
-  let self = this
+  function TooltipInit (svg) {
+    let self = this
 
-  let line = null
-  let currentChart = null
-  let getFirstRange = null
+    let line = null
+    let currentChart = null
+    let getFirstRange = null
 
-  let tooltip = document.querySelector('.chart-tooltip')
-  let dataId = svg.closest('.chart-wrapper').id
+    let tooltip = document.querySelector('.chart-tooltip')
+    let dataId = svg.closest('.chart-wrapper').id
 
-  svg.addEventListener('mouseenter', enterMouse, { passive: true })
-  svg.addEventListener('touchstart', enterMouse, { passive: true })
+    svg.addEventListener('mouseenter', enterMouse, { passive: true })
+    svg.addEventListener('touchstart', enterMouse, { passive: true })
 
-  svg.addEventListener('mousemove', moveMouse, { passive: true })
-  svg.addEventListener('touchmove', moveMouse, { passive: true })
+    svg.addEventListener('mousemove', moveMouse, { passive: true })
+    svg.addEventListener('touchmove', moveMouse, { passive: true })
 
-  svg.addEventListener('mouseleave', mouseLeave)
-  svg.addEventListener('touchend', mouseLeave)
+    svg.addEventListener('mouseleave', mouseLeave)
+    svg.addEventListener('touchend', mouseLeave)
 
-  function enterMouse (e) {
-    currentChart = self.state.calculation[dataId]
-    getFirstRange = currentChart[0].currentRangeData
+    function enterMouse (e) {
+      currentChart = self.state.calculation[dataId]
+      getFirstRange = currentChart[0].currentRangeData
 
-    // console.log(currentChart)
-    tooltip.insertAdjacentHTML('beforeend', '<ul class="tooltip-list"></ul>')
-    const list = tooltip.querySelector('.tooltip-list')
+      // console.log(currentChart)
+      tooltip.insertAdjacentHTML('beforeend', '<ul class="tooltip-list"></ul>')
+      const list = tooltip.querySelector('.tooltip-list')
 
-    currentChart.forEach((line, idx) => {
+      currentChart.forEach((line, idx) => {
       // let html =  `<li style="color: ${line.color};" data-key="${line.key}">
       // console.log(line)
-      let html = `<li data-key="${line.key}">
+        let html = `<li data-key="${line.key}">
         <div class="tooltip-item-name">${line.name}</div>
         <div class="tooltip-item-value">${line.valueX}</div>
       </li>`
 
-      list.insertAdjacentHTML('beforeend', html)
-    })
+        list.insertAdjacentHTML('beforeend', html)
+      })
 
-    line = e.target.querySelector('.tooltip-line')
-    if (!tooltip.classList.contains('active')) {
-      tooltip.classList.add('active')
-    }
-  }
-
-  function moveMouse (e) {
-    let offsetX = e.offsetX
-    let offsetY = e.offsetY
-    let pageX = e.pageX
-    let pageY = e.pageY
-
-    if (e.type === 'touchmove') {
-      pageX = e.touches[0].pageX
-      pageY = e.touches[0].pageY
-      offsetX = e.touches[0].offsetX
-      offsetY = e.touches[0].offsetY
+      line = e.target.querySelector('.tooltip-line')
+      if (!tooltip.classList.contains('active')) {
+        tooltip.classList.add('active')
+      }
     }
 
-    // HERE WE RECIEVE IDX
-    let [ currentTooltipPos ] = getFirstRange.filter(item => {
-      return item.x < offsetX
-    }).slice(-1)
-    let currentCoords = null
-    if (currentTooltipPos) {
-      currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
+    function moveMouse (e) {
+      let offsetX = e.offsetX
+      let offsetY = e.offsetY
+      let pageX = e.pageX
+      let pageY = e.pageY
+
+      if (e.type === 'touchmove') {
+        pageX = e.touches[0].pageX
+        pageY = e.touches[0].pageY
+        offsetX = e.touches[0].offsetX
+        offsetY = e.touches[0].offsetY
+      }
+
+      // HERE WE RECIEVE IDX
+      let [ currentTooltipPos ] = getFirstRange.filter(item => {
+        return item.x < offsetX
+      }).slice(-1)
+      let currentCoords = null
+      if (currentTooltipPos) {
+        currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
+      }
+
+      if (currentCoords) {
+        rerenderTooltip(currentCoords)
+      }
+      tooltip.style.top = (pageY - 10) + 'px'
+      tooltip.style.left = (pageX + 10) + 'px'
+
+      line.style.transform = `translate(${offsetX}px, 0)`
     }
 
-    if (currentCoords) {
-      rerenderTooltip(currentCoords)
+    function rerenderTooltip (items) {
+      let keyTime = new Date()
+      if (items[0]) {
+        keyTime = items[0].value
+        let date = getFullDate(keyTime)
+        const title = tooltip.querySelector('.tooltip-title')
+        const list = tooltip.querySelector('.tooltip-list')
+        title.textContent = date
+
+        items.forEach(item => {
+          let curr = list.querySelector(`[data-key=${item.key}]`)
+          curr.querySelector('.tooltip-item-value').textContent = item.valueY
+        })
+      }
     }
-    tooltip.style.top = (pageY - 10) + 'px'
-    tooltip.style.left = (pageX + 10) + 'px'
 
-    line.style.transform = `translate(${offsetX}px, 0)`
-  }
+    function findHoveredCoordinates (coordinates, hoveredIdx) {
+      let currentHovered = []
+      coordinates.forEach((item) => {
+        currentHovered.push(item.currentRangeData[hoveredIdx])
+      })
 
-  function rerenderTooltip (items) {
-    // console.log(items)
-    let keyTime = new Date()
-    if (items[0]) {
-      keyTime = items[0].value
-      let date = getFullDate(keyTime)
-      // console.log(items)
-      const title = tooltip.querySelector('.tooltip-title')
+      return currentHovered
+    }
+    function mouseLeave (e) {
+      line = null
       const list = tooltip.querySelector('.tooltip-list')
-      title.textContent = date
 
-      items.forEach(item => {
-        let curr = list.querySelector(`[data-key=${item.key}]`)
-        curr.querySelector('.tooltip-item-value').textContent = item.valueY
-      })
+      list.remove()
+      if (tooltip.classList.contains('active')) {
+        tooltip.classList.remove('active')
+      }
     }
   }
 
-  function findHoveredCoordinates (coordinates, hoveredIdx) {
-    let currentHovered = []
-    coordinates.forEach((item) => {
-      currentHovered.push(item.currentRangeData[hoveredIdx])
+  function calculateChartRanges ({ names, types, columns, colors }, status) {
+    let uniqNames = Object.keys(names)
+
+    if (status) {
+      uniqNames = uniqNames.filter(nm => !status[nm].active)
+    }
+
+    console.log(uniqNames, status, "FFS")
+    let res = uniqNames.map(key => {
+      const $X = 'x'
+
+      return {
+        color: colors[ key ],
+        x: columns[ $X ],
+        y: columns[ key ],
+        key: key,
+        name: names[ key ],
+        xRange: getRangeMinMax(columns[ $X ]),
+        yRange: getRangeMinMax(columns[ key ]),
+        len: columns.length,
+        types: types[ key ]
+      }
+    }).filter(line => line)
+
+    return res
+  }
+
+  function processCoords (w, h, ranges, lines, status) {
+    let active = calculateChartRanges(lines, status)
+    let updatedMax = []
+
+    let res = {
+      horizontal: null,
+      vertical: {},
+      data: null
+    }
+
+    res.data = active.map(line => {
+      let {
+        xRange: { max: xMax, min: xMin },
+        yRange: { max: yMax, min: yMin }
+      } = line
+
+      updatedMax.push(yMin)
+      updatedMax.push(yMax)
+
+      let xScale = scaleTime([0, w], [xMin, xMax])
+      let yScale = scaleLiniar([h, 0], [yMax, yMin])
+
+      let scaleLine = line.x.map(xScale)
+      let scaleLineY = line.y.map(yScale)
+
+      // console.log(ranges, 0, w)
+      let xAxisTikers = line.x.map(convertMonthToString)
+      if (ranges) {
+        updatedMax = []
+        let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
+        // console.log(line.x[rangeMin], line.x[rangeMax - 1],0, w)
+        xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
+
+        let filteredY = line.y.filter((_, idx) => idx >= rangeMin && idx <= rangeMax)
+        let sorted = filteredY.sort((a, b) => a - b)
+        // console.log(filteredY.length, line.y.length, rangeMin, rangeMax)
+        let yRangeFirst = sorted.slice(0, 1)[0]
+        let yRangeSecond = sorted.slice(-1)[0]
+        let [ yMinRange, yMaxRange] = yRangeFirst > yRangeSecond ? [yRangeSecond, yRangeFirst] : [yRangeFirst, yRangeSecond]
+        // console.log(line.y[rangeMax - 1], line.y[rangeMin], line.y , "F", yMinRange, yMaxRange )
+
+        yScale = scaleLiniar([h, 0], [ yMaxRange, yMinRange ])
+
+        scaleLineY = line.y.map(yScale).map(item => Math.round(item))
+        scaleLine = line.x.map(xScale)
+      }
+
+      let xAxis = scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] }))
+      let yAxis = scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] }))
+      let points = scaleLine.map((x, idx) => [Math.round(x), Math.round(scaleLineY[idx])])
+
+      let upd = xAxis.map((item, idx) => ({ ...item, y: yAxis[idx], value: line.x[idx], valueY: line.y[idx], key: line.key, valueX: line.x[idx], idx, name: line.name, color: line.color }))
+      // Get just values by the ranges
+
+      function generateAxisWithoutFilter (axis, w) {
+        let amount = axis.map((o, idx) => ({ ...o, idx })).filter((item, idx) => {
+          return item.x >= 0 && item.x <= w
+        })
+
+        return amount
+      }
+      let { horizontal } = generateAxis(xAxis, yAxis, w, h)
+      let currentRangeData = generateAxisWithoutFilter(upd, w)
+
+      let vertical = generateYAxis(currentRangeData, h)
+
+      res.horizontal = horizontal
+      res.vertical[line.key] = vertical
+
+      return {
+        ...line,
+        xCoords: scaleLine,
+        yCoords: scaleLineY,
+        xAxisTikers: xAxisTikers,
+
+        xAxis: xAxis,
+        yAxis: yAxis,
+        horizontal: horizontal,
+        vertical: vertical,
+        points: points,
+        currentRangeData: currentRangeData
+      }
     })
 
-    return currentHovered
+    res.commonY = generateCommonYAxis(res.vertical, h)
+    return res
   }
-  function mouseLeave (e) {
-    line = null
-    const list = tooltip.querySelector('.tooltip-list')
 
-    list.remove()
-    if (tooltip.classList.contains('active')) {
-      tooltip.classList.remove('active')
+  /** CHART UTILS */
+  function getRangeMinMax (arr) {
+    return {
+      max: Math.max.apply(null, arr),
+      min: Math.min.apply(null, arr)
     }
   }
-}
 
-export const TooltipTemplate = ({ time, lines }) => {
-  let linesTemplate = lines.map((line, idx) => `<li style="color: ${line.color};" data-key="${line.key}">
-    <div class="tooltip-item-name">${line.name}</div>
-    <div class="tooltip-item-value">${line.value}</div>
-  </li>`)
+  function findRange (coords, [ min, max ]) {
+    let minIndex = 0
+    let maxIndex = 0
+    let n = 0
+    let k = 0
 
-  return `
-    <div class="chart-tooltip" >
-      <h5>${time}</h5>
-      <ul>
-        ${linesTemplate.join(' ')}
-      </ul>
+    while (min > coords[n]) {
+      n += 1
+      minIndex = n
+      k = n
+    }
+    while (max > coords[k]) {
+      k += 1
+      maxIndex = k
+    }
+
+    return [ minIndex, maxIndex ]
+  }
+  function generateCommonYAxis (obj, height) {
+    let common = Object.values(obj).reduce((curr, next) => {
+      let values = next.map(item => item.tick)
+      return curr.concat(values)
+    }, [])
+
+    let getMaxMin = getRangeMinMax(common)
+    let ticksValue = generateAxisY(getMaxMin.max, getMaxMin.min, height, 6)
+    return ticksValue
+  }
+
+  function generateYAxis (range, height) {
+    let getYs = range.map(item => item.valueY)
+    let getMaxMin = getRangeMinMax(getYs)
+    let ticksValue = generateTicks(getYs, getMaxMin)
+    let tick = height / ticksValue.length
+
+    return ticksValue.map((item, idx) => ({ y: tick * idx, tick: Math.round(item) }))
+  }
+
+  function generateTicks (getYs, getMaxMin) {
+    let amount = getYs.length
+    let MAX_IN_ARRAY = 4
+    let filtered = amount / MAX_IN_ARRAY
+    let eachSix = getYs.filter((idm, id) => id % Math.round(filtered) === 0).slice(0, MAX_IN_ARRAY)
+    eachSix.unshift(getMaxMin.min)
+    eachSix.push(getMaxMin.max)
+
+    return eachSix
+  }
+
+  function generateAxis (axisX, axisY, width, height) {
+  // Add index
+    let axisXwithId = axisX.map((o, idx) => ({ ...o, idx }))
+    let curr = axisXwithId.filter((item, idx) => item.x >= 0 && item.x <= width)
+    let amount = curr.length
+    let MAX_IN_ARRAY = 6
+    let filtered = amount / MAX_IN_ARRAY
+    let ar = axisXwithId.filter((idm, id) => id % Math.round(filtered) === 0)
+    let updated = ar.filter((item, idx) => item.x >= 0).slice(0, 6)
+
+    return {
+      horizontal: updated
+    }
+  }
+
+  function generateAxisY (max, min, layoutMax, maxInLine) {
+    let diff = max - min
+    const tick = layoutMax / maxInLine
+    let t = diff / (maxInLine - 1)
+    let generateTicks = Array.from({ length: maxInLine }, (o, idx) => {
+      if (idx === 0) {
+        return min
+      }
+      if (idx === maxInLine - 1) {
+        return max
+      }
+      return min + (t * idx)
+    })
+
+    return generateTicks.reverse().map((value, idx) => ({ y: tick * idx, tick: Math.round(value) }))
+  }
+  /** CHART UTILS END */
+
+  function createTick (wrapper, axis, w) {
+    const xmlns = 'http://www.w3.org/2000/svg'
+    let text = document.createElementNS(xmlns, 'text')
+    let line = document.createElementNS(xmlns, 'line')
+    setAttrNs(text, [
+      { y: `0` },
+      { dy: `0.71em` }
+    ])
+    setAttrNs(line, [
+      { class: 'y-line-tick axis-line' },
+      { x1: 0 },
+      { y1: 24 },
+      { x2: w },
+      { y2: 24 },
+      { stroke: 'black' }
+    ])
+
+    let tickWrapper = document.createElementNS(xmlns, 'g')
+    let transform = axis === 'x' ? `translate(${0}, 0)` : `translate(0, ${0})`
+    setAttrNs(tickWrapper, [{ class: `tick-${axis} axis-line` }, { transform: transform }])
+
+    tickWrapper.appendChild(text)
+
+    if (axis === 'y') {
+      tickWrapper.appendChild(line)
+    }
+
+    return tickWrapper
+  }
+
+  function setupDefaultButtonColor (btn, color) {
+    btn.style.backgroundColor = `#${color}`
+    btn.style.color = `#FFF`
+    btn.style.borderColor = `transparent`
+  }
+
+  // let clickBindToChart = clickButton.bind(ChartRoot)
+  let Tooltip = TooltipInit.bind(ChartRoot)
+
+  /** CANVAS DRAW SHAPE */
+  function drawLine (cx, data, color, height, diff = 0) {
+    cx.strokeStyle = color
+    cx.beginPath()
+    cx.moveTo(0, height)
+    for (let i = 0; i < data.length; i += 1) {
+      let [x, yInitial] = data[i]
+      let y = revertY(yInitial, height)
+      let updX = x - diff
+      cx.lineTo(updX, y)
+    }
+    cx.stroke()
+  }
+
+  function barRect (cx, data, color, height, diffWidth) {
+    const width = Math.round(diffWidth)
+    let baseY = height
+    cx.beginPath()
+    cx.fillStyle = color
+    data.forEach((item, idx) => {
+      let [x, y] = item
+      if (x > 0 && x < 500) {
+        cx.moveTo(x, baseY)
+        cx.lineTo(x, y)
+        cx.lineTo(x + width, y)
+        cx.lineTo(x + width, baseY)
+      }
+    })
+    cx.fill()
+  }
+
+  function drawArea (cx, data, color, height) {
+    cx.fillStyle = color
+    cx.beginPath()
+    cx.moveTo(0, height)
+
+    for (let i = 0; i < data.length; i += 1) {
+      let [x, yInitial] = data[i]
+      let y = revertY(yInitial, height)
+      cx.lineTo(x, y)
+      if (i === data.length - 1) {
+        cx.lineTo(x, height)
+      }
+    }
+    cx.fill()
+  }
+  /** CANVAS DRAW SHAPE END */
+
+  /** HELPERS */
+  function convertMonthToString (date) {
+    let current = new Date(date)
+    let day = current.getDate()
+    let month = current.getMonth()
+    return `${day} ${MONTHES[month]}`
+  }
+
+  const normilizeColumns = (columns) => columns.reduce((curr, [key, ...values]) => {
+    return { ...curr, [key]: values }
+  }, {})
+
+  function normilizeData (data) {
+    return Object.assign({}, data, {
+      columns: normilizeColumns(data.columns)
+    })
+  }
+
+  function setAttrNs (el, values) {
+    let entries = values.map(item => Object.entries(item))
+    for (let [ i ] of entries) {
+      el.setAttributeNS(null, i[0], i[1])
+    }
+    return el
+  }
+
+  function qs (element) {
+    return document.querySelector(element)
+  }
+
+  function getFullDate (value, isFullMonthView) {
+    let initial = new Date(value)
+    let date = initial.getDate()
+    let day = initial.getDay()
+    let month = initial.getMonth()
+    let year = initial.getFullYear()
+
+    if (isFullMonthView) {
+      return `${date} ${MONTHES_FULL[month]} ${year}`
+    }
+    return `${DAYS[day].slice(0, 3)}, ${MONTHES[month]} ${date} ${year}`
+  }
+  /** HELPERS END */
+  /** SCALES */
+  function scaleLiniar ([ min, max ], [ axisMin, axisMax ]) {
+    return (val) => {
+      let diffCanvas = max - min
+      let diffAxis = axisMax - axisMin
+
+      let diff = (val - axisMin) / diffAxis
+      let res = diff * diffCanvas
+
+      return Math.abs(res)
+    }
+  }
+
+  function scaleTime ([ min, max ], [dateMin, dateMax]) {
+    const DAY = 1000 * 60 * 60 * 24
+    let maxDate = new Date(dateMax).getTime()
+    let minDate = new Date(dateMin).getTime()
+    let totalPeriod = (maxDate - minDate) / DAY
+
+    let diffCanvas = max - min
+
+    return (val) => {
+      let current = new Date(val).getTime()
+      let time = (current - minDate) / DAY
+
+      let step = (time * 100) / totalPeriod
+      let diff = diffCanvas * (step / 100)
+
+      return min + diff
+    }
+  }
+  /** SCALES END */
+
+  /** TEMPLATES */
+  function Button (key, name, color) {
+    return `
+        <button 
+          class="toggle-btn pulse" 
+          style="color: ${`#fff`};background-color: #${color};border: 1px solid transparent" 
+          data-toggle-btn="${key}" data-color="${color}">
+          <div class="target icon off">
+          <div class="dot"></div>
+        </div>
+        ${name}
+        </button>
+      `
+  }
+
+  function AxisLines (names, w) {
+    let lines = ``
+
+    Object.keys(names).forEach((item, idx) => {
+      lines += `<g class="tick-wrapper-y" data-axis-key="${item}" transform="translate(${idx === 0 ? 0 : w - 20}, 0)"></g>`
+    })
+
+    return lines
+  }
+
+  function ChartTemplate (name, chart, { w, h, mW, mH, colors, title }) {
+    let lines = chart.y_scaled ? AxisLines(chart.names, w)
+      : `<g class="tick-wrapper-y" transform="translate(0, 0)"></g>`
+
+    const temp = `
+      <div class="chart-header ${name}">
+      <h3>${title}</h3>
+      <div class="dates-range"></div>
+      </div>
     </div>
-  `
-}
-
-function setupDefaultButtonColor (btn, color) {
-  btn.style.backgroundColor = `#${color}`
-  btn.style.color = `#FFF`
-  btn.style.borderColor = `transparent`
-}
-
-function clickButton (e) {
-  let target = e.target
-  console.log(this)
-  if (target.classList.value.includes('toggle-btn')) {
-    let wrap = target.closest('.chart-wrapper')
-    let dataId = target.dataset.toggleBtn
-    let color = target.dataset.color
-    let btnState = this.state.ineracted[wrap.id][dataId]
-
-    console.log(btnState)
-    if (!btnState.active) {
-      btnState.active = true
-      target.style.backgroundColor = 'transparent'
-      target.style.color = `#${color}`
-      target.style.borderColor = `#${color}`
-    } else {
-      btnState.active = false
-      setupDefaultButtonColor(target, color)
-    }
-    target.classList.toggle('active')
-
-    // console.log(btnState)
-    // binded(0, 100).update()
-    // console.log(dataId, self.state)
+        <div id="${name}" class="chart-wrapper" data-color-theme="${colors}">
+        <canvas class="chart" id="graph" width="${w}" height="${h}"></canvas>
+        <svg class="chart-axises" id="graph-axis">
+        ${lines}
+        <g class="tick-wrapper-x" transform="translate(0, ${h})"></g>
+        <line class="tooltip-line" y1="0" y2="400" stroke="black" strokeWidth="2"></line>
+        </svg>
+        <div class="minimap">
+            <canvas class="minimap-chart" id="graph-minimap" width="${mW}" height="${mH}">
+            </canvas>
+            <div class="magnifier">
+                <div class="magnifier_shadow scroll-background left"></div>
+                <div class="magnifier_shadow scroll-background right"></div>
+    
+                <div class="magnifier__thumb minimap-thumb" data-thumb-side="center">
+                    <div class="minimap-thumb__control scroll-selector right" data-thumb-side="right"></div>
+                    <div class="minimap-thumb__control scroll-selector left" data-thumb-side="left"></div>
+                </div>
+            </div>
+        </div>
+        <div class="chart-contols">
+        </div>
+      </div>
+      `
+    return temp
   }
-}
-let clickBindToChart = clickButton.bind(ChartRoot)
-let Tooltip = TooltipInit.bind(ChartRoot)
 
-function normilizeData (data) {
-  return Object.assign({}, data, {
-    columns: normilizeColumns(data.columns)
-  })
-}
+  /** TEMPLATES END */
 
-const chart = {
-  init () {
-    const main = qs('main')
-    main.style.width = window.innerWidth
-    const state = {
-      active: {},
-      initial: {}
-    }
-    // // Recieve data
-    fetch('/data/1/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[0] = ChartRoot.init(0, main, normilizer, 'Followers', CANVAS_COLOR_TYPES_FOLLOWERS)
-      })
-      .catch(err => { throw err })
-
-    fetch('/data/2/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[1] = ChartRoot.init(1, main, normilizer, 'Interactions', CANVAS_COLOR_TYPES_FOLLOWERS)
-      })
-      .catch(err => { throw err })
-
-    fetch('/data/3/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[3] = ChartRoot.init(3, main, normilizer, 'Messages', CANVAS_COLOR_TYPE_APPS)
-      })
-      .catch(err => { throw err })
-
-    fetch('/data/4/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[4] = ChartRoot.init(4, main, normilizer, 'Views', CANVAS_COLOR_TYPE_ONLINES)
-      })
-      .catch(err => { throw err })
-
-    fetch('/data/5/overview.json')
-      .then(res => res.json())
-      .then((data) => {
-        const normilizer = normilizeData(data)
-        state.initial[5] = ChartRoot.init(5, main, normilizer, 'Apps', CANVAS_COLOR_TYPE_APPS)
-      })
-      .catch(err => { throw err })
-
-    // ChartRoot.setStyleMode(colorTheme[layoutColorMode])
-    qs('.toggle-mode-btn').addEventListener('click', function () {
-      document.body.classList.toggle('dark')
-      layoutColorMode = layoutColorMode === 'day' ? LAYOUT_MODE_NIGHT : LAYOUT_MODE_DAY
-
-      console.log(layoutColorMode)
-      ChartRoot.setStyleMode(colorTheme[layoutColorMode])
-      // console.log(colorTheme[self.layoutColorMode][colorType])
-    })
-  }
-}
-chart.init()
+  chart.init()
+})()
