@@ -8,9 +8,14 @@ main {
   position: relative;
 }
 
-.chart-wrapper>canvas,
+.chart-wrapper canvas,
 .chart-wrapper>svg {
   width: 100%;
+}
+
+.chart-wrapper>canvas,
+.chart-wrapper>svg {
+
   height: 250px;
 }
 
@@ -237,6 +242,8 @@ svg[data-color-theme="apps"] .chart-axises text {
 
 .minimap {
   position: relative;
+  border-radius: 11px;
+  overflow: hidden;
 }
 
 .magnifier {
@@ -245,8 +252,6 @@ svg[data-color-theme="apps"] .chart-axises text {
   top: 0;
   position: absolute;
   left: 0;
-  border-radius: 10px;
-  overflow: hidden;
 }
 
 .magnifier__thumb {
@@ -255,6 +260,7 @@ svg[data-color-theme="apps"] .chart-axises text {
   height: calc(100% - 4px);
   left: 0px;
   background-color: transparent;
+  /* margin-left: 12px; */
 }
 
 
@@ -295,7 +301,7 @@ svg[data-color-theme="apps"] .chart-axises text {
 }
 
 .minimap-thumb__control.left {
-  left: -12px;
+  left: -11px;
   border-radius: 8px 0 0px 8px;
 }
 
@@ -308,7 +314,7 @@ svg[data-color-theme="apps"] .chart-axises text {
 }
 
 .minimap-thumb__control.right {
-  right: -12px;
+  right: -11px;
   /* cursor: none; */
   border-radius: 0 8px 8px 0;
 }

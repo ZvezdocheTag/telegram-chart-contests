@@ -14,36 +14,47 @@ function getCoords (elem) {
 }
 
 export class Magnifier {
-  constructor (idAttr, cb, interacted) {
-    this.el = qs(`#${idAttr} [data-thumb-side="center"]`)
-    this.container = this.el.parentElement
+  constructor (wrapper, cb, interacted, range) {
+    // console.log(idAttr, cb, interacted)
+    this.wrapper = wrapper
+    // console.log(wrapper.querySelector('.minimap-thumb'))
+    this.el = wrapper.querySelector('.minimap-thumb')
     this.interacted = interacted
+    this.range = range
+
+    // this.wrapper = this.el.parentElement
+    // const minimapThumb = wrapper.querySelector('.minimap-thumb')
     this.controlLeft = this.el.querySelector('.left')
     this.controlRight = this.el.querySelector('.right')
-    this.shadowLeft = this.container.querySelector('.magnifier_shadow.left')
-    this.shadowRight = this.container.querySelector('.magnifier_shadow.right')
+    this.shadowLeft = this.wrapper.querySelector('.magnifier_shadow.left')
+    this.shadowRight = this.wrapper.querySelector('.magnifier_shadow.right')
 
     this.actionResize = cb
+
+    this.handleWidth = 12
     this.resizeStart = this.resizeStart.bind(this)
   }
 
   init () {
-    this.el.addEventListener('mousedown', this.resizeStart, { passive: true })
-    this.el.addEventListener('touchstart', this.resizeStart, { passive: true })
+    this.el.addEventListener('mousedown', this.resizeStart)
+    this.el.addEventListener('touchstart', this.resizeStart)
 
-    this.initShadow()
+
     this.initDefault()
   }
 
-  initShadow () {
-    this.shadowLeft.style.width = 0 + 'px'
-    this.shadowRight.style.width = this.container.offsetWidth - 100 + 'px'
-  }
 
   initDefault () {
-    this.el.style.left = `${0}px`
-    this.el.style.right = `${0}px`
-    this.el.style.width = `${100}px`
+    let [xMin, xMax] = this.range
+    let width = xMax - xMin + this.handleWidth;
+    let rightOffset = this.wrapper.offsetWidth - width - this.handleWidth
+
+    this.el.style.left = `${this.handleWidth + xMin}px`
+    this.el.style.right = `${xMin}px`
+    this.el.style.width = `${width}px`
+
+    this.shadowLeft.style.width = xMin + 'px'
+    this.shadowRight.style.width = rightOffset + 'px'
   }
 
   resizeLeft (width, resize) {
@@ -65,19 +76,28 @@ export class Magnifier {
     this.el.style.left = l + 'px'
     this.shadowLeft.style.width = l + 'px'
     this.shadowRight.style.width = r + 'px'
-    this.actionResize.update(l, l + width, this.interacted)
+
+    setTimeout(() => {
+
+      this.actionResize.update(l, l + width, this.interacted)
+    }, 50)
   }
 
   resizeStart (e) {
     this.touchInit = true
+    // console.log(this.el)
     let side = e.target.dataset.thumbSide
     let width = this.el.offsetWidth
     let offset = this.el.offsetLeft
-    let containerWidth = this.container.offsetWidth
+    let containerWidth = this.wrapper.offsetWidth
+    // console.log(width, offset, containerWidth)
     let getLeft = getCoords(this.el).left
     let handlersWidth = 8
     let pageX = e.pageX
 
+    // let 
+
+    // console.log(pageX, getLeft, width, containerWidth, offset)
     if (e.type === 'touchstart') {
       pageX = e.touches[0].pageX
     }
@@ -85,38 +105,45 @@ export class Magnifier {
     const resize = (ec) => {
       let resizePageX = ec.pageX
 
+      // console.log(ec)
       if (ec.type === 'touchmove') {
         resizePageX = ec.touches[0].pageX
+      }
+      var moveX = resizePageX - pageX;
+      if ( Math.abs(moveX) < 3) {
+        return; // ничего не делать, мышь не передвинулась достаточно далеко
       }
 
       let calcWidth = width - (resizePageX - offset)
       let elW = width + (resizePageX - pageX)
-      let l = getLeft + (resizePageX - pageX)
+      let l = offset + (resizePageX - pageX)
       let r = containerWidth - (l + width)
 
-      let maxLeft = l + handlersWidth
+      let maxLeft = l - 8
       let maxRight = r + handlersWidth
 
+      // console.log(r - this.handleWidth, containerWidth, width, calcWidth)
       if (side === 'right') {
-        if (maxRight >= 0 && (containerWidth - r) > calcWidth) {
+        if (maxRight >= 0 && r - this.handleWidth > 0) {
           this.resizeRight(elW, getLeft, containerWidth, (elW + offset))
         }
       }
       if (side === 'left') {
-        if (maxLeft >= 0 && (calcWidth - handlersWidth) > 0) {
-          this.resizeLeft(calcWidth, resizePageX)
+        console.log(maxLeft, calcWidth, this.handleWidth)
+        if (maxLeft >= 0 && (calcWidth - this.handleWidth) > 0) {
+          this.resizeLeft(calcWidth, l)
         }
       }
 
       if (side === 'center') {
-        if (maxLeft >= 0 && maxRight >= 0) {
+        if (maxLeft >= 0 && r - this.handleWidth > 0) {
           this.dragCenter(l, r, width)
         }
       }
     }
 
-    document.addEventListener('mousemove', resize, { passive: true })
-    document.addEventListener('touchmove', resize, { passive: true })
+    document.addEventListener('mousemove', resize)
+    document.addEventListener('touchmove', resize)
 
     document.addEventListener('mouseup', (e) => {
       this.touchInit = false

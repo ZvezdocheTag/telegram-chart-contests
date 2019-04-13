@@ -160,7 +160,7 @@ import { Magnifier } from './chart/magnifier.js'
     },
 
     init (id, main, data, title, colorType) {
-      console.log(this)
+      // console.log(this)
       const w = main.offsetWidth - 20
       const h = 250
       const mH = 50
@@ -191,12 +191,12 @@ import { Magnifier } from './chart/magnifier.js'
           active: false
         }
       })
-
+      const initialRange = [0, 100]
       let interacted = this.state.ineracted[idAttr]
       let colr = colorTheme[layoutColorMode][colorType]
-      this.state.ranges[idAttr] = [0, 100]
+      this.state.ranges[idAttr] = initialRange
 
-      let initialProcess = processCoords(w, h, [0, 100], data)
+      let initialProcess = processCoords(w, h, initialRange, data)
       let coords = initialProcess.data
       this.state.calculation[idAttr] = coords
 
@@ -213,6 +213,9 @@ import { Magnifier } from './chart/magnifier.js'
       const chart = wrapper.querySelector('.chart')
       this.state.chart[idAttr] = wrapper
       const chartMinimap = wrapper.querySelector('.minimap-chart')
+      const chartMagnifier = wrapper.querySelector('.magnifier')
+
+  
       const svgAxis = wrapper.querySelector('.chart-axises')
       let wrappersX = svgAxis.querySelector(`.tick-wrapper-x`)
       let wrappersY = svgAxis.querySelector(`.tick-wrapper-y`)
@@ -246,7 +249,7 @@ import { Magnifier } from './chart/magnifier.js'
             renderLine(svg, coords, h)
             svgMinimap.clearRect(0, 0, w, mH)
             renderLine(svgMinimap, initialProcessMin.data, mH)
-            console.log(initialProcess.vertical)
+            // console.log(initialProcess.vertical)
             Axis.update(svgAxisX, initialProcess.horizontal, 'x')
             svgAxisY.forEach(item => {
               let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
@@ -293,9 +296,9 @@ import { Magnifier } from './chart/magnifier.js'
 
       Axis.render(wrappersX, initialProcess.horizontal, 'x', w)
       Tooltip(svgAxis)
-      new Magnifier(idAttr, setupResize, interacted).init()
+      new Magnifier(chartMagnifier, setupResize, interacted, initialRange).init()
 
-      return this
+      // return this
     }
 
   }
@@ -445,7 +448,7 @@ import { Magnifier } from './chart/magnifier.js'
       uniqNames = uniqNames.filter(nm => !status[nm].active)
     }
 
-    console.log(uniqNames, status, "FFS")
+    // console.log(uniqNames, status, "FFS")
     let res = uniqNames.map(key => {
       const $X = 'x'
 
