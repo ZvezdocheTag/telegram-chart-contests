@@ -33,7 +33,7 @@ function ChartTemplate (name, chart, { w, h, mW, mH, colors, title }) {
     <svg class="chart-axises" id="graph-axis">
     ${lines}
     <g class="tick-wrapper-x" transform="translate(0, ${h})"></g>
-    <line class="tooltip-line" y1="0" y2="400" stroke="black" strokeWidth="2"></line>
+    <line class="tooltip-line" y1="0" y2="380" strokeWidth="2"></line>
     </svg>
     <div class="minimap">
         <canvas class="minimap-chart" id="graph-minimap" width="${mW}" height="${mH}">

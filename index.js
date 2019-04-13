@@ -98,7 +98,7 @@ import { Magnifier } from './chart/magnifier.js'
 
     update (svg, ticks, axis) {
       // console.log(svg, ticks, "F")
-      if(!ticks) {
+      if (!ticks) {
         svg.style.opacity = 0
         return
       }
@@ -215,7 +215,6 @@ import { Magnifier } from './chart/magnifier.js'
       const chartMinimap = wrapper.querySelector('.minimap-chart')
       const chartMagnifier = wrapper.querySelector('.magnifier')
 
-  
       const svgAxis = wrapper.querySelector('.chart-axises')
       let wrappersX = svgAxis.querySelector(`.tick-wrapper-x`)
       let wrappersY = svgAxis.querySelector(`.tick-wrapper-y`)
@@ -295,7 +294,7 @@ import { Magnifier } from './chart/magnifier.js'
       })
 
       Axis.render(wrappersX, initialProcess.horizontal, 'x', w)
-      Tooltip(svgAxis)
+      Tooltip(svgAxis, colr)
       new Magnifier(chartMagnifier, setupResize, interacted, initialRange).init()
 
       // return this
@@ -331,7 +330,7 @@ import { Magnifier } from './chart/magnifier.js'
     ctx.restore()
   }
 
-  function TooltipInit (svg) {
+  function TooltipInit (svg, colr, height) {
     let self = this
 
     let line = null
@@ -340,6 +339,8 @@ import { Magnifier } from './chart/magnifier.js'
 
     let tooltip = document.querySelector('.chart-tooltip')
     let dataId = svg.closest('.chart-wrapper').id
+
+    // console.log(self, dataId, colr)
 
     svg.addEventListener('mouseenter', enterMouse, { passive: true })
     svg.addEventListener('touchstart', enterMouse, { passive: true })
@@ -350,24 +351,37 @@ import { Magnifier } from './chart/magnifier.js'
     svg.addEventListener('mouseleave', mouseLeave)
     svg.addEventListener('touchend', mouseLeave)
 
+    // console.log(currentChart)
     function enterMouse (e) {
       currentChart = self.state.calculation[dataId]
       getFirstRange = currentChart[0].currentRangeData
-
-      // console.log(currentChart)
       tooltip.insertAdjacentHTML('beforeend', '<ul class="tooltip-list"></ul>')
       const list = tooltip.querySelector('.tooltip-list')
 
-      currentChart.forEach((line, idx) => {
-      // let html =  `<li style="color: ${line.color};" data-key="${line.key}">
-      // console.log(line)
+      currentChart.reverse().forEach((line, idx) => {
         let html = `<li data-key="${line.key}">
         <div class="tooltip-item-name">${line.name}</div>
-        <div class="tooltip-item-value">${line.valueX}</div>
+        <div class="tooltip-item-value" style="color: #${colr[line.name].tooltipText};">${line.valueX}</div>
       </li>`
 
+        let dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+
+        setAttrNs(dot, [
+          { class: 'svg-line-points' },
+          { 'data-key': line.key },
+          { cx: 0 },
+          { r: 4 },
+          { opacity: 0 },
+          { cy: 0 },
+          { stroke: `${line.color}` },
+          { fill: `transparent` },
+          { 'stroke-width': `3` }
+        ])
+        svg.insertAdjacentElement('beforeend', dot)
         list.insertAdjacentHTML('beforeend', html)
       })
+
+      console.log(currentChart)
 
       line = e.target.querySelector('.tooltip-line')
       if (!tooltip.classList.contains('active')) {
@@ -399,6 +413,15 @@ import { Magnifier } from './chart/magnifier.js'
 
       if (currentCoords) {
         rerenderTooltip(currentCoords)
+        // console.log(currentCoords)
+        currentCoords.forEach(item => {
+          let point = svg.querySelector(`circle[data-key=${item.key}]`)
+          setAttrNs(point, [
+            { cx: item.x },
+            { cy: 250 - item.y.y },
+            { opacity: 1 }
+          ])
+        })
       }
       tooltip.style.top = (pageY - 10) + 'px'
       tooltip.style.left = (pageX + 10) + 'px'
@@ -425,6 +448,9 @@ import { Magnifier } from './chart/magnifier.js'
     function findHoveredCoordinates (coordinates, hoveredIdx) {
       let currentHovered = []
       coordinates.forEach((item) => {
+        console.log(item.points[hoveredIdx], hoveredIdx)
+        console.log(item.currentRangeData[hoveredIdx], hoveredIdx)
+        // console.log(item.currentRangeData[hoveredIdx], item.currentRangeData[hoveredIdx + 3])
         currentHovered.push(item.currentRangeData[hoveredIdx])
       })
 
@@ -846,10 +872,11 @@ import { Magnifier } from './chart/magnifier.js'
     </div>
         <div id="${name}" class="chart-wrapper" data-color-theme="${colors}">
         <canvas class="chart" id="graph" width="${w}" height="${h}"></canvas>
-        <svg class="chart-axises" id="graph-axis">
+        <svg class="chart-axises" id="graph-axis" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
         ${lines}
+        <rect x="50" y="10" fill="red" width="10" height="250" opacity=".1"></rect>
         <g class="tick-wrapper-x" transform="translate(0, ${h})"></g>
-        <line class="tooltip-line" y1="0" y2="400" stroke="black" strokeWidth="2"></line>
+        <line class="tooltip-line" y1="0" y2="250" strokeWidth="2"></line>
         </svg>
         <div class="minimap">
             <canvas class="minimap-chart" id="graph-minimap" width="${mW}" height="${mH}">

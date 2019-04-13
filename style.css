@@ -20,7 +20,7 @@ main {
 }
 
 .chart-wrapper>svg {
-  height: 275px;
+  height: 250px;
 }
 
 body {
@@ -99,6 +99,11 @@ svg[data-color-theme="apps"] .chart-axises text {
   opacity: .1;
 }
 
+.tooltip-line {
+  stroke: #182D3B;
+  opacity: .2;
+}
+
 /* DARK GLOBAL */
 .default.dark {
   color: #fff;
@@ -145,7 +150,8 @@ svg[data-color-theme="apps"] .chart-axises text {
   color: #D2D5D7;
 }
 
-.dark .axis-line line {
+.dark .axis-line line,
+.dark .tooltip-line {
   stroke: #FFFFFF;
   opacity: .1;
 }
@@ -171,18 +177,18 @@ svg[data-color-theme="apps"] .chart-axises text {
 
 .chart-tooltip li {
   flex: 1;
-  margin-right: 15px;
-  margin-bottom: 6px;
+  margin-right: 8px;
+  margin-bottom: 8px;
   display: flex;
   justify-content: space-between;
 }
 
-.chart-tooltip li:last-child {
+/* .chart-tooltip li:last-child {
   margin-right: 0px;
   /* margin-bottom: 10px; */
 }
 
-.tooltip-item-name {
+*/ .tooltip-item-name {
   font-size: 14px;
   font-weight: bold;
   flex: 1;
@@ -191,11 +197,12 @@ svg[data-color-theme="apps"] .chart-axises text {
 .tooltip-item-value {
   font-size: 0.9em;
   text-align: right;
-  width: 30px;
+  /* width: 30px; */
 }
 
 .tooltip-list {
-  max-width: 100px;
+  max-width: 130px;
+  min-width: 100px;
 }
 
 .chart-tooltip {
@@ -205,7 +212,7 @@ svg[data-color-theme="apps"] .chart-axises text {
   left: 0;
   /* background: var(--page-bg); */
   border-radius: 10px;
-  padding: 10px 20px;
+  padding: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
   transition: opacity 0.3s ease;
   /* visibility: hidden; */
