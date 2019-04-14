@@ -30,15 +30,11 @@
 
   class Magnifier {
     constructor (wrapper, cb, interacted, range) {
-      // console.log(idAttr, cb, interacted)
       this.wrapper = wrapper
-      // console.log(wrapper.querySelector('.minimap-thumb'))
       this.el = wrapper.querySelector('.minimap-thumb')
       this.interacted = interacted
       this.range = range
 
-      // this.wrapper = this.el.parentElement
-      // const minimapThumb = wrapper.querySelector('.minimap-thumb')
       this.controlLeft = this.el.querySelector('.left')
       this.controlRight = this.el.querySelector('.right')
       this.shadowLeft = this.wrapper.querySelector('.magnifier_shadow.left')
@@ -101,35 +97,31 @@
       }, 0)
     }
 
+    // let res = 0;
+
     resizeStart (e) {
       this.touchInit = true
-      // console.log(this.el)
       let side = e.target.dataset.thumbSide
       let width = this.el.offsetWidth
       let offset = this.el.offsetLeft
       let containerWidth = this.wrapper.offsetWidth
-      // console.log(width, offset, containerWidth)
       let getLeft = getCoords(this.el).left
       let handlersWidth = 8
       let pageX = e.pageX
 
-      // let
-
-      // console.log(pageX, getLeft, width, containerWidth, offset)
       if (e.type === 'touchstart') {
         pageX = e.touches[0].pageX
       }
 
       const resize = (ec) => {
         let resizePageX = ec.pageX
-
-        // console.log(ec)
+        console.log(this.touchInit)
         if (ec.type === 'touchmove') {
           resizePageX = ec.touches[0].pageX
         }
         var moveX = resizePageX - pageX
         if (Math.abs(moveX) < 3) {
-          return // ничего не делать, мышь не передвинулась достаточно далеко
+          return 
         }
 
         let calcWidth = width - (resizePageX - offset)
@@ -137,26 +129,35 @@
         let l = offset + (resizePageX - pageX)
         let r = containerWidth - (l + width)
 
-        let maxLeft = l - 8
+        let maxLeft = l - (handlersWidth * 2)
         let maxRight = r + handlersWidth
 
         let mR = offset + handlersWidth + elW
         let shD = containerWidth - (elW + offset)
         let lR = width + getLeft - resizePageX
+
+
         if (side === 'right') {
-          if (maxRight >= 0 && containerWidth - mR > 0) {
+          if (maxRight >= 0 && containerWidth - mR > 0 && elW > 50) {
             this.resizeRight(elW, offset, shD, mR)
           }
         }
         let d = getLeft - resizePageX
+
+        let wwC = width + (offset - maxLeft)
+        let finishLeft = containerWidth - (wwC + maxLeft) + wwC + handlersWidth
+        console.log(elW, offset, shD, mR, containerWidth - mR)
+        console.log( d, offset, l,  "F", r, calcWidth)
         if (side === 'left') {
-          if (maxLeft >= 0) {
-            this.resizeLeft(lR, offset - d - handlersWidth)
-          }
+          // console.log(maxLeft, calcWidth, wwC, offset, elW, l, resizePageX )
+            if (finishLeft < containerWidth && wwC > 50) {
+              // console.log(maxLeft, "D")
+              this.resizeLeft(wwC, maxLeft)
+            }
         }
 
         if (side === 'center') {
-          if (maxLeft >= 0 && containerWidth - mR > 0) {
+          if (l > handlersWidth  && containerWidth - mR > 0) {
             this.dragCenter(l, r, width)
           }
         }
@@ -167,6 +168,7 @@
 
       document.addEventListener('mouseup', (e) => {
         this.touchInit = false
+        // console.log(this.touchInit)
         document.removeEventListener('mousemove', resize)
       }, false)
 
