@@ -23,30 +23,30 @@ import { Magnifier } from './chart/magnifier.js'
   let layoutColorMode = LAYOUT_MODE_DAY
 
   const getDataFormat = {
-    'id_1': {
-      link: '/data/1/overview.json',
-      colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
-      title: 'Followers',
-      id: 'id_1'
-    },
-    'id_2': {
-      link: '/data/2/overview.json',
-      colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
-      title: 'Interactions',
-      id: 'id_2'
-    },
+    // 'id_1': {
+    //   link: '/data/1/overview.json',
+    //   colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
+    //   title: 'Followers',
+    //   id: 'id_1'
+    // },
+    // 'id_2': {
+    //   link: '/data/2/overview.json',
+    //   colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
+    //   title: 'Interactions',
+    //   id: 'id_2'
+    // },
     'id_3': {
       link: '/data/3/overview.json',
       colorScheme: CANVAS_COLOR_TYPE_APPS,
       title: 'Messages',
       id: 'id_3'
     },
-    'id_4': {
-      link: '/data/4/overview.json',
-      colorScheme: CANVAS_COLOR_TYPE_ONLINES,
-      title: 'Views',
-      id: 'id_4'
-    },
+    // 'id_4': {
+    //   link: '/data/4/overview.json',
+    //   colorScheme: CANVAS_COLOR_TYPE_ONLINES,
+    //   title: 'Views',
+    //   id: 'id_4'
+    // },
     'id_5': {
       link: '/data/5/overview.json',
       colorScheme: CANVAS_COLOR_TYPE_APPS,
@@ -97,7 +97,6 @@ import { Magnifier } from './chart/magnifier.js'
     },
 
     update (svg, ticks, axis) {
-      // console.log(svg, ticks, "F")
       if (!ticks) {
         svg.style.opacity = 0
         return
@@ -160,7 +159,6 @@ import { Magnifier } from './chart/magnifier.js'
     },
 
     init (id, main, data, title, colorType) {
-      // console.log(this)
       const w = main.offsetWidth - 20
       const h = 250
       const mH = 50
@@ -225,7 +223,6 @@ import { Magnifier } from './chart/magnifier.js'
       const chartHeaderDates = qs(`.chart-header.${idAttr} .dates-range`)
 
       // RENDER PART
-      // console.log(coords)
       chartHeaderDates.textContent = getDataRangeToString(coords)
       Object.entries(data.names).forEach(([key, name]) => {
         controls.insertAdjacentHTML('beforeEnd', Button(key, name, colr[name].btn))
@@ -235,7 +232,6 @@ import { Magnifier } from './chart/magnifier.js'
       let setupResize = resizeFunc(svg, w, h, data, wrappersYAll, wrappersX, y_scaled)
 
       function actionResize (svg, w, h, data, svgAxisY, svgAxisX, y_scaled) {
-        // console.log(this)
         let self = this
         return {
           update (min, max, status) {
@@ -248,7 +244,6 @@ import { Magnifier } from './chart/magnifier.js'
             renderLine(svg, coords, h)
             svgMinimap.clearRect(0, 0, w, mH)
             renderLine(svgMinimap, initialProcessMin.data, mH)
-            // console.log(initialProcess.vertical)
             Axis.update(svgAxisX, initialProcess.horizontal, 'x')
             svgAxisY.forEach(item => {
               let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
@@ -285,9 +280,6 @@ import { Magnifier } from './chart/magnifier.js'
       renderLine(svg, coords, h)
       renderLine(svgMinimap, coordInitialMinimap, mH)
 
-      // console.log(initialProcess, 'Fd')
-
-      // console.log(setupResize)
       wrappersYAll.forEach(item => {
         let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
         Axis.render(item, yCurrentData, 'y', w)
@@ -309,13 +301,11 @@ import { Magnifier } from './chart/magnifier.js'
   function renderLine (ctx, coords, height, interacted) {
     ctx.save()
     // let upd = interacted
-    // console.log(coords, interacted)
-    coords.reverse().forEach(({ key, points, color, types, currentRangeData }) => {
+    coords.forEach(({ key, points, color, types, currentRangeData }) => {
     // let a = xCoords.slice(0, 1)
     // let b = xCoords.slice(-1)
     // let diffWidth = Math.round((b - a) / xCoords.length)
       let diffWidth = 500 / currentRangeData.length
-      // console.log(diffWidth)
       if (types === 'line') {
         drawLine(ctx, points, color, height)
       }
@@ -340,8 +330,6 @@ import { Magnifier } from './chart/magnifier.js'
     let tooltip = document.querySelector('.chart-tooltip')
     let dataId = svg.closest('.chart-wrapper').id
 
-    // console.log(self, dataId, colr)
-
     svg.addEventListener('mouseenter', enterMouse, { passive: true })
     svg.addEventListener('touchstart', enterMouse, { passive: true })
 
@@ -351,7 +339,6 @@ import { Magnifier } from './chart/magnifier.js'
     svg.addEventListener('mouseleave', mouseLeave)
     svg.addEventListener('touchend', mouseLeave)
 
-    // console.log(currentChart)
     function enterMouse (e) {
       currentChart = self.state.calculation[dataId]
       getFirstRange = currentChart[0].currentRangeData
@@ -380,8 +367,6 @@ import { Magnifier } from './chart/magnifier.js'
         svg.insertAdjacentElement('beforeend', dot)
         list.insertAdjacentHTML('beforeend', html)
       })
-
-      console.log(currentChart)
 
       line = e.target.querySelector('.tooltip-line')
       if (!tooltip.classList.contains('active')) {
@@ -413,12 +398,11 @@ import { Magnifier } from './chart/magnifier.js'
 
       if (currentCoords) {
         rerenderTooltip(currentCoords)
-        // console.log(currentCoords)
         currentCoords.forEach(item => {
           let point = svg.querySelector(`circle[data-key=${item.key}]`)
           setAttrNs(point, [
             { cx: item.x },
-            { cy: 250 - item.y.y },
+            { cy: item.y.y },
             { opacity: 1 }
           ])
         })
@@ -448,9 +432,6 @@ import { Magnifier } from './chart/magnifier.js'
     function findHoveredCoordinates (coordinates, hoveredIdx) {
       let currentHovered = []
       coordinates.forEach((item) => {
-        console.log(item.points[hoveredIdx], hoveredIdx)
-        console.log(item.currentRangeData[hoveredIdx], hoveredIdx)
-        // console.log(item.currentRangeData[hoveredIdx], item.currentRangeData[hoveredIdx + 3])
         currentHovered.push(item.currentRangeData[hoveredIdx])
       })
 
@@ -467,14 +448,13 @@ import { Magnifier } from './chart/magnifier.js'
     }
   }
 
-  function calculateChartRanges ({ names, types, columns, colors }, status) {
+  function calculateChartRanges ({ names, types, columns, colors, stacked }, status) {
     let uniqNames = Object.keys(names)
 
     if (status) {
       uniqNames = uniqNames.filter(nm => !status[nm].active)
     }
 
-    // console.log(uniqNames, status, "FFS")
     let res = uniqNames.map(key => {
       const $X = 'x'
 
@@ -491,17 +471,80 @@ import { Magnifier } from './chart/magnifier.js'
       }
     }).filter(line => line)
 
+    if (stacked) {
+      let common = res.reduce((curr, next) => {
+        return curr.concat(next.y)
+      }, [])
+
+      let getMaxMin = getRangeMinMax(common)
+      let activeY = res.map(d => d.y)
+      let yS = activeY[0]
+      let updatedArrays = getStacked(getMaxMin.min, activeY, yS, getMaxMin.max)
+
+      // console.log(activeY, updatedArrays)
+      // activeY.forEach((d, i) => {
+      //   console.log(updatedArrays, d.slice(0, 5))
+      // })
+      console.log(updatedArrays, getMaxMin)
+      
+      let initialY0 = {
+
+      }
+      let upd = activeY.map((_, id) => {
+        return _.map((o, i) => {
+          return getMaxMin.max - updatedArrays[i][id].y1
+        })
+      })
+      // console.log(upd)
+      res = res.map((item, i) => {
+        initialY0[item.key] = getMaxMin.min
+        // console.log(item.y.slice(0, 5), i)
+        // console.log(item.y)
+        return {
+          ...item,
+          yBar: upd[i],
+          y: upd[i],
+          // y: item.y.map((_, idx) => {
+          //   initialY0[item.key] = _ + initialY0[item.key] 
+
+          //   return  _ + initialY0[item.key]
+          // }),
+          yRange: { max: getMaxMin.max, min: getMaxMin.min },
+          yStaked: updatedArrays
+        }
+      })
+      // console.log(initialY0)
+    }
+
+    // console.log(res)
     return res
   }
 
+  function getStacked (min, root, points, max) {
+    let cud = points.map(item => [])
+
+    points.forEach((lines, idx) => {
+      let y0 = min
+
+      root.forEach((d, i) => {
+        // let _u = y0
+        // y0 = _u + d[idx]
+        
+        cud[idx].push({y0: y0, y1: y0 + d[idx]  })
+        y0 =  y0 + d[idx]
+        // root[i][idx] = y0
+      })
+    })
+    return cud.reverse()
+  }
   function processCoords (w, h, ranges, lines, status) {
     let active = calculateChartRanges(lines, status)
-    let updatedMax = []
 
     let res = {
       horizontal: null,
       vertical: {},
-      data: null
+      data: null,
+      barData: null
     }
 
     res.data = active.map(line => {
@@ -510,30 +553,22 @@ import { Magnifier } from './chart/magnifier.js'
         yRange: { max: yMax, min: yMin }
       } = line
 
-      updatedMax.push(yMin)
-      updatedMax.push(yMax)
-
       let xScale = scaleTime([0, w], [xMin, xMax])
       let yScale = scaleLiniar([h, 0], [yMax, yMin])
 
       let scaleLine = line.x.map(xScale)
       let scaleLineY = line.y.map(yScale)
 
-      // console.log(ranges, 0, w)
       let xAxisTikers = line.x.map(convertMonthToString)
       if (ranges) {
-        updatedMax = []
         let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
-        // console.log(line.x[rangeMin], line.x[rangeMax - 1],0, w)
         xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
 
         let filteredY = line.y.filter((_, idx) => idx >= rangeMin && idx <= rangeMax)
         let sorted = filteredY.sort((a, b) => a - b)
-        // console.log(filteredY.length, line.y.length, rangeMin, rangeMax)
         let yRangeFirst = sorted.slice(0, 1)[0]
         let yRangeSecond = sorted.slice(-1)[0]
         let [ yMinRange, yMaxRange] = yRangeFirst > yRangeSecond ? [yRangeSecond, yRangeFirst] : [yRangeFirst, yRangeSecond]
-        // console.log(line.y[rangeMax - 1], line.y[rangeMin], line.y , "F", yMinRange, yMaxRange )
 
         yScale = scaleLiniar([h, 0], [ yMaxRange, yMinRange ])
 
@@ -578,6 +613,7 @@ import { Magnifier } from './chart/magnifier.js'
       }
     })
 
+    // console.log(res, 'UPD')
     res.commonY = generateCommonYAxis(res.vertical, h)
     return res
   }
@@ -608,13 +644,17 @@ import { Magnifier } from './chart/magnifier.js'
 
     return [ minIndex, maxIndex ]
   }
-  function generateCommonYAxis (obj, height) {
-    let common = Object.values(obj).reduce((curr, next) => {
-      let values = next.map(item => item.tick)
+
+  function concatObjValues (obj, type) {
+    return Object.values(obj).reduce((curr, next) => {
+      let values = next.map(item => item[type])
       return curr.concat(values)
     }, [])
-
+  }
+  function generateCommonYAxis (obj, height) {
+    let common = concatObjValues(obj, 'tick')
     let getMaxMin = getRangeMinMax(common)
+
     let ticksValue = generateAxisY(getMaxMin.max, getMaxMin.min, height, 6)
     return ticksValue
   }
@@ -718,9 +758,9 @@ import { Magnifier } from './chart/magnifier.js'
     cx.moveTo(0, height)
     for (let i = 0; i < data.length; i += 1) {
       let [x, yInitial] = data[i]
-      let y = revertY(yInitial, height)
+      // let y = revertY(yInitial, height)
       let updX = x - diff
-      cx.lineTo(updX, y)
+      cx.lineTo(updX, yInitial)
     }
     cx.stroke()
   }
