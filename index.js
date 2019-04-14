@@ -301,7 +301,7 @@ import { Magnifier } from './chart/magnifier.js'
   function renderLine (ctx, coords, height, interacted) {
     ctx.save()
     // let upd = interacted
-    coords.forEach(({ key, points, color, types, currentRangeData }) => {
+    coords.forEach(({ key, points, color, types, currentRangeData, yBar }) => {
     // let a = xCoords.slice(0, 1)
     // let b = xCoords.slice(-1)
     // let diffWidth = Math.round((b - a) / xCoords.length)
@@ -310,7 +310,8 @@ import { Magnifier } from './chart/magnifier.js'
         drawLine(ctx, points, color, height)
       }
       if (types === 'bar') {
-        barRect(ctx, points, color, height, diffWidth)
+        // console.log(key, color)
+        barRect(ctx, points, color, height, diffWidth, yBar)
       }
 
       if (types === 'area') {
@@ -472,40 +473,42 @@ import { Magnifier } from './chart/magnifier.js'
     }).filter(line => line)
 
     if (stacked) {
-      let common = res.reduce((curr, next) => {
-        return curr.concat(next.y)
-      }, [])
-
-      let getMaxMin = getRangeMinMax(common)
       let activeY = res.map(d => d.y)
       let yS = activeY[0]
+      let updatedArraysR = getStackedMinMax(activeY, yS)
+      let common = updatedArraysR.reduce((curr, next) => {
+        return curr.concat(next)
+      }, [])
+      res.forEach(item => {
+        // console.log(item.y.slice(0, 5))
+      })
+      let getMaxMin = getRangeMinMax(common)
       let updatedArrays = getStacked(getMaxMin.min, activeY, yS, getMaxMin.max)
+      // console.log(getMaxMin)
 
       // console.log(activeY, updatedArrays)
       // activeY.forEach((d, i) => {
       //   console.log(updatedArrays, d.slice(0, 5))
       // })
-      console.log(updatedArrays, getMaxMin)
-      
-      let initialY0 = {
+      // console.log(updatedArraysR)
 
-      }
       let upd = activeY.map((_, id) => {
         return _.map((o, i) => {
-          return getMaxMin.max - updatedArrays[i][id].y1
+          return updatedArrays[i][id].y0
         })
       })
-      // console.log(upd)
+      console.log(upd, res)
       res = res.map((item, i) => {
-        initialY0[item.key] = getMaxMin.min
+        // initialY0[item.key] = getMaxMin.min
         // console.log(item.y.slice(0, 5), i)
         // console.log(item.y)
+        // console.log(upd[i])
         return {
           ...item,
           yBar: upd[i],
           y: upd[i],
           // y: item.y.map((_, idx) => {
-          //   initialY0[item.key] = _ + initialY0[item.key] 
+          //   initialY0[item.key] = _ + initialY0[item.key]
 
           //   return  _ + initialY0[item.key]
           // }),
@@ -524,15 +527,23 @@ import { Magnifier } from './chart/magnifier.js'
     let cud = points.map(item => [])
 
     points.forEach((lines, idx) => {
-      let y0 = min
+      let y0 = 0
 
       root.forEach((d, i) => {
-        // let _u = y0
-        // y0 = _u + d[idx]
-        
-        cud[idx].push({y0: y0, y1: y0 + d[idx]  })
-        y0 =  y0 + d[idx]
-        // root[i][idx] = y0
+        cud[idx].push({ y0: y0, y1: y0 + d[idx] })
+        y0 = y0 + d[idx]
+      })
+    })
+    return cud
+  }
+  function getStackedMinMax (root, points) {
+    let cud = points.map(item => [])
+
+    points.forEach((lines, idx) => {
+      let y0 = 0
+      root.forEach((d, i) => {
+        cud[idx].push(y0 + d[idx])
+        y0 = y0 + d[idx]
       })
     })
     return cud.reverse()
@@ -560,6 +571,7 @@ import { Magnifier } from './chart/magnifier.js'
       let scaleLineY = line.y.map(yScale)
 
       let xAxisTikers = line.x.map(convertMonthToString)
+
       if (ranges) {
         let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
         xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
@@ -568,9 +580,12 @@ import { Magnifier } from './chart/magnifier.js'
         let sorted = filteredY.sort((a, b) => a - b)
         let yRangeFirst = sorted.slice(0, 1)[0]
         let yRangeSecond = sorted.slice(-1)[0]
-        let [ yMinRange, yMaxRange] = yRangeFirst > yRangeSecond ? [yRangeSecond, yRangeFirst] : [yRangeFirst, yRangeSecond]
 
-        yScale = scaleLiniar([h, 0], [ yMaxRange, yMinRange ])
+        let [ yMinRange, yMaxRange ] = yRangeFirst > yRangeSecond ? [yRangeSecond, yRangeFirst] : [yRangeFirst, yRangeSecond]
+
+        if (!lines.stacked) {
+          yScale = scaleLiniar([h, 0], [ yMaxRange, yMinRange ])
+        }
 
         scaleLineY = line.y.map(yScale).map(item => Math.round(item))
         scaleLine = line.x.map(xScale)
@@ -578,6 +593,9 @@ import { Magnifier } from './chart/magnifier.js'
 
       let xAxis = scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] }))
       let yAxis = scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] }))
+      // let csH = sc.map(item => ({ y: item.h, tick: item.top }))
+      // let csT = sc.map(item => ({ y: item.top, tick: item.top }))
+      // let points = scaleLine.map((x, idx) => [Math.round(x), Math.round(sc[idx].h)])
       let points = scaleLine.map((x, idx) => [Math.round(x), Math.round(scaleLineY[idx])])
 
       let upd = xAxis.map((item, idx) => ({ ...item, y: yAxis[idx], value: line.x[idx], valueY: line.y[idx], key: line.key, valueX: line.x[idx], idx, name: line.name, color: line.color }))
@@ -598,6 +616,9 @@ import { Magnifier } from './chart/magnifier.js'
       res.horizontal = horizontal
       res.vertical[line.key] = vertical
 
+      // console.log(sc)
+
+      // console.log(yAxis)
       return {
         ...line,
         xCoords: scaleLine,
@@ -613,8 +634,14 @@ import { Magnifier } from './chart/magnifier.js'
       }
     })
 
-    // console.log(res, 'UPD')
+    // console.log(lines, 'UPD')
     res.commonY = generateCommonYAxis(res.vertical, h)
+    if (!lines.percentage && lines.stacked) {
+      return {
+        ...res,
+        data: res.data.reverse()
+      }
+    }
     return res
   }
 
@@ -765,13 +792,17 @@ import { Magnifier } from './chart/magnifier.js'
     cx.stroke()
   }
 
-  function barRect (cx, data, color, height, diffWidth) {
+  function barRect (cx, data, color, height, diffWidth, yBar) {
     const width = Math.round(diffWidth)
-    let baseY = height
     cx.beginPath()
     cx.fillStyle = color
     data.forEach((item, idx) => {
+      // let baseY = yBar[idx].top
+
+      let baseY = height
       let [x, y] = item
+      let updY = yBar[idx].top + yBar[idx].h
+      // console.log(baseY, height, y, updY)
       if (x > 0 && x < 500) {
         cx.moveTo(x, baseY)
         cx.lineTo(x, y)
