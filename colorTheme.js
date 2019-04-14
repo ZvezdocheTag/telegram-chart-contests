@@ -182,7 +182,7 @@ const chartColorsLines = {
   }
 }
 
-export const colorTheme = {
+window.colorTheme = {
   day: {
     [CANVAS_COLOR_TYPES_FOLLOWERS]: chartColorsLines.day,
     [CANVAS_COLOR_TYPE_ONLINES]: chartOnlines.day,

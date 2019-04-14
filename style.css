@@ -13,19 +13,25 @@ main {
   width: 100%;
 }
 
-.chart-wrapper>canvas,
-.chart-wrapper>svg {
-
-  height: 250px;
+h3 {
+  margin: 0;
+  font-size: 18px;
 }
 
-.chart-wrapper>svg {
+.dates-range {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.chart-wrapper>canvas,
+.chart-wrapper .chart-axises {
+
   height: 250px;
 }
 
 body {
-  background-color: #fff;
-  transition: background-color 0.3s ease;
+  /* overflow-y: hidden; */
+  font: 14px/20px Roboto, -apple-system, BlinkMacSystemFont, "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
 }
 
 button {
@@ -46,9 +52,11 @@ footer {
 .default {
   color: #222;
   background-color: #fff;
+  transition: background-color 0.3s ease;
 }
 
-.chart-axises text {
+.chart-axises text,
+.chart-axises-x text {
   fill: #8E8E93;
 }
 
@@ -58,7 +66,8 @@ footer {
 svg[data-color-theme="followers"] .chart-axises text {
   fill: #8E8E93;
 } */
-svg[data-color-theme="apps"] .chart-axises text {
+svg[data-color-theme="apps"] .chart-axises text,
+svg[data-color-theme="apps"] .chart-axises-x text {
   fill: #252529;
   opacity: .5;
 }
@@ -110,6 +119,7 @@ svg[data-color-theme="apps"] .chart-axises text {
   background-color: #242f3e;
 }
 
+.dark .chart-axises-x text,
 .dark .chart-axises text {
   fill: #A3B1C2;
   opacity: .6;
@@ -223,6 +233,7 @@ svg[data-color-theme="apps"] .chart-axises text {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin: 25px 0;
 }
 
 .chart-tooltip h5 {
@@ -247,10 +258,8 @@ svg[data-color-theme="apps"] .chart-axises text {
   background: none;
 }
 
-.minimap {
-  position: relative;
-  border-radius: 11px;
-  overflow: hidden;
+.minimap-chart {
+  height: 55px;
 }
 
 .magnifier {
@@ -259,12 +268,13 @@ svg[data-color-theme="apps"] .chart-axises text {
   top: 0;
   position: absolute;
   left: 0;
+  height: 55px;
 }
 
 .magnifier__thumb {
   position: absolute;
   width: 10px;
-  height: calc(100% - 4px);
+  height: calc(100% - 2px);
   left: 0px;
   background-color: transparent;
   /* margin-left: 12px; */
@@ -405,12 +415,12 @@ svg[data-color-theme="apps"] .chart-axises text {
   transition: all .3s ease .2s;
 }
 
-.chart {
-  margin-bottom: 30px;
-}
-
 .minimap {
+  height: 55px;
   margin-bottom: 40px;
+  position: relative;
+  border-radius: 11px;
+  overflow: hidden;
 }
 
 .toggle-btn {

@@ -4,49 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>Telegram Chart Contests</title>
     <link rel="preload" href="index.js" as="script">
 
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
 </head>
 
 <body class="default">
-    <main>
-
-    </main>
+    <main></main>
     <footer>
         <button class="toggle-mode-btn">Switch to Night Mode</button>
     </footer>
     <div class="chart-tooltip">
         <h5 class="tooltip-title"></h5>
-
     </div>
-    <script>
-        (function () {
-            var check = document.createElement('script');
-            if (!('noModule' in check) && 'onbeforeload' in check) {
-                var support = false;
-                document.addEventListener('beforeload', function (e) {
-                    if (e.target === check) {
-                        support = true;
-                    } else if (!e.target.hasAttribute('nomodule') || !support) {
-                        return;
-                    }
-                    e.preventDefault();
-                }, true);
-
-                check.type = 'module';
-                check.src = '.';
-                document.head.appendChild(check);
-                check.remove();
-            }
-        }());
-    </script>
-    <script nomodule src="https://unpkg.com/browser-es-module-loader/dist/babel-browser-build.js"></script>
-    <script nomodule src="https://unpkg.com/browser-es-module-loader"></script>
-    <script type="module" src="./colorTheme.js"></script>
-    <script type="module" src="./index.js"></script>
+    <script src="./colorTheme.js"></script>
+    <script src="./index.js"></script>
 </body>
 
 </html>

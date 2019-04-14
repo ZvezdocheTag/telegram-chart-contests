@@ -1,15 +1,8 @@
-'use strict'
-
-// import { qs, normilizeColumns, DAYS, MONTHES, MONTHES_FULL } from './utils.js'
-import { colorTheme } from './colorTheme.js'
-
-// import { processCoords } from './chart/utils.js'
-// import { ChartTemplate } from './chart/template.js'
-import { Magnifier } from './chart/magnifier.js'
-// import { Axis } from './chart/axis.js'
+'use strict';
 
 (function () {
   // CONSTANTS
+  const colorTheme = window.colorTheme
   const MONTHES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   const MONTHES_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
     'August', 'September', 'October', 'November', 'December']
@@ -22,31 +15,193 @@ import { Magnifier } from './chart/magnifier.js'
 
   let layoutColorMode = LAYOUT_MODE_DAY
 
+  function getCoords (elem) {
+    let box = elem.getBoundingClientRect()
+    let body = document.body
+    let docEl = document.documentElement
+    let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
+    let clientLeft = docEl.clientLeft || body.clientLeft || 0
+    let left = box.left + scrollLeft - clientLeft
+
+    return {
+      left: left
+    }
+  }
+
+  class Magnifier {
+    constructor (wrapper, cb, interacted, range) {
+      // console.log(idAttr, cb, interacted)
+      this.wrapper = wrapper
+      // console.log(wrapper.querySelector('.minimap-thumb'))
+      this.el = wrapper.querySelector('.minimap-thumb')
+      this.interacted = interacted
+      this.range = range
+
+      // this.wrapper = this.el.parentElement
+      // const minimapThumb = wrapper.querySelector('.minimap-thumb')
+      this.controlLeft = this.el.querySelector('.left')
+      this.controlRight = this.el.querySelector('.right')
+      this.shadowLeft = this.wrapper.querySelector('.magnifier_shadow.left')
+      this.shadowRight = this.wrapper.querySelector('.magnifier_shadow.right')
+
+      this.actionResize = cb
+
+      this.handleWidth = 9
+      this.resizeStart = this.resizeStart.bind(this)
+    }
+
+    init () {
+      this.el.addEventListener('mousedown', this.resizeStart)
+      this.el.addEventListener('touchstart', this.resizeStart)
+
+      this.initDefault()
+    }
+
+    initDefault () {
+      let [xMin, xMax] = this.range
+      let width = xMax - xMin + this.handleWidth
+      let rightOffset = this.wrapper.offsetWidth - width - this.handleWidth
+
+      this.el.style.left = `${this.handleWidth + xMin}px`
+      this.el.style.right = `${xMin}px`
+      this.el.style.width = `${width}px`
+
+      this.shadowLeft.style.width = xMin + 'px'
+      this.shadowRight.style.width = rightOffset + 'px'
+    }
+
+    resizeLeft (width, resize) {
+      this.el.style.width = (width) + 'px'
+      this.el.style.left = `${resize}px`
+      this.shadowLeft.style.width = resize + 'px'
+
+      setTimeout(() => {
+        // this.actionResize.update(l, l + width, this.interacted)
+        this.actionResize.update(resize, width + resize, this.interacted)
+      }, 0)
+    }
+
+    resizeRight (width, left, shadow, axis) {
+      this.el.style.width = `${width}px`
+      this.shadowRight.style.width = shadow + 'px'
+
+      setTimeout(() => {
+        // this.actionResize.update(l, l + width, this.interacted)
+        this.actionResize.update(left, axis, this.interacted)
+      }, 0)
+    }
+
+    dragCenter (l, r, width) {
+      this.el.style.left = l + 'px'
+      this.shadowLeft.style.width = l + 'px'
+      this.shadowRight.style.width = r + 'px'
+
+      setTimeout(() => {
+        this.actionResize.update(l, l + width, this.interacted)
+      }, 0)
+    }
+
+    resizeStart (e) {
+      this.touchInit = true
+      // console.log(this.el)
+      let side = e.target.dataset.thumbSide
+      let width = this.el.offsetWidth
+      let offset = this.el.offsetLeft
+      let containerWidth = this.wrapper.offsetWidth
+      // console.log(width, offset, containerWidth)
+      let getLeft = getCoords(this.el).left
+      let handlersWidth = 8
+      let pageX = e.pageX
+
+      // let
+
+      // console.log(pageX, getLeft, width, containerWidth, offset)
+      if (e.type === 'touchstart') {
+        pageX = e.touches[0].pageX
+      }
+
+      const resize = (ec) => {
+        let resizePageX = ec.pageX
+
+        // console.log(ec)
+        if (ec.type === 'touchmove') {
+          resizePageX = ec.touches[0].pageX
+        }
+        var moveX = resizePageX - pageX
+        if (Math.abs(moveX) < 3) {
+          return // ничего не делать, мышь не передвинулась достаточно далеко
+        }
+
+        let calcWidth = width - (resizePageX - offset)
+        let elW = width + (resizePageX - pageX)
+        let l = offset + (resizePageX - pageX)
+        let r = containerWidth - (l + width)
+
+        let maxLeft = l - 8
+        let maxRight = r + handlersWidth
+
+        let mR = offset + handlersWidth + elW
+        let shD = containerWidth - (elW + offset)
+        let lR = width + getLeft - resizePageX
+        if (side === 'right') {
+          if (maxRight >= 0 && containerWidth - mR > 0) {
+            this.resizeRight(elW, offset, shD, mR)
+          }
+        }
+        let d = getLeft - resizePageX
+        if (side === 'left') {
+          if (maxLeft >= 0) {
+            this.resizeLeft(lR, offset - d - handlersWidth)
+          }
+        }
+
+        if (side === 'center') {
+          if (maxLeft >= 0 && containerWidth - mR > 0) {
+            this.dragCenter(l, r, width)
+          }
+        }
+      }
+
+      document.addEventListener('mousemove', resize)
+      document.addEventListener('touchmove', resize)
+
+      document.addEventListener('mouseup', (e) => {
+        this.touchInit = false
+        document.removeEventListener('mousemove', resize)
+      }, false)
+
+      document.addEventListener('touchend', (e) => {
+        this.touchInit = false
+        document.removeEventListener('touchmove', resize)
+      }, false)
+    }
+  }
+
   const getDataFormat = {
-    // 'id_1': {
-    //   link: '/data/1/overview.json',
-    //   colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
-    //   title: 'Followers',
-    //   id: 'id_1'
-    // },
-    // 'id_2': {
-    //   link: '/data/2/overview.json',
-    //   colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
-    //   title: 'Interactions',
-    //   id: 'id_2'
-    // },
+    'id_1': {
+      link: '/data/1/overview.json',
+      colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
+      title: 'Followers',
+      id: 'id_1'
+    },
+    'id_2': {
+      link: '/data/2/overview.json',
+      colorScheme: CANVAS_COLOR_TYPES_FOLLOWERS,
+      title: 'Interactions',
+      id: 'id_2'
+    },
     'id_3': {
       link: '/data/3/overview.json',
       colorScheme: CANVAS_COLOR_TYPE_APPS,
       title: 'Messages',
       id: 'id_3'
     },
-    // 'id_4': {
-    //   link: '/data/4/overview.json',
-    //   colorScheme: CANVAS_COLOR_TYPE_ONLINES,
-    //   title: 'Views',
-    //   id: 'id_4'
-    // },
+    'id_4': {
+      link: '/data/4/overview.json',
+      colorScheme: CANVAS_COLOR_TYPE_ONLINES,
+      title: 'Views',
+      id: 'id_4'
+    },
     'id_5': {
       link: '/data/5/overview.json',
       colorScheme: CANVAS_COLOR_TYPE_APPS,
@@ -161,7 +316,7 @@ import { Magnifier } from './chart/magnifier.js'
     init (id, main, data, title, colorType) {
       const w = main.offsetWidth - 20
       const h = 250
-      const mH = 50
+      const mH = 55
       const idAttr = `_${id}`
 
       let y_scaled = false
@@ -214,7 +369,8 @@ import { Magnifier } from './chart/magnifier.js'
       const chartMagnifier = wrapper.querySelector('.magnifier')
 
       const svgAxis = wrapper.querySelector('.chart-axises')
-      let wrappersX = svgAxis.querySelector(`.tick-wrapper-x`)
+      const svgAxisX = wrapper.querySelector('.chart-axises-x')
+      let wrappersX = svgAxisX.querySelector(`.tick-wrapper-x`)
       let wrappersY = svgAxis.querySelector(`.tick-wrapper-y`)
       let wrappersYAll = svgAxis.querySelectorAll(`.tick-wrapper-y`)
 
@@ -245,6 +401,7 @@ import { Magnifier } from './chart/magnifier.js'
             svgMinimap.clearRect(0, 0, w, mH)
             renderLine(svgMinimap, initialProcessMin.data, mH)
             Axis.update(svgAxisX, initialProcess.horizontal, 'x')
+            chartHeaderDates.textContent = getDataRangeToString(coords)
             svgAxisY.forEach(item => {
               let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
               Axis.update(item, yCurrentData, 'y', w)
@@ -301,7 +458,7 @@ import { Magnifier } from './chart/magnifier.js'
   function renderLine (ctx, coords, height, interacted) {
     ctx.save()
     // let upd = interacted
-    coords.forEach(({ key, points, color, types, currentRangeData, yBar }) => {
+    coords.forEach(({ key, points, color, types, currentRangeData }) => {
     // let a = xCoords.slice(0, 1)
     // let b = xCoords.slice(-1)
     // let diffWidth = Math.round((b - a) / xCoords.length)
@@ -310,8 +467,7 @@ import { Magnifier } from './chart/magnifier.js'
         drawLine(ctx, points, color, height)
       }
       if (types === 'bar') {
-        // console.log(key, color)
-        barRect(ctx, points, color, height, diffWidth, yBar)
+        barRect(ctx, points, color, height, diffWidth)
       }
 
       if (types === 'area') {
@@ -330,6 +486,7 @@ import { Magnifier } from './chart/magnifier.js'
 
     let tooltip = document.querySelector('.chart-tooltip')
     let dataId = svg.closest('.chart-wrapper').id
+    let containerWidth = svg.clientWidth
 
     svg.addEventListener('mouseenter', enterMouse, { passive: true })
     svg.addEventListener('touchstart', enterMouse, { passive: true })
@@ -392,6 +549,10 @@ import { Magnifier } from './chart/magnifier.js'
       let [ currentTooltipPos ] = getFirstRange.filter(item => {
         return item.x < offsetX
       }).slice(-1)
+      let [ currentTooltipPosD ] = getFirstRange.filter(item => {
+        return item.x < pageX
+      }).slice(-1)
+      // console.log(currentTooltipPos, currentTooltipPosD)
       let currentCoords = null
       if (currentTooltipPos) {
         currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
@@ -408,8 +569,18 @@ import { Magnifier } from './chart/magnifier.js'
           ])
         })
       }
-      tooltip.style.top = (pageY - 10) + 'px'
-      tooltip.style.left = (pageX + 10) + 'px'
+      let tooltipWidth = tooltip.clientWidth
+      // console.log(containerWidth, tooltipWidth)
+      let top = pageY - 10
+      let left = pageX + 30
+      let coordLeft = tooltipWidth + offsetX
+      tooltip.style.top = (top) + 'px'
+      if(coordLeft > containerWidth) {
+        tooltip.style.left = (pageX - tooltipWidth - 30) + 'px'
+      }  else {
+        tooltip.style.left = (left) + 'px'
+
+      }
 
       line.style.transform = `translate(${offsetX}px, 0)`
     }
@@ -449,7 +620,7 @@ import { Magnifier } from './chart/magnifier.js'
     }
   }
 
-  function calculateChartRanges ({ names, types, columns, colors, stacked }, status) {
+  function calculateChartRanges ({ names, types, columns, colors, percentage, stacked }, status) {
     let uniqNames = Object.keys(names)
 
     if (status) {
@@ -479,47 +650,22 @@ import { Magnifier } from './chart/magnifier.js'
       let common = updatedArraysR.reduce((curr, next) => {
         return curr.concat(next)
       }, [])
-      res.forEach(item => {
-        // console.log(item.y.slice(0, 5))
-      })
       let getMaxMin = getRangeMinMax(common)
       let updatedArrays = getStacked(getMaxMin.min, activeY, yS, getMaxMin.max)
-      // console.log(getMaxMin)
-
-      // console.log(activeY, updatedArrays)
-      // activeY.forEach((d, i) => {
-      //   console.log(updatedArrays, d.slice(0, 5))
-      // })
-      // console.log(updatedArraysR)
-
       let upd = activeY.map((_, id) => {
         return _.map((o, i) => {
-          return updatedArrays[i][id].y0
+          return percentage ? updatedArrays[i][id].y0 : updatedArrays[i][id].y1
         })
       })
-      console.log(upd, res)
       res = res.map((item, i) => {
-        // initialY0[item.key] = getMaxMin.min
-        // console.log(item.y.slice(0, 5), i)
-        // console.log(item.y)
-        // console.log(upd[i])
         return {
           ...item,
-          yBar: upd[i],
           y: upd[i],
-          // y: item.y.map((_, idx) => {
-          //   initialY0[item.key] = _ + initialY0[item.key]
-
-          //   return  _ + initialY0[item.key]
-          // }),
-          yRange: { max: getMaxMin.max, min: getMaxMin.min },
-          yStaked: updatedArrays
+          yRange: { max: getMaxMin.max, min: getMaxMin.min }
         }
       })
-      // console.log(initialY0)
     }
 
-    // console.log(res)
     return res
   }
 
@@ -792,17 +938,13 @@ import { Magnifier } from './chart/magnifier.js'
     cx.stroke()
   }
 
-  function barRect (cx, data, color, height, diffWidth, yBar) {
+  function barRect (cx, data, color, height, diffWidth) {
     const width = Math.round(diffWidth)
     cx.beginPath()
     cx.fillStyle = color
     data.forEach((item, idx) => {
-      // let baseY = yBar[idx].top
-
       let baseY = height
       let [x, y] = item
-      let updY = yBar[idx].top + yBar[idx].h
-      // console.log(baseY, height, y, updY)
       if (x > 0 && x < 500) {
         cx.moveTo(x, baseY)
         cx.lineTo(x, y)
@@ -946,8 +1088,10 @@ import { Magnifier } from './chart/magnifier.js'
         <svg class="chart-axises" id="graph-axis" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
         ${lines}
         <rect x="50" y="10" fill="red" width="10" height="250" opacity=".1"></rect>
-        <g class="tick-wrapper-x" transform="translate(0, ${h})"></g>
         <line class="tooltip-line" y1="0" y2="250" strokeWidth="2"></line>
+        </svg>
+        <svg class="chart-axises-x" width="${w}" height="30">
+          <g class="tick-wrapper-x" transform="translate(0, 0)"></g>
         </svg>
         <div class="minimap">
             <canvas class="minimap-chart" id="graph-minimap" width="${mW}" height="${mH}">

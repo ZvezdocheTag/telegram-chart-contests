@@ -1,5 +1,3 @@
-import { qs } from '../utils.js'
-
 function getCoords (elem) {
   let box = elem.getBoundingClientRect()
   let body = document.body
@@ -60,14 +58,20 @@ export class Magnifier {
     this.el.style.left = `${resize}px`
     this.shadowLeft.style.width = resize + 'px'
 
-    this.actionResize.update(resize, width + resize, this.interacted)
+    setTimeout(() => {
+      // this.actionResize.update(l, l + width, this.interacted)
+      this.actionResize.update(resize, width + resize, this.interacted)
+    }, 0)
   }
 
   resizeRight (width, left, shadow, axis) {
     this.el.style.width = `${width}px`
     this.shadowRight.style.width = shadow + 'px'
 
-    this.actionResize.update(left, axis, this.interacted)
+    setTimeout(() => {
+      // this.actionResize.update(l, l + width, this.interacted)
+      this.actionResize.update(left, axis, this.interacted)
+    }, 0)
   }
 
   dragCenter (l, r, width) {
@@ -77,7 +81,7 @@ export class Magnifier {
 
     setTimeout(() => {
       this.actionResize.update(l, l + width, this.interacted)
-    }, 50)
+    }, 0)
   }
 
   resizeStart (e) {
