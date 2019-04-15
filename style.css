@@ -66,9 +66,19 @@ footer {
 svg[data-color-theme="followers"] .chart-axises text {
   fill: #8E8E93;
 } */
-svg[data-color-theme="apps"] .chart-axises text,
-svg[data-color-theme="apps"] .chart-axises-x text {
+[data-color-theme="apps"] .chart-axises text,
+[data-color-theme="apps"] .chart-axises-x text {
   fill: #252529;
+  opacity: .5;
+}
+
+[data-color-theme="apps"] .chart-axises {
+  background: #FFF;
+  opacity: .5;
+}
+
+.dark [data-color-theme="apps"] .chart-axises {
+  background: #242F3E;
   opacity: .5;
 }
 
@@ -109,8 +119,7 @@ svg[data-color-theme="apps"] .chart-axises-x text {
 }
 
 .tooltip-line {
-  stroke: #182D3B;
-  opacity: .2;
+  stroke: rgba(24, 45, 59, .2);
 }
 
 /* DARK GLOBAL */
@@ -125,8 +134,14 @@ svg[data-color-theme="apps"] .chart-axises-x text {
   opacity: .6;
 }
 
-.tick-wrapper-y.is-moved {
+.tick-wrapper-y.is-moved-up {
   transform: translateY(-20px);
+  opacity: 0;
+  transition: all .3s ease;
+}
+
+.tick-wrapper-y.is-moved-down {
+  transform: translateY(20px);
   opacity: 0;
   transition: all .3s ease;
 }

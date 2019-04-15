@@ -351,9 +351,6 @@
       
       let coordInitialMinimap = processCoords(w, mH, null, data, interacted).data
 
-      let calculatedRange = initialProcess.data
-      let calculatedRangeMinimap = coordInitialMinimap
-
       let template = ChartTemplate(idAttr, data, {
         w: w, h: h, mW: w, mH: mH, colors: colorType, title
       })
@@ -394,7 +391,7 @@
 
       function getToggleItemMove() {
         isMoved = true
-        wrappersY.classList.toggle('is-moved');
+        wrappersY.classList.add('is-moved');
       
       }
 
@@ -410,14 +407,23 @@
       let resizeFunc = actionResize.bind(this)
       let setupResize = resizeFunc(svg, w, h, data, wrappersYAll, wrappersX, y_scaled)
 
+      let dMoved = false;
+
+      document.addEventListener('transitionend', function (event) {
+        dMoved = false
+        // console.log(event.type + " " + new Date().getTime());
+        wrappersY.classList.remove('is-moved-up')
+    });
       // let updss = new Date();
+      let prevRangeDiff = null;
+
       function actionResize (svg, w, h, data, svgAxisY, svgAxisX, y_scaled) {
         let self = this
         return {
           update (min, max, status) {
-
-            // isMoved = !isMoved;
-            // setTimeout( getToggleItemMove, 1050 );
+            if(!wrappersY.classList.contains('is-moved-up')) {
+              wrappersY.classList.add('is-moved-up')
+            } 
 
             self.state.ranges[idAttr] = [min, max]
             let initialProcess = processCoords(w, h, [min, max], data, status)
@@ -479,9 +485,9 @@
 
   }
 
-  function revertY (py, h) {
-    return -py + h
-  }
+  // function revertY (py, h) {
+  //   return -py + h
+  // }
 
   function renderLine (ctx, coords, height, w) {
     ctx.save()
@@ -551,6 +557,7 @@
       })
 
       line = e.target.querySelector('.tooltip-line')
+      line.style.opacity = `1`
       if (!tooltip.classList.contains('active')) {
         tooltip.classList.add('active')
       }
@@ -602,6 +609,7 @@
       }
 
       line.style.transform = `translate(${offsetX}px, 0)`
+      
     }
 
     function rerenderTooltip (items) {
@@ -646,6 +654,7 @@
       uniqNames = uniqNames.filter(nm => !status[nm].active)
     }
 
+    console.log(uniqNames)
     let res = uniqNames.map(key => {
       const $X = 'x'
 
@@ -738,6 +747,7 @@
       let xAxisTikers = line.x.map(convertMonthToString)
 
       if (ranges) {
+        console.log(ranges, "WORKS")
         let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
         xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
 
@@ -807,6 +817,7 @@
         data: res.data.reverse()
       }
     }
+    console.log(res)
     return res
   }
 
@@ -977,14 +988,15 @@
   function drawArea (cx, data, color, height) {
     cx.fillStyle = color
     cx.beginPath()
-    cx.moveTo(0, height)
+    cx.moveTo(0, 0)
 
     for (let i = 0; i < data.length; i += 1) {
-      let [x, yInitial] = data[i]
-      let y = revertY(yInitial, height)
+      let [x, y] = data[i]
+      // let y = revertY(yInitial, height)
+      // console.log(y, yInitial)
       cx.lineTo(x, y)
       if (i === data.length - 1) {
-        cx.lineTo(x, height)
+        cx.lineTo(x, 0)
       }
     }
     cx.fill()
@@ -1108,7 +1120,7 @@
         <canvas class="chart" id="graph" width="${w}" height="${h}"></canvas>
         <svg class="chart-axises" id="graph-axis" preserveAspectRatio="xMinYMax" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
         ${lines}
-        <line class="tooltip-line" y1="0" y2="250" strokeWidth="2"></line>
+        <line class="tooltip-line" y1="0" y2="250" opacity="0" strokeWidth="2"></line>
         </svg>
         <svg class="chart-axises-x" width="${w}" height="30">
           <g class="tick-wrapper-x" transform="translate(5, 5)"></g>

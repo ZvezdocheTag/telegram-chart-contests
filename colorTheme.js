@@ -160,12 +160,12 @@ const chartColorsLines = {
   night: {
     axisText: ['A3B1C2', 0.6],
     'Joined': {
-      item: 'E6574F',
-      btn: 'CF5D57',
-      tooltipText: 'F7655E'
+      item: '4BD964',
+      btn: '5AB34D',
+      tooltipText: '4BD964'
     },
     'Left': {
-      item: 'E6574F',
+      item: 'CF5D57',
       btn: 'CF5D57',
       tooltipText: 'F7655E'
     },
