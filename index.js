@@ -243,10 +243,10 @@
 
     update (svg, ticks, axis) {
       if (!ticks) {
-        svg.style.opacity = 0
+        // svg.style.opacity = 0
         return
       }
-      svg.style.opacity = 1
+      // svg.style.opacity = 1
       let curr = svg.querySelectorAll(`.tick-${axis}`)
       ticks.forEach((tick, idx) => {
         let transform = axis === 'x' ? `translate(${tick[axis]}, 0)` : `translate(0, ${tick[axis]})`
@@ -611,6 +611,7 @@
         color: colors[ key ],
         x: columns[ $X ],
         y: columns[ key ],
+        yDefault: columns[ key ],
         key: key,
         name: names[ key ],
         xRange: getRangeMinMax(columns[ $X ]),
@@ -621,29 +622,63 @@
     }).filter(line => line)
 
     if (stacked) {
-      let activeY = res.map(d => d.y)
-      let yS = activeY[0]
-      let updatedArraysR = getStackedMinMax(activeY, yS)
+      let filterY = res.map(d => d.y)
+      let getFirstYArray = filterY[0]
+      let updatedArraysR = getStackedMinMax(filterY, getFirstYArray)
       let common = updatedArraysR.reduce((curr, next) => {
         return curr.concat(next)
       }, [])
       let getMaxMin = getRangeMinMax(common)
-      let updatedArrays = getStacked(getMaxMin.min, activeY, yS, getMaxMin.max)
-      let upd = activeY.map((_, id) => {
+      let updatedArrays = getStacked(getMaxMin.min, filterY, getFirstYArray, getMaxMin.max)
+      let upd = filterY.map((_, id) => {
         return _.map((o, i) => {
-          return percentage ? updatedArrays[i][id].y0 : updatedArrays[i][id].y1
+          return updatedArrays[i][id].y1
         })
       })
 
       res = res.map((item, i) => {
         return {
           ...item,
+          yDefault: item.y,
           y: upd[i],
           yRange: { max: getMaxMin.max, min: getMaxMin.min }
         }
       })
     }
 
+    if (stacked && percentage) {
+      let activeY = res.map(d => d.y)
+      let yS = activeY[0]
+      let updatedArraysR = getStackedMinMaxY(activeY, yS)
+      let common = updatedArraysR.reduce((curr, next) => {
+        return curr.concat(next)
+      }, [])
+      let getMaxMin = getRangeMinMax(common)
+      // let updatedArrays = getStacked(getMaxMin.min, activeY, yS, getMaxMin.max)
+      let updatedArrays = getStackedPercantage(getMaxMin.min, activeY, yS, getMaxMin.max)
+      let upd = activeY.map((_, id) => {
+        return _.map((o, i) => {
+          // return updatedArrays[i][id].y0
+          return updatedArrays[i][id].y1 + updatedArrays[i][id].y0
+        })
+      })
+      let updS = activeY.map((_, id) => {
+        return _.map((o, i) => {
+          // return updatedArrays[i][id].y0
+          return updatedArrays[i][id]
+        })
+      })
+      res = res.map((item, i) => {
+        return {
+          ...item,
+          yDefault: item.y,
+          y: upd[i],
+          yRange: { max: getMaxMin.max, min: getMaxMin.min }
+        }
+      })
+
+      console.log(res, updS)
+    }
     return res
   }
 
@@ -660,6 +695,31 @@
     })
     return cud
   }
+  function getStackedPercantage (min, root, points, max) {
+    let cud = points.map(item => [])
+
+    points.forEach((lines, idx) => {
+      let y0 = 0
+
+      root.forEach((d, i) => {
+        if(i === 0) {
+          cud[idx].push({ y0: 0, y1: 0 })
+          y0 = d[idx]
+        } else if (i === root.length - 1) {
+          cud[idx].push({ y0: y0, y1: y0 - d[idx] })
+        }
+        else {
+          cud[idx].push({ y0: y0, y1: y0 + d[idx] })
+          y0 = y0 + d[idx]
+        }
+
+      })
+      
+    })
+
+    console.log(cud.slice(0, 1), "CUDDS")
+    return cud
+  }
   function getStackedMinMax (root, points) {
     let cud = points.map(item => [])
 
@@ -671,6 +731,18 @@
       })
     })
     return cud.reverse()
+  }
+  function getStackedMinMaxY (root, points) {
+    let cud = points.map(item => [])
+
+    points.forEach((lines, idx) => {
+      let y0 = 0
+      root.forEach((d, i) => {
+        cud[idx].push(y0 + d[idx])
+        y0 = y0 + d[idx]
+      })
+    })
+    return cud
   }
   function processCoords (w, h, ranges, lines, status) {
     let active = calculateChartRanges(lines, status)
@@ -722,7 +794,7 @@
       // let points = scaleLine.map((x, idx) => [Math.round(x), Math.round(sc[idx].h)])
       let points = scaleLine.map((x, idx) => [Math.round(x), Math.round(scaleLineY[idx])])
 
-      let upd = xAxis.map((item, idx) => ({ ...item, y: yAxis[idx], value: line.x[idx], valueY: line.y[idx], key: line.key, valueX: line.x[idx], idx, name: line.name, color: line.color }))
+      let upd = xAxis.map((item, idx) => ({ ...item, y: yAxis[idx], value: line.x[idx], valueY: line.yDefault[idx], key: line.key, valueX: line.x[idx], idx, name: line.name, color: line.color }))
       // Get just values by the ranges
 
       function generateAxisWithoutFilter (axis, w) {
@@ -756,6 +828,9 @@
     })
 
     res.commonY = generateCommonYAxis(res.vertical, h)
+    if(lines.percentage) {
+      console.log(res)
+    }
     if (!lines.percentage && lines.stacked) {
       return {
         ...res,
@@ -868,7 +943,6 @@
       { dy: `0.71em` },
       { style: `fill: #${wrapper.dataset.axisColor};` }
     ])
-    console.log(wrapper.dataset.axisColor)
     setAttrNs(line, [
       { class: 'y-line-tick axis-line' },
       { x1: wrapper.dataset.axisKey === 'y1' ? 40 : 0 },
@@ -1038,10 +1112,9 @@
     let lines = ``
     let b = names
     Object.keys(names).forEach((item, idx) => {
-      // console.log(pallet[b[item]])
       let btnColor = pallet[b[item]].btn
 
-      lines += `<g class="tick-wrapper-y" data-axis-key="${item}" data-axis-color="${btnColor}" transform="translate(${idx === 0 ? 0 : w - 20}, 20)"></g>`
+      lines += `<g class="tick-wrapper-y" data-axis-key="${item}" data-axis-color="${btnColor}" transform="translate(${idx === 0 ? 0 : w - 20}, 10)"></g>`
     })
 
     return lines
@@ -1049,7 +1122,7 @@
 
   function ChartTemplate (name, chart, { w, h, mW, mH, colors, pallet, title }) {
     let lines = chart.y_scaled ? AxisLines(chart.names, w, pallet)
-      : `<g class="tick-wrapper-y" transform="translate(5, 20)"></g>`
+      : `<g class="tick-wrapper-y" transform="translate(5, 10)"></g>`
 
     // <rect x="50" y="10" fill="red" width="10" height="250" opacity=".1"></rect>
     const temp = `
