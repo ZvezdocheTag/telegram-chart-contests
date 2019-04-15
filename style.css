@@ -125,6 +125,12 @@ svg[data-color-theme="apps"] .chart-axises-x text {
   opacity: .6;
 }
 
+.tick-wrapper-y.is-moved {
+  transform: translateY(-20px);
+  opacity: 0;
+  transition: all .3s ease;
+}
+
 .dark [data-color-theme="apps"] .tick-x text {
   fill: #A3B1C2;
   opacity: .6;
@@ -149,7 +155,7 @@ svg[data-color-theme="apps"] .chart-axises-x text {
 }
 
 .dark .magnifier__thumb {
-  border: 1px solid #C0D1E1;
+  border: 1px solid #56626D;
 }
 
 .dark .zoom-out-text {

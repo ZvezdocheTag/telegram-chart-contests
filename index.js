@@ -105,17 +105,16 @@
       let width = this.el.offsetWidth
       let offset = this.el.offsetLeft
       let containerWidth = this.wrapper.offsetWidth
-      let getLeft = getCoords(this.el).left
       let handlersWidth = 8
       let pageX = e.pageX
 
+      document.body.style.userSelect = "none"
       if (e.type === 'touchstart') {
         pageX = e.touches[0].pageX
       }
 
       const resize = (ec) => {
         let resizePageX = ec.pageX
-        console.log(this.touchInit)
         if (ec.type === 'touchmove') {
           resizePageX = ec.touches[0].pageX
         }
@@ -124,7 +123,7 @@
           return 
         }
 
-        let calcWidth = width - (resizePageX - offset)
+       
         let elW = width + (resizePageX - pageX)
         let l = offset + (resizePageX - pageX)
         let r = containerWidth - (l + width)
@@ -134,24 +133,18 @@
 
         let mR = offset + handlersWidth + elW
         let shD = containerWidth - (elW + offset)
-        let lR = width + getLeft - resizePageX
 
 
         if (side === 'right') {
-          if (maxRight >= 0 && containerWidth - mR > 0 && elW > 50) {
+          if (maxRight >= 0 && containerWidth - mR > 0 && elW > 30) {
             this.resizeRight(elW, offset, shD, mR)
           }
         }
-        let d = getLeft - resizePageX
 
         let wwC = width + (offset - maxLeft)
         let finishLeft = containerWidth - (wwC + maxLeft) + wwC + handlersWidth
-        console.log(elW, offset, shD, mR, containerWidth - mR)
-        console.log( d, offset, l,  "F", r, calcWidth)
         if (side === 'left') {
-          // console.log(maxLeft, calcWidth, wwC, offset, elW, l, resizePageX )
-            if (finishLeft < containerWidth && wwC > 50) {
-              // console.log(maxLeft, "D")
+            if (finishLeft < containerWidth && wwC > 30) {
               this.resizeLeft(wwC, maxLeft)
             }
         }
@@ -169,11 +162,13 @@
       document.addEventListener('mouseup', (e) => {
         this.touchInit = false
         // console.log(this.touchInit)
+        document.body.style.userSelect = "auto"
         document.removeEventListener('mousemove', resize)
       }, false)
 
       document.addEventListener('touchend', (e) => {
         this.touchInit = false
+        document.body.style.userSelect = "auto"
         document.removeEventListener('touchmove', resize)
       }, false)
     }
@@ -233,6 +228,9 @@
         layoutColorMode = layoutColorMode === 'day' ? LAYOUT_MODE_NIGHT : LAYOUT_MODE_DAY
         ChartRoot.setStyleMode(colorTheme[layoutColorMode])
       })
+
+
+
     }
   }
 
@@ -281,7 +279,9 @@
     return `${from} - ${to}`
   }
 
-  // function
+
+
+
 
   const ChartRoot = {
     state: {
@@ -308,13 +308,6 @@
       })
     },
 
-    renderControls () {
-      const wrap = Object.entries(chart.names)
-        .map(([key, value]) => Button(key, value, chart.colors[key])).join(' ')
-
-      return wrap
-    },
-
     init (id, main, data, title, colorType) {
       const w = main.offsetWidth - 20
       const h = 250
@@ -337,6 +330,7 @@
         percentage = true
       }
 
+      
       Object.entries(data.names).forEach(([key, name]) => {
         if (!this.state.ineracted[idAttr]) {
           this.state.ineracted[idAttr] = {}
@@ -354,8 +348,11 @@
       let initialProcess = processCoords(w, h, initialRange, data)
       let coords = initialProcess.data
       this.state.calculation[idAttr] = coords
-
+      
       let coordInitialMinimap = processCoords(w, mH, null, data, interacted).data
+
+      let calculatedRange = initialProcess.data
+      let calculatedRangeMinimap = coordInitialMinimap
 
       let template = ChartTemplate(idAttr, data, {
         w: w, h: h, mW: w, mH: mH, colors: colorType, title
@@ -380,34 +377,65 @@
       const svgMinimap = chartMinimap.getContext('2d')
       const chartHeaderDates = qs(`.chart-header.${idAttr} .dates-range`)
 
+
+      var isMoved = false;
+
+// moveButton.onclick = function() {
+//   // toggle flag
+//   isMoved = !isMoved;
+
+//   for ( var i=0; i < items.length; i++ ) {
+//     // get function in closure, so i can iterate
+//     var toggleItemMove = getToggleItemMove( i );
+//     // stagger transition with setTimeout
+//     setTimeout( toggleItemMove, 1050 );
+//   }
+// };
+
+      function getToggleItemMove() {
+        isMoved = true
+        wrappersY.classList.toggle('is-moved');
+      
+      }
+
       // RENDER PART
       chartHeaderDates.textContent = getDataRangeToString(coords)
-      Object.entries(data.names).forEach(([key, name]) => {
-        controls.insertAdjacentHTML('beforeEnd', Button(key, name, colr[name].btn))
-      })
+      
+      if(idAttr !== "_id_4") {
+        Object.entries(data.names).forEach(([key, name]) => {
+          controls.insertAdjacentHTML('beforeEnd', Button(key, name, colr[name].btn))
+        })
+      }
 
       let resizeFunc = actionResize.bind(this)
       let setupResize = resizeFunc(svg, w, h, data, wrappersYAll, wrappersX, y_scaled)
 
+      // let updss = new Date();
       function actionResize (svg, w, h, data, svgAxisY, svgAxisX, y_scaled) {
         let self = this
         return {
           update (min, max, status) {
+
+            // isMoved = !isMoved;
+            // setTimeout( getToggleItemMove, 1050 );
+
             self.state.ranges[idAttr] = [min, max]
             let initialProcess = processCoords(w, h, [min, max], data, status)
             let initialProcessMin = processCoords(w, mH, null, data, status)
             let coords = initialProcess.data
 
             svg.clearRect(0, 0, w, h)
-            renderLine(svg, coords, h)
             svgMinimap.clearRect(0, 0, w, mH)
-            renderLine(svgMinimap, initialProcessMin.data, mH)
+            renderLine(svg, coords, h, w)
+            renderLine(svgMinimap, initialProcessMin.data, mH, w)
             Axis.update(svgAxisX, initialProcess.horizontal, 'x')
             chartHeaderDates.textContent = getDataRangeToString(coords)
             svgAxisY.forEach(item => {
               let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
               Axis.update(item, yCurrentData, 'y', w)
             })
+         
+            
           }
         }
       }
@@ -436,8 +464,8 @@
         })
       })
 
-      renderLine(svg, coords, h)
-      renderLine(svgMinimap, coordInitialMinimap, mH)
+      renderLine(svg, coords, h, w)
+      renderLine(svgMinimap, coordInitialMinimap, mH,w)
 
       wrappersYAll.forEach(item => {
         let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
@@ -447,8 +475,6 @@
       Axis.render(wrappersX, initialProcess.horizontal, 'x', w)
       Tooltip(svgAxis, colr)
       new Magnifier(chartMagnifier, setupResize, interacted, initialRange).init()
-
-      // return this
     }
 
   }
@@ -457,14 +483,10 @@
     return -py + h
   }
 
-  function renderLine (ctx, coords, height, interacted) {
+  function renderLine (ctx, coords, height, w) {
     ctx.save()
-    // let upd = interacted
     coords.forEach(({ key, points, color, types, currentRangeData }) => {
-    // let a = xCoords.slice(0, 1)
-    // let b = xCoords.slice(-1)
-    // let diffWidth = Math.round((b - a) / xCoords.length)
-      let diffWidth = 500 / currentRangeData.length
+      let diffWidth = Math.ceil(w / currentRangeData.length)
       if (types === 'line') {
         drawLine(ctx, points, color, height)
       }
@@ -536,25 +558,20 @@
 
     function moveMouse (e) {
       let offsetX = e.offsetX
-      let offsetY = e.offsetY
       let pageX = e.pageX
       let pageY = e.pageY
 
       if (e.type === 'touchmove') {
         pageX = e.touches[0].pageX
         pageY = e.touches[0].pageY
-        offsetX = e.touches[0].offsetX
-        offsetY = e.touches[0].offsetY
+        offsetX = pageX
       }
 
-      // HERE WE RECIEVE IDX
       let [ currentTooltipPos ] = getFirstRange.filter(item => {
         return item.x < offsetX
       }).slice(-1)
-      let [ currentTooltipPosD ] = getFirstRange.filter(item => {
-        return item.x < pageX
-      }).slice(-1)
-      // console.log(currentTooltipPos, currentTooltipPosD)
+
+
       let currentCoords = null
       if (currentTooltipPos) {
         currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
@@ -575,7 +592,7 @@
       // console.log(containerWidth, tooltipWidth)
       let top = pageY - 10
       let left = pageX + 30
-      let coordLeft = tooltipWidth + offsetX
+      let coordLeft = tooltipWidth + offsetX + 30
       tooltip.style.top = (top) + 'px'
       if(coordLeft > containerWidth) {
         tooltip.style.left = (pageX - tooltipWidth - 30) + 'px'
@@ -992,6 +1009,7 @@
     })
   }
 
+
   function setAttrNs (el, values) {
     let entries = values.map(item => Object.entries(item))
     for (let [ i ] of entries) {
@@ -1069,7 +1087,7 @@
     let lines = ``
 
     Object.keys(names).forEach((item, idx) => {
-      lines += `<g class="tick-wrapper-y" data-axis-key="${item}" transform="translate(${idx === 0 ? 0 : w - 20}, 0)"></g>`
+      lines += `<g class="tick-wrapper-y" data-axis-key="${item}" transform="translate(${idx === 0 ? 0 : w - 20}, 20)"></g>`
     })
 
     return lines
@@ -1077,8 +1095,9 @@
 
   function ChartTemplate (name, chart, { w, h, mW, mH, colors, title }) {
     let lines = chart.y_scaled ? AxisLines(chart.names, w)
-      : `<g class="tick-wrapper-y" transform="translate(0, 0)"></g>`
+      : `<g class="tick-wrapper-y" transform="translate(5, 20)"></g>`
 
+      // <rect x="50" y="10" fill="red" width="10" height="250" opacity=".1"></rect>
     const temp = `
       <div class="chart-header ${name}">
       <h3>${title}</h3>
@@ -1087,13 +1106,12 @@
     </div>
         <div id="${name}" class="chart-wrapper" data-color-theme="${colors}">
         <canvas class="chart" id="graph" width="${w}" height="${h}"></canvas>
-        <svg class="chart-axises" id="graph-axis" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+        <svg class="chart-axises" id="graph-axis" preserveAspectRatio="xMinYMax" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
         ${lines}
-        <rect x="50" y="10" fill="red" width="10" height="250" opacity=".1"></rect>
         <line class="tooltip-line" y1="0" y2="250" strokeWidth="2"></line>
         </svg>
         <svg class="chart-axises-x" width="${w}" height="30">
-          <g class="tick-wrapper-x" transform="translate(0, 0)"></g>
+          <g class="tick-wrapper-x" transform="translate(5, 5)"></g>
         </svg>
         <div class="minimap">
             <canvas class="minimap-chart" id="graph-minimap" width="${mW}" height="${mH}">
@@ -1118,4 +1136,8 @@
   /** TEMPLATES END */
 
   chart.init()
+
+
+
+
 })()

@@ -135,12 +135,12 @@ const chartOnlines = {
 const chartColorsLines = {
   day: {
     axisText: '8E8E93',
-    'Joined': {
+    'Left': {
       item: 'FE3C30',
       btn: 'E65850',
       tooltipText: 'F34C44'
     },
-    'Left': {
+    'Joined': {
       item: '4BD964',
       btn: '5FB641',
       tooltipText: '3CC23F'
