@@ -15,157 +15,6 @@
 
   let layoutColorMode = LAYOUT_MODE_DAY
 
-  // function getCoords (elem) {
-  //   let box = elem.getBoundingClientRect()
-  //   let body = document.body
-  //   let docEl = document.documentElement
-  //   let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
-  //   let clientLeft = docEl.clientLeft || body.clientLeft || 0
-  //   let left = box.left + scrollLeft - clientLeft
-
-  //   return {
-  //     left: left
-  //   }
-  // }
-
-  class Magnifier {
-    constructor (wrapper, cb, interacted, range) {
-      this.wrapper = wrapper
-      this.el = wrapper.querySelector('.minimap-thumb')
-      this.interacted = interacted
-      this.range = range
-
-      this.controlLeft = this.el.querySelector('.left')
-      this.controlRight = this.el.querySelector('.right')
-      this.shadowLeft = this.wrapper.querySelector('.magnifier_shadow.left')
-      this.shadowRight = this.wrapper.querySelector('.magnifier_shadow.right')
-
-      this.actionResize = cb
-
-      this.handleWidth = 9
-      this.resizeStart = this.resizeStart.bind(this)
-    }
-
-    init () {
-      this.el.addEventListener('mousedown', this.resizeStart)
-      this.el.addEventListener('touchstart', this.resizeStart)
-
-      this.initDefault()
-    }
-
-    initDefault () {
-      let [xMin, xMax] = this.range
-      let width = xMax - xMin + this.handleWidth
-      let rightOffset = this.wrapper.offsetWidth - width - this.handleWidth
-
-      this.el.style.left = `${this.handleWidth + xMin}px`
-      this.el.style.right = `${xMin}px`
-      this.el.style.width = `${width}px`
-
-      this.shadowLeft.style.width = xMin + 'px'
-      this.shadowRight.style.width = rightOffset + 'px'
-    }
-
-    resizeLeft (width, resize) {
-      this.el.style.width = (width) + 'px'
-      this.el.style.left = `${resize}px`
-      this.shadowLeft.style.width = resize + 'px'
-
-      setTimeout(() => {
-        this.actionResize.update(resize, width + resize, this.interacted)
-      }, 0)
-    }
-
-    resizeRight (width, left, shadow, axis) {
-      this.el.style.width = `${width}px`
-      this.shadowRight.style.width = shadow + 'px'
-
-      setTimeout(() => {
-        this.actionResize.update(left, axis, this.interacted)
-      }, 0)
-    }
-
-    dragCenter (l, r, width) {
-      this.el.style.left = l + 'px'
-      this.shadowLeft.style.width = l + 'px'
-      this.shadowRight.style.width = r + 'px'
-
-      setTimeout(() => {
-        this.actionResize.update(l, l + width, this.interacted)
-      }, 0)
-    }
-
-    resizeStart (e) {
-      this.touchInit = true
-      let side = e.target.dataset.thumbSide
-      let width = this.el.offsetWidth
-      let offset = this.el.offsetLeft
-      let containerWidth = this.wrapper.offsetWidth
-      let handlersWidth = 8
-      let pageX = e.pageX
-
-      document.body.style.userSelect = 'none'
-      if (e.type === 'touchstart') {
-        pageX = e.touches[0].pageX
-      }
-
-      const resize = (ec) => {
-        let resizePageX = ec.pageX
-        if (ec.type === 'touchmove') {
-          resizePageX = ec.touches[0].pageX
-        }
-        var moveX = resizePageX - pageX
-        if (Math.abs(moveX) < 3) {
-          return
-        }
-
-        let elW = width + (resizePageX - pageX)
-        let l = offset + (resizePageX - pageX)
-        let r = containerWidth - (l + width)
-
-        let maxLeft = l - (handlersWidth * 2)
-        let maxRight = r + handlersWidth
-
-        let mR = offset + handlersWidth + elW
-        let shD = containerWidth - (elW + offset)
-
-        if (side === 'right') {
-          if (maxRight >= 0 && containerWidth - mR > 0 && elW > 30) {
-            this.resizeRight(elW, offset, shD, mR)
-          }
-        }
-
-        let wwC = width + (offset - maxLeft)
-        let finishLeft = containerWidth - (wwC + maxLeft) + wwC + handlersWidth
-        if (side === 'left') {
-          if (finishLeft < containerWidth && wwC > 30) {
-            this.resizeLeft(wwC, maxLeft)
-          }
-        }
-
-        if (side === 'center') {
-          if (l > handlersWidth && containerWidth - mR > 0) {
-            this.dragCenter(l, r, width)
-          }
-        }
-      }
-
-      document.addEventListener('mousemove', resize)
-      document.addEventListener('touchmove', resize)
-
-      document.addEventListener('mouseup', (e) => {
-        this.touchInit = false
-        document.body.style.userSelect = 'auto'
-        document.removeEventListener('mousemove', resize)
-      }, false)
-
-      document.addEventListener('touchend', (e) => {
-        this.touchInit = false
-        document.body.style.userSelect = 'auto'
-        document.removeEventListener('touchmove', resize)
-      }, false)
-    }
-  }
 
   const getDataFormat = {
     'id_1': {
@@ -400,10 +249,51 @@
           }
         }
       }
-
+      // Create variable for setTimeout
+      var delay;
+      
+      // Set number of milliseconds for longpress
+      var longpress = 1300;
       controls.childNodes.forEach(child => {
         let self = this
+
+        child.addEventListener('touchstart', function (e) {
+          console.log(e)
+          var _this = this;
+          
+          delay = setTimeout(check, longpress);
+          
+          function check() {
+            // var i = 0
+            console.log(controls)
+            for(let i = 0; i < controls.children.length; i +=1 ) {
+              let childOther = controls.children[i]
+              let color = childOther.dataset.color
+              if(!_this.isSameNode(childOther)) {
+                childOther.classList.add('active');
+                childOther.style.backgroundColor = 'transparent'
+                childOther.style.color = `#${color}`
+                childOther.style.borderColor = `#${color}`
+              }
+            }
+
+          }
+          
+        }, true);
+
+        child.addEventListener('touchend', function (e) {
+          // On mouse up, we know it is no longer a longpress
+          console.log(e)
+          clearTimeout(delay);
+        });
+        
+        // child.addEventListener('mouseout', function (e) {
+        //   clearTimeout(delay);
+        // });
+
         child.addEventListener('click', function (e) {
+          e.preventDefault()
+          console.log(e, "CLICK")
           let target = e.target
           let color = target.dataset.color
           let btnId = target.dataset.toggleBtn
@@ -434,17 +324,13 @@
       })
 
       Axis.render(wrappersX, initialProcess.horizontal, 'x', w)
-      Tooltip(svgAxis, colr)
+      Tooltip(svgAxis, colr, stacked)
       new Magnifier(chartMagnifier, setupResize, interacted, initialRange).init()
     }
 
   }
 
-  // function revertY (py, h) {
-  //   return -py + h
-  // }
-
-  function renderLine (ctx, coords, height, w) {
+  function renderLine (ctx, coords, height, w, stacked) {
     ctx.save()
     coords.forEach(({ key, points, color, types, currentRangeData }) => {
       let diffWidth = Math.ceil(w / currentRangeData.length)
@@ -462,7 +348,7 @@
     ctx.restore()
   }
 
-  function TooltipInit (svg, colr, height) {
+  function TooltipInit (svg, colr, stacked) {
     let self = this
 
     let line = null
@@ -494,6 +380,8 @@
         <div class="tooltip-item-value" style="color: #${colr[line.name].tooltipText};">${line.valueX}</div>
       </li>`
 
+      if(!stacked) {
+        
         let dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
 
         setAttrNs(dot, [
@@ -508,6 +396,7 @@
           { 'stroke-width': `3` }
         ])
         svg.insertAdjacentElement('beforeend', dot)
+      }
         list.insertAdjacentHTML('beforeend', html)
       })
 
@@ -540,6 +429,8 @@
 
       if (currentCoords) {
         rerenderTooltip(currentCoords)
+      if(!stacked) {
+
         currentCoords.forEach(item => {
           let point = svg.querySelector(`circle[data-key=${item.key}]`)
           setAttrNs(point, [
@@ -548,6 +439,7 @@
             { opacity: 1 }
           ])
         })
+      }
       }
       let tooltipWidth = tooltip.clientWidth
       let top = pageY - 10
@@ -654,20 +546,13 @@
         return curr.concat(next)
       }, [])
       let getMaxMin = getRangeMinMax(common)
-      // let updatedArrays = getStacked(getMaxMin.min, activeY, yS, getMaxMin.max)
       let updatedArrays = getStackedPercantage(getMaxMin.min, activeY, yS, getMaxMin.max)
       let upd = activeY.map((_, id) => {
         return _.map((o, i) => {
-          // return updatedArrays[i][id].y0
           return updatedArrays[i][id].y1 + updatedArrays[i][id].y0
         })
       })
-      let updS = activeY.map((_, id) => {
-        return _.map((o, i) => {
-          // return updatedArrays[i][id].y0
-          return updatedArrays[i][id]
-        })
-      })
+
       res = res.map((item, i) => {
         return {
           ...item,
@@ -676,8 +561,6 @@
           yRange: { max: getMaxMin.max, min: getMaxMin.min }
         }
       })
-
-      console.log(res, updS)
     }
     return res
   }
@@ -717,7 +600,6 @@
       
     })
 
-    console.log(cud.slice(0, 1), "CUDDS")
     return cud
   }
   function getStackedMinMax (root, points) {
@@ -753,13 +635,26 @@
       data: null,
       barData: null
     }
+    function concatObjValues (obj, type) {
+      return Object.values(obj).reduce((curr, next) => {
+        // let values = next.map(item => item[type])
+        return curr.concat(next[type])
+      }, [])
+    }
+    let merged = concatObjValues(active, "y")
+    let commonMinMax = getRangeMinMax(merged)
 
+    // let rangeMerged = b;
+
+    // console.log(commonMinMax)
+    // let minMaxCommon = active
     res.data = active.map(line => {
       let {
         xRange: { max: xMax, min: xMin },
-        yRange: { max: yMax, min: yMin }
       } = line
 
+      let yMax = commonMinMax.max
+      let yMin = commonMinMax.min
       let xScale = scaleTime([0, w], [xMin, xMax])
       let yScale = scaleLiniar([h, 0], [yMax, yMin])
 
@@ -768,35 +663,30 @@
 
       let xAxisTikers = line.x.map(convertMonthToString)
 
+
+
+
       if (ranges) {
         let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
         xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
+        let yMinRange = calculateCommonRange(active, rangeMin, rangeMax).min
+        let yMaxRange = calculateCommonRange(active, rangeMin, rangeMax).max
 
-        let filteredY = line.y.filter((_, idx) => idx >= rangeMin && idx <= rangeMax)
-        let sorted = filteredY.sort((a, b) => a - b)
-        let yRangeFirst = sorted.slice(0, 1)[0]
-        let yRangeSecond = sorted.slice(-1)[0]
-
-        let [ yMinRange, yMaxRange ] = yRangeFirst > yRangeSecond ? [yRangeSecond, yRangeFirst] : [yRangeFirst, yRangeSecond]
-
-        if (!lines.stacked) {
-          yScale = scaleLiniar([h, 0], [ yMaxRange, yMinRange ])
-        }
-
+        yScale = scaleLiniar([h, 0], [ yMaxRange, yMinRange ])
         scaleLineY = line.y.map(yScale).map(item => Math.round(item))
         scaleLine = line.x.map(xScale)
       }
 
       let xAxis = scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] }))
       let yAxis = scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] }))
-      // let csH = sc.map(item => ({ y: item.h, tick: item.top }))
-      // let csT = sc.map(item => ({ y: item.top, tick: item.top }))
-      // let points = scaleLine.map((x, idx) => [Math.round(x), Math.round(sc[idx].h)])
       let points = scaleLine.map((x, idx) => [Math.round(x), Math.round(scaleLineY[idx])])
-
-      let upd = xAxis.map((item, idx) => ({ ...item, y: yAxis[idx], value: line.x[idx], valueY: line.yDefault[idx], key: line.key, valueX: line.x[idx], idx, name: line.name, color: line.color }))
-      // Get just values by the ranges
-
+      let upd = xAxis.map((item, idx) => ({ 
+        ...item, y: yAxis[idx], 
+        value: line.x[idx], 
+        valueY: line.yDefault[idx],
+         key: line.key, 
+         valueX: line.x[idx], idx, name: line.name, color: line.color 
+        }))
       function generateAxisWithoutFilter (axis, w) {
         let amount = axis.map((o, idx) => ({ ...o, idx })).filter((item, idx) => {
           return item.x >= 0 && item.x <= w
@@ -865,6 +755,20 @@
     }
 
     return [ minIndex, maxIndex ]
+  }
+
+  function calculateCommonRange(arr, rangeMin, rangeMax) {
+    let getYs = arr.map(d => {
+      return d.y.filter((_, idx) => idx >= rangeMin && idx <= rangeMax)
+    })
+    let concatYs = getYs.reduce((curr, next) => {
+      return curr.concat(next)
+    }, [])
+
+    let commonMinMax = getRangeMinMax(concatYs)
+
+    return commonMinMax
+
   }
 
   function concatObjValues (obj, type) {
@@ -1120,6 +1024,146 @@
     return lines
   }
 
+  
+  class Magnifier {
+    constructor (wrapper, cb, interacted, range) {
+      this.wrapper = wrapper
+      this.el = wrapper.querySelector('.minimap-thumb')
+      this.interacted = interacted
+      this.range = range
+
+      this.controlLeft = this.el.querySelector('.left')
+      this.controlRight = this.el.querySelector('.right')
+      this.shadowLeft = this.wrapper.querySelector('.magnifier_shadow.left')
+      this.shadowRight = this.wrapper.querySelector('.magnifier_shadow.right')
+
+      this.actionResize = cb
+
+      this.handleWidth = 9
+      this.resizeStart = this.resizeStart.bind(this)
+    }
+
+    init () {
+      this.el.addEventListener('mousedown', this.resizeStart)
+      this.el.addEventListener('touchstart', this.resizeStart)
+
+      this.initDefault()
+    }
+
+    initDefault () {
+      let [xMin, xMax] = this.range
+      let width = xMax - xMin + this.handleWidth
+      let rightOffset = this.wrapper.offsetWidth - width - this.handleWidth
+
+      this.el.style.left = `${this.handleWidth + xMin}px`
+      this.el.style.right = `${xMin}px`
+      this.el.style.width = `${width}px`
+
+      this.shadowLeft.style.width = xMin + 'px'
+      this.shadowRight.style.width = rightOffset + 'px'
+    }
+
+    resizeLeft (width, resize) {
+      this.el.style.width = (width) + 'px'
+      this.el.style.left = `${resize}px`
+      this.shadowLeft.style.width = resize + 'px'
+
+      setTimeout(() => {
+        this.actionResize.update(resize, width + resize, this.interacted)
+      }, 0)
+    }
+
+    resizeRight (width, left, shadow, axis) {
+      this.el.style.width = `${width}px`
+      this.shadowRight.style.width = shadow + 'px'
+
+      setTimeout(() => {
+        this.actionResize.update(left, axis, this.interacted)
+      }, 0)
+    }
+
+    dragCenter (l, r, width) {
+      this.el.style.left = l + 'px'
+      this.shadowLeft.style.width = l + 'px'
+      this.shadowRight.style.width = r + 'px'
+
+      setTimeout(() => {
+        this.actionResize.update(l, l + width, this.interacted)
+      }, 0)
+    }
+
+    resizeStart (e) {
+      this.touchInit = true
+      let side = e.target.dataset.thumbSide
+      let width = this.el.offsetWidth
+      let offset = this.el.offsetLeft
+      let containerWidth = this.wrapper.offsetWidth
+      let handlersWidth = 8
+      let pageX = e.pageX
+
+      document.body.style.userSelect = 'none'
+      if (e.type === 'touchstart') {
+        pageX = e.touches[0].pageX
+      }
+
+      const resize = (ec) => {
+        let resizePageX = ec.pageX
+        if (ec.type === 'touchmove') {
+          resizePageX = ec.touches[0].pageX
+        }
+        var moveX = resizePageX - pageX
+        if (Math.abs(moveX) < 3) {
+          return
+        }
+
+        let elW = width + (resizePageX - pageX)
+        let l = offset + (resizePageX - pageX)
+        let r = containerWidth - (l + width)
+
+        let maxLeft = l - (handlersWidth * 2)
+        let maxRight = r + handlersWidth
+
+        let mR = offset + handlersWidth + elW
+        let shD = containerWidth - (elW + offset)
+
+        if (side === 'right') {
+          if (maxRight >= 0 && containerWidth - mR > 0 && elW > 30) {
+            this.resizeRight(elW, offset, shD, mR)
+          }
+        }
+
+        let wwC = width + (offset - maxLeft)
+        let finishLeft = containerWidth - (wwC + maxLeft) + wwC + handlersWidth
+        if (side === 'left') {
+          if (finishLeft < containerWidth && wwC > 30) {
+            this.resizeLeft(wwC, maxLeft)
+          }
+        }
+
+        if (side === 'center') {
+          if (l > handlersWidth && containerWidth - mR > 0) {
+            this.dragCenter(l, r, width)
+          }
+        }
+      }
+
+      document.addEventListener('mousemove', resize)
+      document.addEventListener('touchmove', resize)
+
+      document.addEventListener('mouseup', (e) => {
+        this.touchInit = false
+        document.body.style.userSelect = 'auto'
+        document.removeEventListener('mousemove', resize)
+      }, false)
+
+      document.addEventListener('touchend', (e) => {
+        this.touchInit = false
+        document.body.style.userSelect = 'auto'
+        document.removeEventListener('touchmove', resize)
+      }, false)
+    }
+  }
+  
   function ChartTemplate (name, chart, { w, h, mW, mH, colors, pallet, title }) {
     let lines = chart.y_scaled ? AxisLines(chart.names, w, pallet)
       : `<g class="tick-wrapper-y" transform="translate(5, 10)"></g>`
