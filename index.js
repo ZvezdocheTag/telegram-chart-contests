@@ -188,7 +188,6 @@
 
       let coordInitialMinimap = processCoords(w, mH, null, data, interacted).data
 
-      console.log(initialProcess, 'FFFFFFFFF ')
       let template = ChartTemplate(idAttr, data, {
         w: w, h: h, mW: w, mH: mH, colors: colorType, pallet: colr, title
       })
@@ -272,7 +271,6 @@
         child.addEventListener('mouseout', endTap)
 
         function endTap(e) {
-          console.log("END", delay)
           
           clearTimeout(delay)
           
@@ -282,12 +280,9 @@
             e.preventDefault()
             triggered = false
             let _this = this
-            console.log("REPS", delay)
             delay = setTimeout(check, longpress)
-            console.log("REPS", delay)
 
             function check () {
-              console.log("REPS", delay)
               triggered = true
               for (let i = 0; i < controls.children.length; i += 1) {
                 let childOther = controls.children[i]
@@ -296,7 +291,6 @@
                   let btnId = childOther.dataset.toggleBtn
                   let [min, max] = self.state.ranges[idAttr]
                   let currBtn = interacted[btnId]
-                  // let isActive = childOther.classList.value.includes('active')
                   currBtn.active = true
                   console.log(currBtn)
                   setupResize.update(min, max, interacted)
@@ -313,7 +307,6 @@
 
         child.addEventListener('click', function (e) {
           e.preventDefault()
-          console.log(e, 'CLICK', triggered)
           let target = e.target
           let color = target.dataset.color
           let btnId = target.dataset.toggleBtn
@@ -375,7 +368,6 @@
           currentChart = self.state.calculation[dataId]
           getFirstRange = self.state.rangesList[dataId]
 
-          console.log(getFirstRange)
           tooltip.insertAdjacentHTML('beforeend', '<ul class="tooltip-list"></ul>')
           const list = tooltip.querySelector('.tooltip-list')
 
@@ -384,7 +376,8 @@
             <div class="tooltip-item-name">${line.name}</div>
             <div class="tooltip-item-value" style="color: #${colr[line.name].tooltipText};">${line.valueX}</div>
           </li>`
-            // console.log(chartTypes)
+
+
             if (chartTypes === 'line') {
               let dot = document.createElementNS('http://www.w3.org/2000/svg', `circle`)
 
@@ -435,7 +428,6 @@
           if (currentCoords) {
             rerenderTooltip(currentCoords)
             if (chartTypes === 'line') {
-              // console.log(currentCoords)
               currentCoords.forEach(item => {
                 let point = svg.querySelector(`circle[data-key=${item.key}]`)
                 setAttrNs(point, [
@@ -492,6 +484,20 @@
 
   }
 
+  function widthAnimationA(start, ctx) {
+    return function step(timestamp) {
+      if (!start) start = timestamp;
+      let progress = timestamp - start;
+      let limit = 280;
+      let xValue = Math.min(progress / 10, limit);
+      ctx.clearRect(0, 0, 300, 200);
+  
+      ctx.fillRect(xValue, 0, 50, 50);
+      if (xValue < limit) {
+        window.requestAnimationFrame(step);
+      }
+    };
+  }
   function renderLine (ctx, coords, height, w, stacked) {
     ctx.save()
     coords.forEach(({ key, points, color, types, currentRangeData }) => {
@@ -504,7 +510,7 @@
       }
 
       if (types === 'area') {
-        drawArea(ctx, points, color, height)
+        drawArea(ctx, points, color, height, coords.length)
       }
     })
     ctx.restore()
@@ -517,6 +523,7 @@
       uniqNames = uniqNames.filter(nm => !status[nm].active)
     }
 
+    console.log(uniqNames)
     let res = uniqNames.map(key => {
       const $X = 'x'
       return {
@@ -572,7 +579,13 @@
           return updatedArrays[i][id].y1 + updatedArrays[i][id].y0
         })
       })
-
+      let updaa = activeY.map((_, id) => {
+        return _.map((o, i) => {
+         
+          return updatedArrays[i][id]
+        })
+      })
+      // console.log(uniqNames, updatedArrays)
       res = res.map((item, i) => {
         return {
           ...item,
@@ -606,7 +619,11 @@
 
       root.forEach((d, i) => {
         if (i === 0) {
-          cud[idx].push({ y0: 0, y1: 0 })
+          if(root.length > 1) {
+            cud[idx].push({ y0: 0, y1: 0 })
+          } else {
+            cud[idx].push({ y0: 0, y1:  d[idx] })
+          }
           y0 = d[idx]
         } else if (i === root.length - 1) {
           cud[idx].push({ y0: y0, y1: y0 - d[idx] })
@@ -655,17 +672,12 @@
     }
     function concatObjValues (obj, type) {
       return Object.values(obj).reduce((curr, next) => {
-        // let values = next.map(item => item[type])
         return curr.concat(next[type])
       }, [])
     }
     let merged = concatObjValues(active, 'y')
     let commonMinMax = getRangeMinMax(merged)
 
-    // let rangeMerged = b;
-
-    // console.log(commonMinMax)
-    // let minMaxCommon = active
     res.data = active.map(line => {
       let {
         xRange: { max: xMax, min: xMin }
@@ -738,9 +750,6 @@
     })
 
     res.commonY = generateCommonYAxis(res.vertical, h)
-    if (lines.percentage) {
-      console.log(res)
-    }
     if (!lines.percentage && lines.stacked) {
       return {
         ...res,
@@ -924,41 +933,38 @@
     cx.fill()
   }
 
-  function drawArea (cx, data, color, height) {
+  function drawArea (cx, data, color, height, l) {
     cx.fillStyle = color
     cx.beginPath()
-    cx.moveTo(0, 0)
+    let yBase = l > 1 ? 0 : height
+    cx.moveTo(0, yBase)
 
     for (let i = 0; i < data.length; i += 1) {
       let [x, y] = data[i]
-      cx.lineTo(x, y)
+      let yUpd = l > 1 ? y : height - y
+      cx.lineTo(x, yUpd)
       if (i === data.length - 1) {
-        cx.lineTo(x, 0)
+        cx.lineTo(x, yBase)
       }
     }
     cx.fill()
   }
   /** CANVAS DRAW SHAPE END */
+/** ANIMATION  */
+
+/** ANIMATION END  */
 
   /** HELPERS */
   function getCoords(elem) {
-    // (1)
-    var box = elem.getBoundingClientRect();
-  
-    var body = document.body;
-    var docEl = document.documentElement;
-  
-    // (2)
-    var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
-    var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
-  
-    // (3)
-    var clientTop = docEl.clientTop || body.clientTop || 0;
-    var clientLeft = docEl.clientLeft || body.clientLeft || 0;
-  
-    // (4)
-    var top = box.top + scrollTop - clientTop;
-    var left = box.left + scrollLeft - clientLeft;
+    let box = elem.getBoundingClientRect();
+    let body = document.body;
+    let docEl = document.documentElement;
+    let scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+    let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+    let clientTop = docEl.clientTop || body.clientTop || 0;
+    let clientLeft = docEl.clientLeft || body.clientLeft || 0;
+    let top = box.top + scrollTop - clientTop;
+    let left = box.left + scrollLeft - clientLeft;
   
     return {
       top: top,
@@ -1144,7 +1150,6 @@
       let leftWrapper = getCoords(this.wrapper).left
       let handlersWidth = 9
       let pageX = e.pageX - leftWrapper
-      // console.log(pageX, leftWrapper)
 
       document.body.style.userSelect = 'none'
       if (e.type === 'touchstart') {
