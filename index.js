@@ -15,18 +15,18 @@
 
   let layoutColorMode = LAYOUT_MODE_DAY
 
-  function getCoords (elem) {
-    let box = elem.getBoundingClientRect()
-    let body = document.body
-    let docEl = document.documentElement
-    let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
-    let clientLeft = docEl.clientLeft || body.clientLeft || 0
-    let left = box.left + scrollLeft - clientLeft
+  // function getCoords (elem) {
+  //   let box = elem.getBoundingClientRect()
+  //   let body = document.body
+  //   let docEl = document.documentElement
+  //   let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
+  //   let clientLeft = docEl.clientLeft || body.clientLeft || 0
+  //   let left = box.left + scrollLeft - clientLeft
 
-    return {
-      left: left
-    }
-  }
+  //   return {
+  //     left: left
+  //   }
+  // }
 
   class Magnifier {
     constructor (wrapper, cb, interacted, range) {
@@ -72,7 +72,6 @@
       this.shadowLeft.style.width = resize + 'px'
 
       setTimeout(() => {
-        // this.actionResize.update(l, l + width, this.interacted)
         this.actionResize.update(resize, width + resize, this.interacted)
       }, 0)
     }
@@ -82,7 +81,6 @@
       this.shadowRight.style.width = shadow + 'px'
 
       setTimeout(() => {
-        // this.actionResize.update(l, l + width, this.interacted)
         this.actionResize.update(left, axis, this.interacted)
       }, 0)
     }
@@ -97,8 +95,6 @@
       }, 0)
     }
 
-    // let res = 0;
-
     resizeStart (e) {
       this.touchInit = true
       let side = e.target.dataset.thumbSide
@@ -108,7 +104,7 @@
       let handlersWidth = 8
       let pageX = e.pageX
 
-      document.body.style.userSelect = "none"
+      document.body.style.userSelect = 'none'
       if (e.type === 'touchstart') {
         pageX = e.touches[0].pageX
       }
@@ -120,10 +116,9 @@
         }
         var moveX = resizePageX - pageX
         if (Math.abs(moveX) < 3) {
-          return 
+          return
         }
 
-       
         let elW = width + (resizePageX - pageX)
         let l = offset + (resizePageX - pageX)
         let r = containerWidth - (l + width)
@@ -134,7 +129,6 @@
         let mR = offset + handlersWidth + elW
         let shD = containerWidth - (elW + offset)
 
-
         if (side === 'right') {
           if (maxRight >= 0 && containerWidth - mR > 0 && elW > 30) {
             this.resizeRight(elW, offset, shD, mR)
@@ -144,13 +138,13 @@
         let wwC = width + (offset - maxLeft)
         let finishLeft = containerWidth - (wwC + maxLeft) + wwC + handlersWidth
         if (side === 'left') {
-            if (finishLeft < containerWidth && wwC > 30) {
-              this.resizeLeft(wwC, maxLeft)
-            }
+          if (finishLeft < containerWidth && wwC > 30) {
+            this.resizeLeft(wwC, maxLeft)
+          }
         }
 
         if (side === 'center') {
-          if (l > handlersWidth  && containerWidth - mR > 0) {
+          if (l > handlersWidth && containerWidth - mR > 0) {
             this.dragCenter(l, r, width)
           }
         }
@@ -161,14 +155,13 @@
 
       document.addEventListener('mouseup', (e) => {
         this.touchInit = false
-        // console.log(this.touchInit)
-        document.body.style.userSelect = "auto"
+        document.body.style.userSelect = 'auto'
         document.removeEventListener('mousemove', resize)
       }, false)
 
       document.addEventListener('touchend', (e) => {
         this.touchInit = false
-        document.body.style.userSelect = "auto"
+        document.body.style.userSelect = 'auto'
         document.removeEventListener('touchmove', resize)
       }, false)
     }
@@ -228,9 +221,6 @@
         layoutColorMode = layoutColorMode === 'day' ? LAYOUT_MODE_NIGHT : LAYOUT_MODE_DAY
         ChartRoot.setStyleMode(colorTheme[layoutColorMode])
       })
-
-
-
     }
   }
 
@@ -279,10 +269,6 @@
     return `${from} - ${to}`
   }
 
-
-
-
-
   const ChartRoot = {
     state: {
       chart: {},
@@ -330,7 +316,6 @@
         percentage = true
       }
 
-      
       Object.entries(data.names).forEach(([key, name]) => {
         if (!this.state.ineracted[idAttr]) {
           this.state.ineracted[idAttr] = {}
@@ -348,11 +333,11 @@
       let initialProcess = processCoords(w, h, initialRange, data)
       let coords = initialProcess.data
       this.state.calculation[idAttr] = coords
-      
+
       let coordInitialMinimap = processCoords(w, mH, null, data, interacted).data
 
       let template = ChartTemplate(idAttr, data, {
-        w: w, h: h, mW: w, mH: mH, colors: colorType, title
+        w: w, h: h, mW: w, mH: mH, colors: colorType, pallet: colr, title
       })
 
       main.insertAdjacentHTML('beforeEnd', template)
@@ -374,31 +359,9 @@
       const svgMinimap = chartMinimap.getContext('2d')
       const chartHeaderDates = qs(`.chart-header.${idAttr} .dates-range`)
 
-
-      var isMoved = false;
-
-// moveButton.onclick = function() {
-//   // toggle flag
-//   isMoved = !isMoved;
-
-//   for ( var i=0; i < items.length; i++ ) {
-//     // get function in closure, so i can iterate
-//     var toggleItemMove = getToggleItemMove( i );
-//     // stagger transition with setTimeout
-//     setTimeout( toggleItemMove, 1050 );
-//   }
-// };
-
-      function getToggleItemMove() {
-        isMoved = true
-        wrappersY.classList.add('is-moved');
-      
-      }
-
-      // RENDER PART
       chartHeaderDates.textContent = getDataRangeToString(coords)
-      
-      if(idAttr !== "_id_4") {
+
+      if (idAttr !== '_id_4') {
         Object.entries(data.names).forEach(([key, name]) => {
           controls.insertAdjacentHTML('beforeEnd', Button(key, name, colr[name].btn))
         })
@@ -407,23 +370,17 @@
       let resizeFunc = actionResize.bind(this)
       let setupResize = resizeFunc(svg, w, h, data, wrappersYAll, wrappersX, y_scaled)
 
-      let dMoved = false;
-
       document.addEventListener('transitionend', function (event) {
-        dMoved = false
-        // console.log(event.type + " " + new Date().getTime());
         wrappersY.classList.remove('is-moved-up')
-    });
-      // let updss = new Date();
-      let prevRangeDiff = null;
+      })
 
       function actionResize (svg, w, h, data, svgAxisY, svgAxisX, y_scaled) {
         let self = this
         return {
           update (min, max, status) {
-            if(!wrappersY.classList.contains('is-moved-up')) {
+            if (!wrappersY.classList.contains('is-moved-up')) {
               wrappersY.classList.add('is-moved-up')
-            } 
+            }
 
             self.state.ranges[idAttr] = [min, max]
             let initialProcess = processCoords(w, h, [min, max], data, status)
@@ -440,8 +397,6 @@
               let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
               Axis.update(item, yCurrentData, 'y', w)
             })
-         
-            
           }
         }
       }
@@ -471,7 +426,7 @@
       })
 
       renderLine(svg, coords, h, w)
-      renderLine(svgMinimap, coordInitialMinimap, mH,w)
+      renderLine(svgMinimap, coordInitialMinimap, mH, w)
 
       wrappersYAll.forEach(item => {
         let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
@@ -578,7 +533,6 @@
         return item.x < offsetX
       }).slice(-1)
 
-
       let currentCoords = null
       if (currentTooltipPos) {
         currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
@@ -596,20 +550,17 @@
         })
       }
       let tooltipWidth = tooltip.clientWidth
-      // console.log(containerWidth, tooltipWidth)
       let top = pageY - 10
       let left = pageX + 30
       let coordLeft = tooltipWidth + offsetX + 30
       tooltip.style.top = (top) + 'px'
-      if(coordLeft > containerWidth) {
+      if (coordLeft > containerWidth) {
         tooltip.style.left = (pageX - tooltipWidth - 30) + 'px'
-      }  else {
+      } else {
         tooltip.style.left = (left) + 'px'
-
       }
 
       line.style.transform = `translate(${offsetX}px, 0)`
-      
     }
 
     function rerenderTooltip (items) {
@@ -654,10 +605,8 @@
       uniqNames = uniqNames.filter(nm => !status[nm].active)
     }
 
-    console.log(uniqNames)
     let res = uniqNames.map(key => {
       const $X = 'x'
-
       return {
         color: colors[ key ],
         x: columns[ $X ],
@@ -685,6 +634,7 @@
           return percentage ? updatedArrays[i][id].y0 : updatedArrays[i][id].y1
         })
       })
+
       res = res.map((item, i) => {
         return {
           ...item,
@@ -747,7 +697,6 @@
       let xAxisTikers = line.x.map(convertMonthToString)
 
       if (ranges) {
-        console.log(ranges, "WORKS")
         let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
         xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
 
@@ -791,9 +740,6 @@
       res.horizontal = horizontal
       res.vertical[line.key] = vertical
 
-      // console.log(sc)
-
-      // console.log(yAxis)
       return {
         ...line,
         xCoords: scaleLine,
@@ -809,7 +755,6 @@
       }
     })
 
-    // console.log(lines, 'UPD')
     res.commonY = generateCommonYAxis(res.vertical, h)
     if (!lines.percentage && lines.stacked) {
       return {
@@ -817,7 +762,6 @@
         data: res.data.reverse()
       }
     }
-    console.log(res)
     return res
   }
 
@@ -921,15 +865,16 @@
     let line = document.createElementNS(xmlns, 'line')
     setAttrNs(text, [
       { y: `0` },
-      { dy: `0.71em` }
+      { dy: `0.71em` },
+      { style: `fill: #${wrapper.dataset.axisColor};` }
     ])
+    console.log(wrapper.dataset.axisColor)
     setAttrNs(line, [
       { class: 'y-line-tick axis-line' },
-      { x1: 0 },
+      { x1: wrapper.dataset.axisKey === 'y1' ? 40 : 0 },
       { y1: 24 },
-      { x2: w },
-      { y2: 24 },
-      { stroke: 'black' }
+      { x2: wrapper.dataset.axisKey === 'y1' ? -w : w },
+      { y2: 24 }
     ])
 
     let tickWrapper = document.createElementNS(xmlns, 'g')
@@ -950,8 +895,6 @@
     btn.style.color = `#FFF`
     btn.style.borderColor = `transparent`
   }
-
-  // let clickBindToChart = clickButton.bind(ChartRoot)
   let Tooltip = TooltipInit.bind(ChartRoot)
 
   /** CANVAS DRAW SHAPE */
@@ -961,7 +904,6 @@
     cx.moveTo(0, height)
     for (let i = 0; i < data.length; i += 1) {
       let [x, yInitial] = data[i]
-      // let y = revertY(yInitial, height)
       let updX = x - diff
       cx.lineTo(updX, yInitial)
     }
@@ -992,8 +934,6 @@
 
     for (let i = 0; i < data.length; i += 1) {
       let [x, y] = data[i]
-      // let y = revertY(yInitial, height)
-      // console.log(y, yInitial)
       cx.lineTo(x, y)
       if (i === data.length - 1) {
         cx.lineTo(x, 0)
@@ -1020,7 +960,6 @@
       columns: normilizeColumns(data.columns)
     })
   }
-
 
   function setAttrNs (el, values) {
     let entries = values.map(item => Object.entries(item))
@@ -1095,21 +1034,24 @@
       `
   }
 
-  function AxisLines (names, w) {
+  function AxisLines (names, w, pallet) {
     let lines = ``
-
+    let b = names
     Object.keys(names).forEach((item, idx) => {
-      lines += `<g class="tick-wrapper-y" data-axis-key="${item}" transform="translate(${idx === 0 ? 0 : w - 20}, 20)"></g>`
+      // console.log(pallet[b[item]])
+      let btnColor = pallet[b[item]].btn
+
+      lines += `<g class="tick-wrapper-y" data-axis-key="${item}" data-axis-color="${btnColor}" transform="translate(${idx === 0 ? 0 : w - 20}, 20)"></g>`
     })
 
     return lines
   }
 
-  function ChartTemplate (name, chart, { w, h, mW, mH, colors, title }) {
-    let lines = chart.y_scaled ? AxisLines(chart.names, w)
+  function ChartTemplate (name, chart, { w, h, mW, mH, colors, pallet, title }) {
+    let lines = chart.y_scaled ? AxisLines(chart.names, w, pallet)
       : `<g class="tick-wrapper-y" transform="translate(5, 20)"></g>`
 
-      // <rect x="50" y="10" fill="red" width="10" height="250" opacity=".1"></rect>
+    // <rect x="50" y="10" fill="red" width="10" height="250" opacity=".1"></rect>
     const temp = `
       <div class="chart-header ${name}">
       <h3>${title}</h3>
@@ -1148,8 +1090,4 @@
   /** TEMPLATES END */
 
   chart.init()
-
-
-
-
 })()

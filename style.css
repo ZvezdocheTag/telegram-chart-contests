@@ -214,15 +214,11 @@ svg[data-color-theme="followers"] .chart-axises text {
   justify-content: space-between;
 }
 
-/* .chart-tooltip li:last-child {
-  margin-right: 0px;
-  /* margin-bottom: 10px; */
-}
-
-*/ .tooltip-item-name {
+.tooltip-item-name {
   font-size: 14px;
   font-weight: bold;
   flex: 1;
+  padding-right: 10px;
 }
 
 .tooltip-item-value {
