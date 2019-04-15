@@ -255,68 +255,88 @@
           }
         }
       }
-      // Create variable for setTimeout
-      var delay
 
-      // Set number of milliseconds for longpress
-      var longpress = 1300
+
+      let delay
+      let longpress = 800
+      let triggered = false;
+
       controls.childNodes.forEach(child => {
         let self = this
 
-        child.addEventListener('touchstart', function (e) {
-          console.log(e)
-          var _this = this
+        child.addEventListener('touchstart', startTap, true)
+        child.addEventListener('touchend', endTap)
 
-          delay = setTimeout(check, longpress)
+        child.addEventListener('mousedown', startTap, true)
+        child.addEventListener('mouseup', endTap)
+        child.addEventListener('mouseout', endTap)
 
-          function check () {
-            // var i = 0
-            console.log(controls)
-            for (let i = 0; i < controls.children.length; i += 1) {
-              let childOther = controls.children[i]
-              let color = childOther.dataset.color
-              if (!_this.isSameNode(childOther)) {
-                childOther.classList.add('active')
-                childOther.style.backgroundColor = 'transparent'
-                childOther.style.color = `#${color}`
-                childOther.style.borderColor = `#${color}`
+        function endTap(e) {
+          console.log("END", delay)
+          
+          clearTimeout(delay)
+          
+
+        }
+        function startTap(e) {
+            e.preventDefault()
+            triggered = false
+            let _this = this
+            console.log("REPS", delay)
+            delay = setTimeout(check, longpress)
+            console.log("REPS", delay)
+
+            function check () {
+              console.log("REPS", delay)
+              triggered = true
+              for (let i = 0; i < controls.children.length; i += 1) {
+                let childOther = controls.children[i]
+                let color = childOther.dataset.color
+                if (!_this.isSameNode(childOther)) {
+                  let btnId = childOther.dataset.toggleBtn
+                  let [min, max] = self.state.ranges[idAttr]
+                  let currBtn = interacted[btnId]
+                  // let isActive = childOther.classList.value.includes('active')
+                  currBtn.active = true
+                  console.log(currBtn)
+                  setupResize.update(min, max, interacted)
+                  childOther.classList.add('active')
+                  childOther.style.backgroundColor = 'transparent'
+                  childOther.style.color = `#${color}`
+                  childOther.style.borderColor = `#${color}`
+                }
               }
             }
-          }
-        }, true)
 
-        child.addEventListener('touchend', function (e) {
-          // On mouse up, we know it is no longer a longpress
-          console.log(e)
-          clearTimeout(delay)
-        })
+        }
 
-        // child.addEventListener('mouseout', function (e) {
-        //   clearTimeout(delay);
-        // });
 
         child.addEventListener('click', function (e) {
           e.preventDefault()
-          console.log(e, 'CLICK')
+          console.log(e, 'CLICK', triggered)
           let target = e.target
           let color = target.dataset.color
           let btnId = target.dataset.toggleBtn
-          target.classList.toggle('active')
-
           let [min, max] = self.state.ranges[idAttr]
-          let isActive = target.classList.value.includes('active')
           let currBtn = interacted[btnId]
-          currBtn.active = isActive
-
-          setupResize.update(min, max, interacted)
-          if (isActive) {
-            target.style.backgroundColor = 'transparent'
-            target.style.color = `#${color}`
-            target.style.borderColor = `#${color}`
-          } else {
-            setupDefaultButtonColor(target, color)
+          if(!triggered) {
+            target.classList.toggle('active')
+            let isActive = target.classList.value.includes('active')
+            currBtn.active = isActive
+            
+            setupResize.update(min, max, interacted)
+            if (isActive) {
+              target.style.backgroundColor = 'transparent'
+              target.style.color = `#${color}`
+              target.style.borderColor = `#${color}`
+            } else {
+              setupDefaultButtonColor(target, color)
+            }
           }
+
         })
+
+
       })
 
       renderLine(svg, coords, h, w)
@@ -407,26 +427,15 @@
             return item.x < offsetX
           }).slice(-1)
 
-          // let currentCoords = null
-          console.log(currentChart, svg, currentTooltipPos, getFirstRange)
-          // let currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
-          // console.log(currentCoords)
           let currentCoords = []
           currentChart.forEach((item) => {
             currentCoords.push(item.currentRangeData[currentTooltipPos.idx])
           })
-          // function findHoveredCoordinates (coordinates, hoveredIdx) {
-          //   coordinates.forEach((item) => {
-          //     currentHovered.push(item.currentRangeData[hoveredIdx])
-          //   })
-
-          //   return currentHovered
-          // }
 
           if (currentCoords) {
             rerenderTooltip(currentCoords)
             if (chartTypes === 'line') {
-              console.log(currentCoords)
+              // console.log(currentCoords)
               currentCoords.forEach(item => {
                 let point = svg.querySelector(`circle[data-key=${item.key}]`)
                 setAttrNs(point, [
@@ -932,6 +941,31 @@
   /** CANVAS DRAW SHAPE END */
 
   /** HELPERS */
+  function getCoords(elem) {
+    // (1)
+    var box = elem.getBoundingClientRect();
+  
+    var body = document.body;
+    var docEl = document.documentElement;
+  
+    // (2)
+    var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+    var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+  
+    // (3)
+    var clientTop = docEl.clientTop || body.clientTop || 0;
+    var clientLeft = docEl.clientLeft || body.clientLeft || 0;
+  
+    // (4)
+    var top = box.top + scrollTop - clientTop;
+    var left = box.left + scrollLeft - clientLeft;
+  
+    return {
+      top: top,
+      left: left
+    };
+  }
+
   function convertMonthToString (date) {
     let current = new Date(date)
     let day = current.getDate()
@@ -1107,18 +1141,20 @@
       let width = this.el.offsetWidth
       let offset = this.el.offsetLeft
       let containerWidth = this.wrapper.offsetWidth
-      let handlersWidth = 8
-      let pageX = e.pageX
+      let leftWrapper = getCoords(this.wrapper).left
+      let handlersWidth = 9
+      let pageX = e.pageX - leftWrapper
+      // console.log(pageX, leftWrapper)
 
       document.body.style.userSelect = 'none'
       if (e.type === 'touchstart') {
-        pageX = e.touches[0].pageX
+        pageX = e.touches[0].pageX - leftWrapper
       }
 
       const resize = (ec) => {
-        let resizePageX = ec.pageX
+        let resizePageX = ec.pageX - leftWrapper
         if (ec.type === 'touchmove') {
-          resizePageX = ec.touches[0].pageX
+          resizePageX = ec.touches[0].pageX - leftWrapper
         }
         var moveX = resizePageX - pageX
         if (Math.abs(moveX) < 3) {
@@ -1128,8 +1164,8 @@
         let elW = width + (resizePageX - pageX)
         let l = offset + (resizePageX - pageX)
         let r = containerWidth - (l + width)
-
-        let maxLeft = l - (handlersWidth * 2)
+        
+        let maxLeft = l - (handlersWidth * 2) 
         let maxRight = r + handlersWidth
 
         let mR = offset + handlersWidth + elW
