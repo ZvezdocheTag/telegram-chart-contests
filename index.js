@@ -184,6 +184,7 @@
       let chartTypes = initialProcess.types
       let coords = initialProcess.data
       this.state.calculation[idAttr] = coords
+      this.state.rangesList[idAttr] = coords[0].currentRangeData
 
       let coordInitialMinimap = processCoords(w, mH, null, data, interacted).data
 
@@ -239,8 +240,8 @@
             let initialProcessMin = processCoords(w, mH, null, data, status)
             let coords = initialProcess.data
             self.state.rangesList[idAttr] = coords[0].currentRangeData
+            self.state.calculation[idAttr] = coords
 
-            console.log(coords)
             svg.clearRect(0, 0, w, h)
             svgMinimap.clearRect(0, 0, w, mH)
             renderLine(svg, coords, h, w)
@@ -251,8 +252,6 @@
               let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
               Axis.update(item, yCurrentData, 'y', w)
             })
-
-            // Tooltip(svgAxis, colr, chartTypes)
           }
         }
       }
@@ -403,18 +402,31 @@
             offsetX = pageX
           }
 
-          let [ currentTooltipPos ] = getFirstRange.filter(item => {
+          let mapped = getFirstRange.map((d, i) => ({ ...d, idx: i }))
+          let [ currentTooltipPos ] = mapped.filter(item => {
             return item.x < offsetX
           }).slice(-1)
 
-          let currentCoords = null
-          if (currentTooltipPos) {
-            currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
-          }
+          // let currentCoords = null
+          console.log(currentChart, svg, currentTooltipPos, getFirstRange)
+          // let currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
+          // console.log(currentCoords)
+          let currentCoords = []
+          currentChart.forEach((item) => {
+            currentCoords.push(item.currentRangeData[currentTooltipPos.idx])
+          })
+          // function findHoveredCoordinates (coordinates, hoveredIdx) {
+          //   coordinates.forEach((item) => {
+          //     currentHovered.push(item.currentRangeData[hoveredIdx])
+          //   })
+
+          //   return currentHovered
+          // }
 
           if (currentCoords) {
             rerenderTooltip(currentCoords)
             if (chartTypes === 'line') {
+              console.log(currentCoords)
               currentCoords.forEach(item => {
                 let point = svg.querySelector(`circle[data-key=${item.key}]`)
                 setAttrNs(point, [
@@ -455,18 +467,12 @@
           }
         }
 
-        function findHoveredCoordinates (coordinates, hoveredIdx) {
-          let currentHovered = []
-          coordinates.forEach((item) => {
-            currentHovered.push(item.currentRangeData[hoveredIdx])
-          })
-
-          return currentHovered
-        }
         function mouseLeave (e) {
           line = null
           const list = tooltip.querySelector('.tooltip-list')
-
+          svg.querySelectorAll('circle').forEach(item => {
+            item.remove()
+          })
           list.remove()
           if (tooltip.classList.contains('active')) {
             tooltip.classList.remove('active')
