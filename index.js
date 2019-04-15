@@ -15,7 +15,6 @@
 
   let layoutColorMode = LAYOUT_MODE_DAY
 
-
   const getDataFormat = {
     'id_1': {
       link: '/data/1/overview.json',
@@ -129,7 +128,8 @@
       ranges: {},
       calculation: {},
       tooltipPos: { x: 0, left: 0 },
-      colorsPallet: null
+      colorsPallet: null,
+      rangesList: {}
     },
 
     setStyleMode (params) {
@@ -180,11 +180,14 @@
       this.state.ranges[idAttr] = initialRange
 
       let initialProcess = processCoords(w, h, initialRange, data)
+
+      let chartTypes = initialProcess.types
       let coords = initialProcess.data
       this.state.calculation[idAttr] = coords
 
       let coordInitialMinimap = processCoords(w, mH, null, data, interacted).data
 
+      console.log(initialProcess, 'FFFFFFFFF ')
       let template = ChartTemplate(idAttr, data, {
         w: w, h: h, mW: w, mH: mH, colors: colorType, pallet: colr, title
       })
@@ -235,7 +238,9 @@
             let initialProcess = processCoords(w, h, [min, max], data, status)
             let initialProcessMin = processCoords(w, mH, null, data, status)
             let coords = initialProcess.data
+            self.state.rangesList[idAttr] = coords[0].currentRangeData
 
+            console.log(coords)
             svg.clearRect(0, 0, w, h)
             svgMinimap.clearRect(0, 0, w, mH)
             renderLine(svg, coords, h, w)
@@ -246,54 +251,54 @@
               let yCurrentData = y_scaled ? initialProcess.vertical[item.dataset.axisKey] : initialProcess.commonY
               Axis.update(item, yCurrentData, 'y', w)
             })
+
+            // Tooltip(svgAxis, colr, chartTypes)
           }
         }
       }
       // Create variable for setTimeout
-      var delay;
-      
+      var delay
+
       // Set number of milliseconds for longpress
-      var longpress = 1300;
+      var longpress = 1300
       controls.childNodes.forEach(child => {
         let self = this
 
         child.addEventListener('touchstart', function (e) {
           console.log(e)
-          var _this = this;
-          
-          delay = setTimeout(check, longpress);
-          
-          function check() {
+          var _this = this
+
+          delay = setTimeout(check, longpress)
+
+          function check () {
             // var i = 0
             console.log(controls)
-            for(let i = 0; i < controls.children.length; i +=1 ) {
+            for (let i = 0; i < controls.children.length; i += 1) {
               let childOther = controls.children[i]
               let color = childOther.dataset.color
-              if(!_this.isSameNode(childOther)) {
-                childOther.classList.add('active');
+              if (!_this.isSameNode(childOther)) {
+                childOther.classList.add('active')
                 childOther.style.backgroundColor = 'transparent'
                 childOther.style.color = `#${color}`
                 childOther.style.borderColor = `#${color}`
               }
             }
-
           }
-          
-        }, true);
+        }, true)
 
         child.addEventListener('touchend', function (e) {
           // On mouse up, we know it is no longer a longpress
           console.log(e)
-          clearTimeout(delay);
-        });
-        
+          clearTimeout(delay)
+        })
+
         // child.addEventListener('mouseout', function (e) {
         //   clearTimeout(delay);
         // });
 
         child.addEventListener('click', function (e) {
           e.preventDefault()
-          console.log(e, "CLICK")
+          console.log(e, 'CLICK')
           let target = e.target
           let color = target.dataset.color
           let btnId = target.dataset.toggleBtn
@@ -324,8 +329,150 @@
       })
 
       Axis.render(wrappersX, initialProcess.horizontal, 'x', w)
-      Tooltip(svgAxis, colr, stacked)
+      Tooltip(svgAxis, colr, chartTypes)
       new Magnifier(chartMagnifier, setupResize, interacted, initialRange).init()
+
+      let self = this
+
+      function Tooltip (svg, colr, chartTypes) {
+        let line = null
+        let currentChart = null
+        let getFirstRange = null
+
+        let tooltip = document.querySelector('.chart-tooltip')
+        let dataId = svg.closest('.chart-wrapper').id
+        let containerWidth = svg.clientWidth
+
+        svg.addEventListener('mouseenter', enterMouse, { passive: true })
+        svg.addEventListener('touchstart', enterMouse, { passive: true })
+
+        svg.addEventListener('mousemove', moveMouse, { passive: true })
+        svg.addEventListener('touchmove', moveMouse, { passive: true })
+
+        svg.addEventListener('mouseleave', mouseLeave)
+        svg.addEventListener('touchend', mouseLeave)
+
+        function enterMouse (e) {
+          currentChart = self.state.calculation[dataId]
+          getFirstRange = self.state.rangesList[dataId]
+
+          console.log(getFirstRange)
+          tooltip.insertAdjacentHTML('beforeend', '<ul class="tooltip-list"></ul>')
+          const list = tooltip.querySelector('.tooltip-list')
+
+          currentChart.reverse().forEach((line, idx) => {
+            let html = `<li data-key="${line.key}">
+            <div class="tooltip-item-name">${line.name}</div>
+            <div class="tooltip-item-value" style="color: #${colr[line.name].tooltipText};">${line.valueX}</div>
+          </li>`
+            // console.log(chartTypes)
+            if (chartTypes === 'line') {
+              let dot = document.createElementNS('http://www.w3.org/2000/svg', `circle`)
+
+              setAttrNs(dot, [
+                { class: 'svg-line-points' },
+                { 'data-key': line.key },
+                { cx: 0 },
+                { r: 4 },
+                { opacity: 0 },
+                { cy: 0 },
+                { stroke: `${line.color}` },
+                { fill: `transparent` },
+                { 'stroke-width': `3` }
+              ])
+              svg.insertAdjacentElement('beforeend', dot)
+            }
+            list.insertAdjacentHTML('beforeend', html)
+          })
+
+          line = e.target.querySelector('.tooltip-line')
+          line.style.opacity = `1`
+          if (!tooltip.classList.contains('active')) {
+            tooltip.classList.add('active')
+          }
+        }
+
+        function moveMouse (e) {
+          let offsetX = e.offsetX
+          let pageX = e.pageX
+          let pageY = e.pageY
+
+          if (e.type === 'touchmove') {
+            pageX = e.touches[0].pageX
+            pageY = e.touches[0].pageY
+            offsetX = pageX
+          }
+
+          let [ currentTooltipPos ] = getFirstRange.filter(item => {
+            return item.x < offsetX
+          }).slice(-1)
+
+          let currentCoords = null
+          if (currentTooltipPos) {
+            currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
+          }
+
+          if (currentCoords) {
+            rerenderTooltip(currentCoords)
+            if (chartTypes === 'line') {
+              currentCoords.forEach(item => {
+                let point = svg.querySelector(`circle[data-key=${item.key}]`)
+                setAttrNs(point, [
+                  { cx: item.x + 8 },
+                  { cy: item.y.y },
+                  { opacity: 1 }
+                ])
+              })
+            }
+          }
+          let tooltipWidth = tooltip.clientWidth
+          let top = pageY - 10
+          let left = pageX + 30
+          let coordLeft = tooltipWidth + offsetX + 30
+          tooltip.style.top = (top) + 'px'
+          if (coordLeft > containerWidth) {
+            tooltip.style.left = (pageX - tooltipWidth - 30) + 'px'
+          } else {
+            tooltip.style.left = (left) + 'px'
+          }
+
+          line.style.transform = `translate(${offsetX}px, 0)`
+        }
+
+        function rerenderTooltip (items) {
+          let keyTime = new Date()
+          if (items[0]) {
+            keyTime = items[0].value
+            let date = getFullDate(keyTime)
+            const title = tooltip.querySelector('.tooltip-title')
+            const list = tooltip.querySelector('.tooltip-list')
+            title.textContent = date
+
+            items.forEach(item => {
+              let curr = list.querySelector(`[data-key=${item.key}]`)
+              curr.querySelector('.tooltip-item-value').textContent = item.valueY
+            })
+          }
+        }
+
+        function findHoveredCoordinates (coordinates, hoveredIdx) {
+          let currentHovered = []
+          coordinates.forEach((item) => {
+            currentHovered.push(item.currentRangeData[hoveredIdx])
+          })
+
+          return currentHovered
+        }
+        function mouseLeave (e) {
+          line = null
+          const list = tooltip.querySelector('.tooltip-list')
+
+          list.remove()
+          if (tooltip.classList.contains('active')) {
+            tooltip.classList.remove('active')
+          }
+        }
+      }
     }
 
   }
@@ -346,148 +493,6 @@
       }
     })
     ctx.restore()
-  }
-
-  function TooltipInit (svg, colr, stacked) {
-    let self = this
-
-    let line = null
-    let currentChart = null
-    let getFirstRange = null
-
-    let tooltip = document.querySelector('.chart-tooltip')
-    let dataId = svg.closest('.chart-wrapper').id
-    let containerWidth = svg.clientWidth
-
-    svg.addEventListener('mouseenter', enterMouse, { passive: true })
-    svg.addEventListener('touchstart', enterMouse, { passive: true })
-
-    svg.addEventListener('mousemove', moveMouse, { passive: true })
-    svg.addEventListener('touchmove', moveMouse, { passive: true })
-
-    svg.addEventListener('mouseleave', mouseLeave)
-    svg.addEventListener('touchend', mouseLeave)
-
-    function enterMouse (e) {
-      currentChart = self.state.calculation[dataId]
-      getFirstRange = currentChart[0].currentRangeData
-      tooltip.insertAdjacentHTML('beforeend', '<ul class="tooltip-list"></ul>')
-      const list = tooltip.querySelector('.tooltip-list')
-
-      currentChart.reverse().forEach((line, idx) => {
-        let html = `<li data-key="${line.key}">
-        <div class="tooltip-item-name">${line.name}</div>
-        <div class="tooltip-item-value" style="color: #${colr[line.name].tooltipText};">${line.valueX}</div>
-      </li>`
-
-      if(!stacked) {
-        
-        let dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-
-        setAttrNs(dot, [
-          { class: 'svg-line-points' },
-          { 'data-key': line.key },
-          { cx: 0 },
-          { r: 4 },
-          { opacity: 0 },
-          { cy: 0 },
-          { stroke: `${line.color}` },
-          { fill: `transparent` },
-          { 'stroke-width': `3` }
-        ])
-        svg.insertAdjacentElement('beforeend', dot)
-      }
-        list.insertAdjacentHTML('beforeend', html)
-      })
-
-      line = e.target.querySelector('.tooltip-line')
-      line.style.opacity = `1`
-      if (!tooltip.classList.contains('active')) {
-        tooltip.classList.add('active')
-      }
-    }
-
-    function moveMouse (e) {
-      let offsetX = e.offsetX
-      let pageX = e.pageX
-      let pageY = e.pageY
-
-      if (e.type === 'touchmove') {
-        pageX = e.touches[0].pageX
-        pageY = e.touches[0].pageY
-        offsetX = pageX
-      }
-
-      let [ currentTooltipPos ] = getFirstRange.filter(item => {
-        return item.x < offsetX
-      }).slice(-1)
-
-      let currentCoords = null
-      if (currentTooltipPos) {
-        currentCoords = findHoveredCoordinates(currentChart, currentTooltipPos.idx)
-      }
-
-      if (currentCoords) {
-        rerenderTooltip(currentCoords)
-      if(!stacked) {
-
-        currentCoords.forEach(item => {
-          let point = svg.querySelector(`circle[data-key=${item.key}]`)
-          setAttrNs(point, [
-            { cx: item.x },
-            { cy: item.y.y },
-            { opacity: 1 }
-          ])
-        })
-      }
-      }
-      let tooltipWidth = tooltip.clientWidth
-      let top = pageY - 10
-      let left = pageX + 30
-      let coordLeft = tooltipWidth + offsetX + 30
-      tooltip.style.top = (top) + 'px'
-      if (coordLeft > containerWidth) {
-        tooltip.style.left = (pageX - tooltipWidth - 30) + 'px'
-      } else {
-        tooltip.style.left = (left) + 'px'
-      }
-
-      line.style.transform = `translate(${offsetX}px, 0)`
-    }
-
-    function rerenderTooltip (items) {
-      let keyTime = new Date()
-      if (items[0]) {
-        keyTime = items[0].value
-        let date = getFullDate(keyTime)
-        const title = tooltip.querySelector('.tooltip-title')
-        const list = tooltip.querySelector('.tooltip-list')
-        title.textContent = date
-
-        items.forEach(item => {
-          let curr = list.querySelector(`[data-key=${item.key}]`)
-          curr.querySelector('.tooltip-item-value').textContent = item.valueY
-        })
-      }
-    }
-
-    function findHoveredCoordinates (coordinates, hoveredIdx) {
-      let currentHovered = []
-      coordinates.forEach((item) => {
-        currentHovered.push(item.currentRangeData[hoveredIdx])
-      })
-
-      return currentHovered
-    }
-    function mouseLeave (e) {
-      line = null
-      const list = tooltip.querySelector('.tooltip-list')
-
-      list.remove()
-      if (tooltip.classList.contains('active')) {
-        tooltip.classList.remove('active')
-      }
-    }
   }
 
   function calculateChartRanges ({ names, types, columns, colors, percentage, stacked }, status) {
@@ -585,19 +590,16 @@
       let y0 = 0
 
       root.forEach((d, i) => {
-        if(i === 0) {
+        if (i === 0) {
           cud[idx].push({ y0: 0, y1: 0 })
           y0 = d[idx]
         } else if (i === root.length - 1) {
           cud[idx].push({ y0: y0, y1: y0 - d[idx] })
-        }
-        else {
+        } else {
           cud[idx].push({ y0: y0, y1: y0 + d[idx] })
           y0 = y0 + d[idx]
         }
-
       })
-      
     })
 
     return cud
@@ -633,7 +635,8 @@
       horizontal: null,
       vertical: {},
       data: null,
-      barData: null
+      barData: null,
+      types: null
     }
     function concatObjValues (obj, type) {
       return Object.values(obj).reduce((curr, next) => {
@@ -641,7 +644,7 @@
         return curr.concat(next[type])
       }, [])
     }
-    let merged = concatObjValues(active, "y")
+    let merged = concatObjValues(active, 'y')
     let commonMinMax = getRangeMinMax(merged)
 
     // let rangeMerged = b;
@@ -650,8 +653,9 @@
     // let minMaxCommon = active
     res.data = active.map(line => {
       let {
-        xRange: { max: xMax, min: xMin },
+        xRange: { max: xMax, min: xMin }
       } = line
+      res.types = line.types
 
       let yMax = commonMinMax.max
       let yMin = commonMinMax.min
@@ -662,9 +666,6 @@
       let scaleLineY = line.y.map(yScale)
 
       let xAxisTikers = line.x.map(convertMonthToString)
-
-
-
 
       if (ranges) {
         let [ rangeMin, rangeMax ] = findRange(line.x.map(xScale), ranges)
@@ -680,13 +681,17 @@
       let xAxis = scaleLine.map((x, idx) => ({ x: Math.round(x), tick: xAxisTikers[idx] }))
       let yAxis = scaleLineY.map((y, idx) => ({ y: Math.round(y), tick: line.y[idx] }))
       let points = scaleLine.map((x, idx) => [Math.round(x), Math.round(scaleLineY[idx])])
-      let upd = xAxis.map((item, idx) => ({ 
-        ...item, y: yAxis[idx], 
-        value: line.x[idx], 
+      let upd = xAxis.map((item, idx) => ({
+        ...item,
+        y: yAxis[idx],
+        value: line.x[idx],
         valueY: line.yDefault[idx],
-         key: line.key, 
-         valueX: line.x[idx], idx, name: line.name, color: line.color 
-        }))
+        key: line.key,
+        valueX: line.x[idx],
+        idx,
+        name: line.name,
+        color: line.color
+      }))
       function generateAxisWithoutFilter (axis, w) {
         let amount = axis.map((o, idx) => ({ ...o, idx })).filter((item, idx) => {
           return item.x >= 0 && item.x <= w
@@ -718,7 +723,7 @@
     })
 
     res.commonY = generateCommonYAxis(res.vertical, h)
-    if(lines.percentage) {
+    if (lines.percentage) {
       console.log(res)
     }
     if (!lines.percentage && lines.stacked) {
@@ -757,7 +762,7 @@
     return [ minIndex, maxIndex ]
   }
 
-  function calculateCommonRange(arr, rangeMin, rangeMax) {
+  function calculateCommonRange (arr, rangeMin, rangeMax) {
     let getYs = arr.map(d => {
       return d.y.filter((_, idx) => idx >= rangeMin && idx <= rangeMax)
     })
@@ -768,7 +773,6 @@
     let commonMinMax = getRangeMinMax(concatYs)
 
     return commonMinMax
-
   }
 
   function concatObjValues (obj, type) {
@@ -873,7 +877,7 @@
     btn.style.color = `#FFF`
     btn.style.borderColor = `transparent`
   }
-  let Tooltip = TooltipInit.bind(ChartRoot)
+  // let Tooltip = TooltipInit.bind(ChartRoot)
 
   /** CANVAS DRAW SHAPE */
   function drawLine (cx, data, color, height, diff = 0) {
@@ -1024,7 +1028,6 @@
     return lines
   }
 
-  
   class Magnifier {
     constructor (wrapper, cb, interacted, range) {
       this.wrapper = wrapper
@@ -1163,7 +1166,7 @@
       }, false)
     }
   }
-  
+
   function ChartTemplate (name, chart, { w, h, mW, mH, colors, pallet, title }) {
     let lines = chart.y_scaled ? AxisLines(chart.names, w, pallet)
       : `<g class="tick-wrapper-y" transform="translate(5, 10)"></g>`
