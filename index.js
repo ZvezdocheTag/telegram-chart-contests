@@ -292,7 +292,6 @@
                   let [min, max] = self.state.ranges[idAttr]
                   let currBtn = interacted[btnId]
                   currBtn.active = true
-                  console.log(currBtn)
                   setupResize.update(min, max, interacted)
                   childOther.classList.add('active')
                   childOther.style.backgroundColor = 'transparent'
@@ -485,19 +484,19 @@
   }
 
   function widthAnimationA(start, ctx) {
-    return function step(timestamp) {
-      if (!start) start = timestamp;
-      let progress = timestamp - start;
-      let limit = 280;
-      let xValue = Math.min(progress / 10, limit);
-      ctx.clearRect(0, 0, 300, 200);
-  
-      ctx.fillRect(xValue, 0, 50, 50);
-      if (xValue < limit) {
-        window.requestAnimationFrame(step);
-      }
-    };
-  }
+  return function step(timestamp) {
+    if (!start) start = timestamp;
+    let progress = timestamp - start;
+    let limit = 280;
+    let xValue = Math.min(progress / 10, limit);
+    ctx.clearRect(0, 0, 300, 200);
+
+    ctx.fillRect(xValue, 0, 50, 50);
+    if (xValue < limit) {
+      window.requestAnimationFrame(step);
+    }
+  };
+}
   function renderLine (ctx, coords, height, w, stacked) {
     ctx.save()
     coords.forEach(({ key, points, color, types, currentRangeData }) => {
@@ -523,7 +522,6 @@
       uniqNames = uniqNames.filter(nm => !status[nm].active)
     }
 
-    console.log(uniqNames)
     let res = uniqNames.map(key => {
       const $X = 'x'
       return {
@@ -579,13 +577,7 @@
           return updatedArrays[i][id].y1 + updatedArrays[i][id].y0
         })
       })
-      let updaa = activeY.map((_, id) => {
-        return _.map((o, i) => {
-         
-          return updatedArrays[i][id]
-        })
-      })
-      // console.log(uniqNames, updatedArrays)
+
       res = res.map((item, i) => {
         return {
           ...item,
