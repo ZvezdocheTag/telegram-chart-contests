@@ -263,10 +263,10 @@
       controls.childNodes.forEach(child => {
         let self = this
 
-        child.addEventListener('touchstart', startTap, true)
+        child.addEventListener('touchstart', startTap)
         child.addEventListener('touchend', endTap)
 
-        child.addEventListener('mousedown', startTap, true)
+        child.addEventListener('mousedown', startTap)
         child.addEventListener('mouseup', endTap)
         child.addEventListener('mouseout', endTap)
 
@@ -277,7 +277,6 @@
 
         }
         function startTap(e) {
-            e.preventDefault()
             triggered = false
             let _this = this
             delay = setTimeout(check, longpress)
@@ -303,9 +302,11 @@
 
         }
 
+        console.log(child)
 
         child.addEventListener('click', function (e) {
           e.preventDefault()
+          console.log(e)
           let target = e.target
           let color = target.dataset.color
           let btnId = target.dataset.toggleBtn
