@@ -255,10 +255,9 @@
         }
       }
 
-
       let delay
       let longpress = 800
-      let triggered = false;
+      let triggered = false
 
       controls.childNodes.forEach(child => {
         let self = this
@@ -270,36 +269,32 @@
         child.addEventListener('mouseup', endTap)
         child.addEventListener('mouseout', endTap)
 
-        function endTap(e) {
-          
+        function endTap (e) {
           clearTimeout(delay)
-          
-
         }
-        function startTap(e) {
-            triggered = false
-            let _this = this
-            delay = setTimeout(check, longpress)
+        function startTap (e) {
+          triggered = false
+          let _this = this
+          delay = setTimeout(check, longpress)
 
-            function check () {
-              triggered = true
-              for (let i = 0; i < controls.children.length; i += 1) {
-                let childOther = controls.children[i]
-                let color = childOther.dataset.color
-                if (!_this.isSameNode(childOther)) {
-                  let btnId = childOther.dataset.toggleBtn
-                  let [min, max] = self.state.ranges[idAttr]
-                  let currBtn = interacted[btnId]
-                  currBtn.active = true
-                  setupResize.update(min, max, interacted)
-                  childOther.classList.add('active')
-                  childOther.style.backgroundColor = 'transparent'
-                  childOther.style.color = `#${color}`
-                  childOther.style.borderColor = `#${color}`
-                }
+          function check () {
+            triggered = true
+            for (let i = 0; i < controls.children.length; i += 1) {
+              let childOther = controls.children[i]
+              let color = childOther.dataset.color
+              if (!_this.isSameNode(childOther)) {
+                let btnId = childOther.dataset.toggleBtn
+                let [min, max] = self.state.ranges[idAttr]
+                let currBtn = interacted[btnId]
+                currBtn.active = true
+                setupResize.update(min, max, interacted)
+                childOther.classList.add('active')
+                childOther.style.backgroundColor = 'transparent'
+                childOther.style.color = `#${color}`
+                childOther.style.borderColor = `#${color}`
               }
             }
-
+          }
         }
 
         console.log(child)
@@ -312,11 +307,11 @@
           let btnId = target.dataset.toggleBtn
           let [min, max] = self.state.ranges[idAttr]
           let currBtn = interacted[btnId]
-          if(!triggered) {
+          if (!triggered) {
             target.classList.toggle('active')
             let isActive = target.classList.value.includes('active')
             currBtn.active = isActive
-            
+
             setupResize.update(min, max, interacted)
             if (isActive) {
               target.style.backgroundColor = 'transparent'
@@ -326,10 +321,7 @@
               setupDefaultButtonColor(target, color)
             }
           }
-
         })
-
-
       })
 
       renderLine(svg, coords, h, w)
@@ -376,7 +368,6 @@
             <div class="tooltip-item-name">${line.name}</div>
             <div class="tooltip-item-value" style="color: #${colr[line.name].tooltipText};">${line.valueX}</div>
           </li>`
-
 
             if (chartTypes === 'line') {
               let dot = document.createElementNS('http://www.w3.org/2000/svg', `circle`)
@@ -484,20 +475,20 @@
 
   }
 
-  function widthAnimationA(start, ctx) {
-  return function step(timestamp) {
-    if (!start) start = timestamp;
-    let progress = timestamp - start;
-    let limit = 280;
-    let xValue = Math.min(progress / 10, limit);
-    ctx.clearRect(0, 0, 300, 200);
+  function widthAnimationA (start, ctx) {
+    return function step (timestamp) {
+      if (!start) start = timestamp
+      let progress = timestamp - start
+      let limit = 280
+      let xValue = Math.min(progress / 10, limit)
+      ctx.clearRect(0, 0, 300, 200)
 
-    ctx.fillRect(xValue, 0, 50, 50);
-    if (xValue < limit) {
-      window.requestAnimationFrame(step);
+      ctx.fillRect(xValue, 0, 50, 50)
+      if (xValue < limit) {
+        window.requestAnimationFrame(step)
+      }
     }
-  };
-}
+  }
   function renderLine (ctx, coords, height, w, stacked) {
     ctx.save()
     coords.forEach(({ key, points, color, types, currentRangeData }) => {
@@ -612,10 +603,10 @@
 
       root.forEach((d, i) => {
         if (i === 0) {
-          if(root.length > 1) {
+          if (root.length > 1) {
             cud[idx].push({ y0: 0, y1: 0 })
           } else {
-            cud[idx].push({ y0: 0, y1:  d[idx] })
+            cud[idx].push({ y0: 0, y1: d[idx] })
           }
           y0 = d[idx]
         } else if (i === root.length - 1) {
@@ -673,7 +664,9 @@
 
     res.data = active.map(line => {
       let {
-        xRange: { max: xMax, min: xMin }
+        xRange: { max: xMax, min: xMin },
+        yRange: { max: yMaxSingle, min: yMinSingle }
+
       } = line
       res.types = line.types
 
@@ -692,8 +685,15 @@
         xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
         let yMinRange = calculateCommonRange(active, rangeMin, rangeMax).min
         let yMaxRange = calculateCommonRange(active, rangeMin, rangeMax).max
+        console.log(lines)
+        if (lines.y_scaled) {
+          console.log('F')
+          yMinRange = calculateSingleRange(line.y, rangeMin, rangeMax).min
+          yMaxRange = calculateSingleRange(line.y, rangeMin, rangeMax).max
+        }
 
         yScale = scaleLiniar([h, 0], [ yMaxRange, yMinRange ])
+
         scaleLineY = line.y.map(yScale).map(item => Math.round(item))
         scaleLine = line.x.map(xScale)
       }
@@ -788,6 +788,13 @@
     }, [])
 
     let commonMinMax = getRangeMinMax(concatYs)
+
+    return commonMinMax
+  }
+  function calculateSingleRange (arr, rangeMin, rangeMax) {
+    let getYs = arr.filter((_, idx) => idx >= rangeMin && idx <= rangeMax)
+
+    let commonMinMax = getRangeMinMax(getYs)
 
     return commonMinMax
   }
@@ -943,26 +950,26 @@
     cx.fill()
   }
   /** CANVAS DRAW SHAPE END */
-/** ANIMATION  */
+  /** ANIMATION  */
 
-/** ANIMATION END  */
+  /** ANIMATION END  */
 
   /** HELPERS */
-  function getCoords(elem) {
-    let box = elem.getBoundingClientRect();
-    let body = document.body;
-    let docEl = document.documentElement;
-    let scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
-    let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
-    let clientTop = docEl.clientTop || body.clientTop || 0;
-    let clientLeft = docEl.clientLeft || body.clientLeft || 0;
-    let top = box.top + scrollTop - clientTop;
-    let left = box.left + scrollLeft - clientLeft;
-  
+  function getCoords (elem) {
+    let box = elem.getBoundingClientRect()
+    let body = document.body
+    let docEl = document.documentElement
+    let scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop
+    let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
+    let clientTop = docEl.clientTop || body.clientTop || 0
+    let clientLeft = docEl.clientLeft || body.clientLeft || 0
+    let top = box.top + scrollTop - clientTop
+    let left = box.left + scrollLeft - clientLeft
+
     return {
       top: top,
       left: left
-    };
+    }
   }
 
   function convertMonthToString (date) {
@@ -1162,8 +1169,8 @@
         let elW = width + (resizePageX - pageX)
         let l = offset + (resizePageX - pageX)
         let r = containerWidth - (l + width)
-        
-        let maxLeft = l - (handlersWidth * 2) 
+
+        let maxLeft = l - (handlersWidth * 2)
         let maxRight = r + handlersWidth
 
         let mR = offset + handlersWidth + elW
