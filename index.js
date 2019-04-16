@@ -297,11 +297,8 @@
           }
         }
 
-        console.log(child)
-
         child.addEventListener('click', function (e) {
           e.preventDefault()
-          console.log(e)
           let target = e.target
           let color = target.dataset.color
           let btnId = target.dataset.toggleBtn
@@ -685,9 +682,7 @@
         xScale = scaleTime([0, w], [line.x[rangeMin], line.x[rangeMax - 1]])
         let yMinRange = calculateCommonRange(active, rangeMin, rangeMax).min
         let yMaxRange = calculateCommonRange(active, rangeMin, rangeMax).max
-        console.log(lines)
         if (lines.y_scaled) {
-          console.log('F')
           yMinRange = calculateSingleRange(line.y, rangeMin, rangeMax).min
           yMaxRange = calculateSingleRange(line.y, rangeMin, rangeMax).max
         }
